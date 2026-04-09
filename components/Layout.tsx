@@ -56,7 +56,7 @@ function ThemeToggle() {
 
 export default function Layout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { currentUser } = useUser();
+  const { currentUser, setUser } = useUser();
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground transition-colors duration-300">
@@ -102,6 +102,20 @@ export default function Layout({ children }: { children: ReactNode }) {
               </div>
 
               <ThemeToggle />
+              {currentUser && (
+                <button
+                  onClick={() => setUser(null)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-surface-hover text-foreground/70 hover:text-foreground transition-colors"
+                  aria-label="Switch user"
+                  title="Switch user"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
         </div>
