@@ -124,7 +124,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       {/* ── Tab Bar ── */}
       <div className="sticky top-16 z-40 bg-surface/90 backdrop-blur-sm border-b border-rose/10 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
-          <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto py-3 scrollbar-hide">
+          <div className="flex items-center justify-center gap-1 sm:gap-2 overflow-x-auto py-3 scrollbar-hide">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = pathname === tab.href;
