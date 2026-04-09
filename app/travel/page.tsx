@@ -303,7 +303,10 @@ export default function TravelPage() {
       {editingLocation && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
           <div className="bg-surface rounded-2xl shadow-xl w-full max-w-md p-6 animate-fade-in border border-border">
-            <h3 className="font-heading text-lg text-foreground mb-4">Edit Location</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-heading text-lg text-foreground">Edit Location</h3>
+              <button onClick={() => setEditingLocation(null)} className="w-8 h-8 rounded-full flex items-center justify-center text-muted hover:bg-surface-hover transition-colors">✕</button>
+            </div>
             <div className="space-y-3">
               <div>
                 <label className="text-xs font-medium text-muted mb-1 block">Name</label>

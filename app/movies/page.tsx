@@ -407,7 +407,10 @@ export default function MoviesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowAddWatchlist(false)} />
           <div className="relative bg-surface rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 animate-fade-in border border-border">
-            <h3 className="text-lg font-heading text-foreground">Add to Watchlist</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-heading text-foreground">Add to Watchlist</h3>
+              <button onClick={() => setShowAddWatchlist(false)} className="w-8 h-8 rounded-full flex items-center justify-center text-muted hover:bg-surface-hover transition-colors">✕</button>
+            </div>
             <input
               placeholder="Title"
               value={newWatchlistItem.title}

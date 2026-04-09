@@ -19,13 +19,13 @@ import {
 
 const tabs = [
   { label: 'Home', href: '/', icon: Home },
-  { label: 'Movies', href: '/movies', icon: Film },
   { label: 'Bucket List', href: '/lists', icon: ListTodo },
+  { label: 'Movies', href: '/movies', icon: Film },
   { label: 'Books', href: '/books', icon: BookOpen },
   { label: 'Recipes', href: '/recipes', icon: UtensilsCrossed },
+  { label: 'Travel', href: '/travel', icon: MapPin },
   { label: 'Wedding', href: '/wedding', icon: Heart },
   { label: 'Q&A', href: '/qa', icon: MessageCircle },
-  { label: 'Travel', href: '/travel', icon: MapPin },
   { label: 'Gifts', href: '/gifts', icon: Gift },
 ] as const;
 

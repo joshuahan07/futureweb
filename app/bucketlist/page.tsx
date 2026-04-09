@@ -300,7 +300,10 @@ export default function BucketListPage() {
         {editingItemCategory && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
             <div className="bg-surface rounded-2xl shadow-xl w-full max-w-sm p-5 animate-fade-in border border-border">
-              <h3 className="font-heading text-lg text-foreground mb-4">Move to Category</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-heading text-lg text-foreground">Move to Category</h3>
+                <button onClick={() => setEditingItemCategory(null)} className="w-8 h-8 rounded-full flex items-center justify-center text-muted hover:bg-surface-hover transition-colors">✕</button>
+              </div>
               <select value={editCatValue} onChange={(e) => { setEditCatValue(e.target.value); setEditCatCustom(''); }}
                 className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300 mb-2">
                 {allCategories.filter((c) => c !== 'All').map((c) => <option key={c} value={c}>{c}</option>)}

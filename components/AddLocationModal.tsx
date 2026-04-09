@@ -54,7 +54,10 @@ export default function AddLocationModal({ open, onClose, onAdded }: Props) {
         onSubmit={handleSubmit}
         className="bg-surface rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 space-y-4 animate-modal-in"
       >
-        <h2 className="text-xl font-bold text-foreground">Add Travel Location</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-foreground">Add Travel Location</h2>
+          <button type="button" onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-muted hover:bg-surface-hover transition-colors">✕</button>
+        </div>
 
         <div>
           <label className="block text-sm font-medium text-foreground/70 mb-1">Name</label>
