@@ -2,7 +2,7 @@
 
 import { ReactNode } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from './UserContext';
 import { useTheme } from './ThemeContext';
 import {
@@ -56,6 +56,7 @@ function ThemeToggle() {
 
 export default function Layout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { currentUser, setUser } = useUser();
 
   return (
@@ -104,7 +105,7 @@ export default function Layout({ children }: { children: ReactNode }) {
               <ThemeToggle />
               {currentUser && (
                 <button
-                  onClick={() => setUser(null)}
+                  onClick={() => { setUser(null); router.push('/'); }}
                   className="w-8 h-8 flex items-center justify-center rounded-full bg-surface-hover text-foreground/70 hover:text-foreground transition-colors"
                   aria-label="Switch user"
                   title="Switch user"
