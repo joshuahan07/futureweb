@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from './UserContext';
 import { useTheme } from './ThemeContext';
+import { usePresence } from '@/lib/presence';
 import {
   Film,
   ListTodo,
@@ -58,6 +59,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser, setUser } = useUser();
+  const onlineUsers = usePresence(currentUser);
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground transition-colors duration-300">
@@ -75,30 +77,30 @@ export default function Layout({ children }: { children: ReactNode }) {
             {/* Right side: avatars + theme */}
             <div className="flex items-center gap-3">
               {/* Joshua avatar */}
-              <div className="relative">
+              <div className="relative" title={onlineUsers.includes('joshua') ? 'Joshua is online' : 'Joshua is offline'}>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
-                  currentUser === 'joshua'
-                    ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-400 ring-offset-2 dark:ring-offset-[#0f0f11]'
+                  onlineUsers.includes('joshua')
+                    ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-400 ring-offset-2 dark:ring-offset-[#0B0F1A]'
                     : 'bg-surface-hover text-muted'
                 }`}>
                   J
                 </div>
-                {currentUser === 'joshua' && (
-                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-surface" />
+                {onlineUsers.includes('joshua') && (
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-surface animate-pulse" />
                 )}
               </div>
 
               {/* Sophie avatar */}
-              <div className="relative">
+              <div className="relative" title={onlineUsers.includes('sophie') ? 'Sophie is online' : 'Sophie is offline'}>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
-                  currentUser === 'sophie'
-                    ? 'bg-rose-100 text-rose-600 ring-2 ring-rose-400 ring-offset-2 dark:ring-offset-[#0f0f11]'
+                  onlineUsers.includes('sophie')
+                    ? 'bg-rose-100 text-rose-600 ring-2 ring-rose-400 ring-offset-2 dark:ring-offset-[#0B0F1A]'
                     : 'bg-surface-hover text-muted'
                 }`}>
                   S
                 </div>
-                {currentUser === 'sophie' && (
-                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-surface" />
+                {onlineUsers.includes('sophie') && (
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-surface animate-pulse" />
                 )}
               </div>
 
