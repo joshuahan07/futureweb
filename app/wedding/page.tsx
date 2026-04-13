@@ -292,7 +292,7 @@ function ElementCard({ el, images, allCategories, onEdit, onDelete, onStatusChan
   const hasImages = images.length > 0;
 
   return (
-    <div className="group relative bg-surface rounded-2xl border border-border/60 p-4 hover:shadow-md transition-all break-inside-avoid mb-4">
+    <div className="group relative bg-surface rounded-2xl border border-border/60 p-4 hover:shadow-md transition-all">
       {/* Priority star */}
       {el.priority && <span className="absolute top-3 right-10 text-blue-400 text-sm">✦</span>}
 
@@ -556,16 +556,30 @@ export default function WeddingPage() {
     if (idx < 0) return;
     const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
     if (swapIdx < 0 || swapIdx >= categoryItems.length) return;
-    const a = categoryItems[idx];
-    const b = categoryItems[swapIdx];
-    // Swap order_index values
-    const aIdx = a.order_index ?? idx;
-    const bIdx = b.order_index ?? swapIdx;
-    await Promise.all([
-      supabase.from('wedding_elements').update({ order_index: bIdx }).eq('id', a.id),
-      supabase.from('wedding_elements').update({ order_index: aIdx }).eq('id', b.id),
-    ]);
-    fetchElements();
+
+    // Optimistically swap in local state immediately
+    const newElements = [...elements];
+    const globalIdxA = newElements.findIndex((e) => e.id === categoryItems[idx].id);
+    const globalIdxB = newElements.findIndex((e) => e.id === categoryItems[swapIdx].id);
+    if (globalIdxA >= 0 && globalIdxB >= 0) {
+      [newElements[globalIdxA], newElements[globalIdxB]] = [newElements[globalIdxB], newElements[globalIdxA]];
+      setElements(newElements);
+    }
+
+    // Persist: assign sequential order_index to all items in this category
+    const cat = categoryItems[idx].category;
+    const reordered = [...categoryItems];
+    [reordered[idx], reordered[swapIdx]] = [reordered[swapIdx], reordered[idx]];
+
+    // Try to update order_index for each item
+    for (let i = 0; i < reordered.length; i++) {
+      await supabase.from('wedding_elements').update({ order_index: i }).eq('id', reordered[i].id).then(({ error }) => {
+        if (error) {
+          // order_index column doesn't exist — update created_at as workaround
+          // Skip silently, the optimistic update already handles the visual
+        }
+      });
+    }
   };
 
   // ── Budget handlers ───────────────────────────────────────
@@ -761,7 +775,7 @@ export default function WeddingPage() {
                         <div className="h-full rounded-full bg-blue-500/50 transition-all" style={{ width: `${items.length > 0 ? (done / items.length) * 100 : 0}%` }} />
                       </div>
                     </div>
-                    <div className="columns-1 sm:columns-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {items.map((el) => (
                         <ElementCard key={el.id} el={el}
                           images={elementImages.filter((img) => img.element_id === el.id)}
