@@ -64,11 +64,11 @@ export default function MovieCard({ movie, onEdit, onDelete, onRate, currentUser
   return (
     <div className="group relative rounded-2xl overflow-hidden bg-surface border border-border transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
       {/* Poster / Gradient placeholder */}
-      <div className="relative aspect-[2/3] max-h-64 overflow-hidden">
+      <div className="relative overflow-hidden">
         {movie.poster_url ? (
-          <img src={movie.poster_url} alt={movie.title} className="w-full h-full object-cover" />
+          <img src={movie.poster_url} alt={movie.title} className="w-full max-h-80 object-contain bg-black/5" />
         ) : (
-          <div className={`w-full h-full bg-gradient-to-br ${getGradient(movie.title)} flex items-center justify-center`}>
+          <div className={`w-full aspect-[16/9] bg-gradient-to-br ${getGradient(movie.title)} flex items-center justify-center`}>
             <span className="text-6xl font-bold text-white/80">{movie.title.charAt(0).toUpperCase()}</span>
           </div>
         )}
