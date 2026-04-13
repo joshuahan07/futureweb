@@ -26,7 +26,7 @@ export default function WantlistItem({
     <div className="group flex items-center gap-4 p-4 rounded-2xl bg-surface border border-rose-100 hover:shadow-md hover:border-rose-200 transition-all">
       {/* Priority hearts */}
       <div className="flex gap-0.5">
-        {[1, 2, 3].map((level) => (
+        {[1, 2, 3, 4, 5].map((level) => (
           <button
             key={level}
             onClick={() => onPriorityChange(item.id, level)}

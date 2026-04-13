@@ -68,7 +68,7 @@ export default function GiftCard({ item, currentUser, isOwnList }: Props) {
         <div className="flex items-start gap-2 mb-2">
           <h3 className="font-semibold text-foreground flex-1 leading-snug">{item.item}</h3>
           <div className="flex gap-0.5 shrink-0">
-            {[1, 2, 3].map((h) => (
+            {[1, 2, 3, 4, 5].map((h) => (
               <span
                 key={h}
                 className={`text-sm transition-colors duration-200 ${h <= hearts ? 'text-rose-400' : 'text-zinc-200 group-hover:text-rose-200'}`}

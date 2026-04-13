@@ -147,7 +147,7 @@ export default function AddWantModal({
               Priority
             </label>
             <div className="flex gap-1">
-              {[1, 2, 3].map((level) => (
+              {[1, 2, 3, 4, 5].map((level) => (
                 <button
                   key={level}
                   type="button"

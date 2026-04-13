@@ -31,7 +31,7 @@ const CATEGORIES = ['Beauty', 'Fashion', 'Experience', 'Tech', 'Books', 'Other']
 function PriorityHearts({ value, onChange }: { value: number; onChange?: (v: number) => void }) {
   return (
     <div className="flex gap-0.5">
-      {[1, 2, 3].map((p) => (
+      {[1, 2, 3, 4, 5].map((p) => (
         <button key={p} type="button" onClick={() => onChange?.(p)} className={onChange ? 'cursor-pointer' : 'cursor-default'}>
           <Heart className={`w-4 h-4 transition-colors ${p <= value ? 'text-rose-400 fill-rose-400' : 'text-neutral-200'}`} />
         </button>
@@ -99,7 +99,10 @@ function AddModal({ onClose, onAdd, currentUser }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
       <div className="bg-surface rounded-2xl shadow-xl w-full max-w-md p-6 animate-fade-in border border-border max-h-[90vh] overflow-y-auto">
-        <h3 className="font-heading text-xl text-foreground mb-5">Add to My Wishlist</h3>
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="font-heading text-xl text-foreground">Add to My Wishlist</h3>
+          <button type="button" onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-muted hover:bg-surface-hover transition-colors">✕</button>
+        </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input type="text" value={item} onChange={(e) => setItem(e.target.value)} required autoFocus
             placeholder="Item name" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200" />
@@ -129,6 +132,11 @@ function AddModal({ onClose, onAdd, currentUser }: {
           )}
           <input ref={fileRef} type="file" accept="image/*" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadFile(f); }} />
+          {!imageUrl && (
+            <input type="url" placeholder="Or paste image URL..."
+              onChange={(e) => { if (e.target.value.trim()) setImageUrl(e.target.value.trim()); }}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300 placeholder-muted" />
+          )}
           <div className="grid grid-cols-2 gap-3">
             <input type="number" value={priceLow} onChange={(e) => setPriceLow(e.target.value)}
               placeholder="Price from" className="px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200" />
@@ -144,7 +152,7 @@ function AddModal({ onClose, onAdd, currentUser }: {
           <div>
             <label className="text-xs font-medium text-muted mb-1 block">Priority</label>
             <div className="flex gap-1">
-              {[1, 2, 3].map((p) => (
+              {[1, 2, 3, 4, 5].map((p) => (
                 <button key={p} type="button" onClick={() => setPriority(p)} className="p-1">
                   <Heart className={`w-6 h-6 transition-colors ${p <= priority ? 'text-rose-400 fill-rose-400' : 'text-neutral-200'}`} />
                 </button>

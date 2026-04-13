@@ -142,22 +142,10 @@ export default function AddGiftModal({ open, onClose }: Props) {
 
         <div>
           <label className="block text-sm font-medium text-foreground/70 mb-1">Priority</label>
-          <div className="flex gap-2">
-            {[1, 2, 3].map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setPriority(p)}
-                className="flex gap-0.5"
-              >
-                {[1, 2, 3].map((h) => (
-                  <span
-                    key={h}
-                    className={`text-lg ${h <= p ? 'text-rose-400' : 'text-zinc-200'}`}
-                  >
-                    {'\u2665'}
-                  </span>
-                ))}
+          <div className="flex gap-1">
+            {[1, 2, 3, 4, 5].map((p) => (
+              <button key={p} type="button" onClick={() => setPriority(p)} className="p-0.5">
+                <span className={`text-xl ${p <= priority ? 'text-rose-400' : 'text-muted/30'}`}>{'\u2665'}</span>
               </button>
             ))}
           </div>
