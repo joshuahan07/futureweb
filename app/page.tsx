@@ -115,14 +115,14 @@ interface RecentItem {
 
 function Dashboard() {
   const { currentUser } = useUser();
-  const [recentMovies, setRecentMovies] = useState<{ title: string; rating: number | null }[]>([]);
+  const [recentMovies, setRecentMovies] = useState<{ title: string; rating_joshua: number | null; rating_sophie: number | null }[]>([]);
   const [bucketItems, setBucketItems] = useState<{ text: string; emoji: string | null }[]>([]);
   const [recentActivity, setRecentActivity] = useState<RecentItem[]>([]);
   const [stats, setStats] = useState({ movies: 0, books: 0, bucketDone: 0, bucketTotal: 0, recipes: 0 });
 
   const fetchData = useCallback(async () => {
     const [moviesRes, bucketRes, bucketAll, booksRes, recipesRes] = await Promise.all([
-      supabase.from('movies').select('title, rating').eq('watched', true).order('date_watched', { ascending: false }).limit(5),
+      supabase.from('movies').select('title, rating_joshua, rating_sophie').order('created_at', { ascending: false }).limit(5),
       supabase.from('bucket_list').select('text, emoji').eq('completed', false).limit(5),
       supabase.from('bucket_list').select('completed'),
       supabase.from('books').select('id'),
@@ -211,11 +211,10 @@ function Dashboard() {
               {recentMovies.map((m, i) => (
                 <li key={i} className="flex items-center justify-between text-sm">
                   <span className="text-foreground/80">{m.title}</span>
-                  {m.rating && (
-                    <span className="text-rose text-xs">
-                      {'★'.repeat(m.rating)}{'☆'.repeat(5 - m.rating)}
-                    </span>
-                  )}
+                  <span className="text-xs text-muted flex gap-2">
+                    {m.rating_joshua != null && <span className="text-blue-400">J: {m.rating_joshua}/10</span>}
+                    {m.rating_sophie != null && <span className="text-rose">S: {m.rating_sophie}/10</span>}
+                  </span>
                 </li>
               ))}
             </ul>

@@ -105,18 +105,19 @@ function ImageDropZone({ imageUrl, onImageChange }: {
 
 // ── Add Recipe Modal ────────────────────────────────────────
 
-function AddRecipeModal({ onClose, onAdd, existingCuisines }: {
+function RecipeModal({ onClose, onSave, existingCuisines, editDish }: {
   onClose: () => void;
-  onAdd: (dish: Omit<DishItem, 'id' | 'created_at'>) => void;
+  onSave: (dish: Omit<DishItem, 'id' | 'created_at'>) => void;
   existingCuisines: string[];
+  editDish?: DishItem | null;
 }) {
-  const [name, setName] = useState('');
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [ingredients, setIngredients] = useState('');
-  const [videoUrl, setVideoUrl] = useState('');
-  const [difficulty, setDifficulty] = useState<DishItem['difficulty']>('easy');
-  const [servings, setServings] = useState('2');
-  const [cuisine, setCuisine] = useState('Other');
+  const [name, setName] = useState(editDish?.name || '');
+  const [imageUrl, setImageUrl] = useState<string | null>(editDish?.image_url || null);
+  const [ingredients, setIngredients] = useState(editDish?.ingredients || '');
+  const [videoUrl, setVideoUrl] = useState(editDish?.video_url || '');
+  const [difficulty, setDifficulty] = useState<DishItem['difficulty']>(editDish?.difficulty || 'easy');
+  const [servings, setServings] = useState(String(editDish?.servings || '2'));
+  const [cuisine, setCuisine] = useState(editDish?.cuisine || 'Other');
   const [customCuisine, setCustomCuisine] = useState('');
 
   const allCuisines = [...new Set([...DEFAULT_CUISINES, ...existingCuisines])];
@@ -126,7 +127,7 @@ function AddRecipeModal({ onClose, onAdd, existingCuisines }: {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
       <div className="bg-surface rounded-2xl shadow-xl w-full max-w-lg p-6 animate-fade-in border border-border max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="font-heading text-xl text-foreground">Add Recipe</h3>
+          <h3 className="font-heading text-xl text-foreground">{editDish ? 'Edit Recipe' : 'Add Recipe'}</h3>
           <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-muted hover:bg-surface-hover transition-colors">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -193,10 +194,10 @@ function AddRecipeModal({ onClose, onAdd, existingCuisines }: {
           <button
             onClick={() => {
               if (!name.trim()) return;
-              onAdd({
+              onSave({
                 name: name.trim(), image_url: imageUrl, ingredients: ingredients.trim() || null,
                 video_url: videoUrl.trim() || null, difficulty, servings: servings ? parseInt(servings) : null,
-                cuisine: finalCuisine || null, made_it: false, made_date: null,
+                cuisine: finalCuisine || null, made_it: editDish?.made_it ?? false, made_date: editDish?.made_date ?? null,
               });
               onClose();
             }}
@@ -205,7 +206,7 @@ function AddRecipeModal({ onClose, onAdd, existingCuisines }: {
               name.trim() ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-surface-hover text-muted cursor-not-allowed'
             }`}
           >
-            Add Recipe
+            {editDish ? 'Save Changes' : 'Add Recipe'}
           </button>
         </div>
       </div>
@@ -250,10 +251,11 @@ function EditCuisineModal({ dish, allCuisines, onSave, onClose }: {
 
 // ── Recipe Card ─────────────────────────────────────────────
 
-function RecipeCard({ dish, onToggle, onDelete, onEditCuisine }: {
+function RecipeCard({ dish, onToggle, onDelete, onEditCuisine, onEdit }: {
   dish: DishItem;
   onToggle: () => void;
   onDelete: () => void;
+  onEdit: () => void;
   onEditCuisine: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -318,6 +320,7 @@ function RecipeCard({ dish, onToggle, onDelete, onEditCuisine }: {
             className="text-[10px] px-2 py-1 rounded-full bg-surface-hover text-muted hover:text-foreground transition-colors">
             {expanded ? 'Less' : 'More'}
           </button>
+          <button onClick={onEdit} className="text-[10px] px-2 py-1 rounded-full bg-surface-hover text-muted hover:text-blue-500 transition-colors">Edit</button>
           <button onClick={onDelete} className="ml-auto text-muted hover:text-red-400 text-xs transition-colors">Delete</button>
         </div>
       </div>
@@ -330,6 +333,7 @@ function RecipeCard({ dish, onToggle, onDelete, onEditCuisine }: {
 export default function RecipesPage() {
   const [dishes, setDishes] = useState<DishItem[]>([]);
   const [showAdd, setShowAdd] = useState(false);
+  const [editingDish, setEditingDish] = useState<DishItem | null>(null);
   const [editingCuisine, setEditingCuisine] = useState<DishItem | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [filterCuisine, setFilterCuisine] = useState<string>('all');
@@ -357,8 +361,14 @@ export default function RecipesPage() {
     await fetchDishes();
   };
 
-  const addDish = async (dish: Omit<DishItem, 'id' | 'created_at'>) => {
-    await supabase.from('dishes').insert(dish);
+  const saveDish = async (dish: Omit<DishItem, 'id' | 'created_at'>) => {
+    if (editingDish) {
+      await supabase.from('dishes').update(dish).eq('id', editingDish.id);
+      setEditingDish(null);
+    } else {
+      await supabase.from('dishes').insert(dish);
+    }
+    setShowAdd(false);
     await fetchDishes();
   };
 
@@ -441,6 +451,7 @@ export default function RecipesPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {filtered.map((dish) => (
             <RecipeCard key={dish.id} dish={dish} onToggle={() => toggleDish(dish)} onDelete={() => deleteDish(dish.id)}
+              onEdit={() => { setEditingDish(dish); setShowAdd(true); }}
               onEditCuisine={() => setEditingCuisine(dish)} />
           ))}
         </div>
@@ -449,7 +460,7 @@ export default function RecipesPage() {
         )}
       </div>
 
-      {showAdd && <AddRecipeModal onClose={() => setShowAdd(false)} onAdd={addDish} existingCuisines={cuisines} />}
+      {showAdd && <RecipeModal onClose={() => { setShowAdd(false); setEditingDish(null); }} onSave={saveDish} existingCuisines={cuisines} editDish={editingDish} />}
       {editingCuisine && <EditCuisineModal dish={editingCuisine} allCuisines={cuisines} onSave={updateCuisine} onClose={() => setEditingCuisine(null)} />}
     </Layout>
   );
