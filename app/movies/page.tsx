@@ -55,7 +55,13 @@ export default function MoviesPage() {
       .from('movies')
       .select('*')
       .order('created_at', { ascending: false });
-    if (data) setMovies(data);
+    if (data) setMovies(data.map((m: any) => ({
+      id: m.id, title: m.title, type: m.type, created_at: m.created_at,
+      watched: m.watched != null ? m.watched : (m.status === 'watched'),
+      date_watched: m.date_watched ?? m.watched_date ?? null,
+      added_by: m.added_by ?? m.created_by ?? null,
+      rating: m.rating ?? 0, notes: m.notes ?? '', poster_url: m.poster_url ?? null,
+    } as Movie)));
     setLoading(false);
   }, []);
 
@@ -76,9 +82,21 @@ export default function MoviesPage() {
 
   const handleSave = async (movie: Omit<Movie, 'id' | 'created_at'>) => {
     if (editingMovie) {
-      await supabase.from('movies').update(movie).eq('id', editingMovie.id);
+      const { error } = await supabase.from('movies').update(movie).eq('id', editingMovie.id);
+      if (error) console.error('Update movie error:', error.message);
     } else {
-      await supabase.from('movies').insert(movie);
+      // Try with all columns first, fall back to basic columns
+      const { error } = await supabase.from('movies').insert(movie);
+      if (error) {
+        console.error('Insert movie error:', error.message);
+        // Fallback: use old column names
+        const { error: e2 } = await supabase.from('movies').insert({
+          title: movie.title, type: movie.type, status: movie.watched ? 'watched' : 'want_to_watch',
+          watched_date: movie.date_watched, rating: movie.rating, notes: movie.notes,
+          poster_url: movie.poster_url, created_by: movie.added_by,
+        });
+        if (e2) console.error('Fallback insert error:', e2.message);
+      }
     }
     setEditingMovie(null);
     fetchMovies();
