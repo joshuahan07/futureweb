@@ -61,6 +61,8 @@ export default function MoviesPage() {
       date_watched: m.date_watched ?? m.watched_date ?? null,
       added_by: m.added_by ?? m.created_by ?? null,
       rating: m.rating ?? 0, notes: m.notes ?? '', poster_url: m.poster_url ?? null,
+      rating_joshua: m.rating_joshua ?? null,
+      rating_sophie: m.rating_sophie ?? null,
     } as Movie)));
     setLoading(false);
   }, []);
@@ -111,8 +113,13 @@ export default function MoviesPage() {
     fetchMovies();
   };
 
-  const handleToggleWatched = async (id: string, watched: boolean) => {
-    await supabase.from('movies').update({ watched }).eq('id', id);
+  const handleRate = async (id: string, person: 'joshua' | 'sophie', rating: number) => {
+    const col = person === 'joshua' ? 'rating_joshua' : 'rating_sophie';
+    const { error } = await supabase.from('movies').update({ [col]: rating }).eq('id', id);
+    if (error) {
+      // Fallback: update the single rating column
+      await supabase.from('movies').update({ rating }).eq('id', id);
+    }
     fetchMovies();
   };
 
@@ -161,6 +168,9 @@ export default function MoviesPage() {
       new Date(a.date_watched || a.created_at).getTime()
     );
   });
+
+  // Only show watched movies in "Our Movies" tab
+  const displayMovies = sorted.filter((m) => m.watched);
 
   // Stats
   const totalWatched = movies.filter((m) => m.watched).length;
@@ -292,66 +302,29 @@ export default function MoviesPage() {
             </button>
           </div>
 
-          {/* Content */}
+          {/* Content — Our Movies tab only shows watched */}
           {loading ? (
             <div className="flex justify-center py-20">
-              <div className="w-8 h-8 border-2 border-rose border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
             </div>
-          ) : sorted.length === 0 ? (
+          ) : displayMovies.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <span className="text-5xl mb-4">🎬</span>
               <h3 className="text-lg font-semibold text-foreground mb-1">No movies yet</h3>
               <p className="text-sm text-muted">Add your first one together</p>
             </div>
           ) : (
-            <div className="space-y-8">
-              {sorted.filter((m) => !m.watched).length > 0 && (
-                <div>
-                  <h2 className="text-sm font-semibold text-muted uppercase tracking-wider mb-4">
-                    Watch Next
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {sorted
-                      .filter((m) => !m.watched)
-                      .map((movie) => (
-                        <MovieCard
-                          key={movie.id}
-                          movie={movie}
-                          onEdit={(m) => {
-                            setEditingMovie(m);
-                            setIsModalOpen(true);
-                          }}
-                          onDelete={handleDelete}
-                          onToggleWatched={handleToggleWatched}
-                        />
-                      ))}
-                  </div>
-                </div>
-              )}
-
-              {sorted.filter((m) => m.watched).length > 0 && (
-                <div>
-                  <h2 className="text-sm font-semibold text-muted uppercase tracking-wider mb-4">
-                    Watched Together
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {sorted
-                      .filter((m) => m.watched)
-                      .map((movie) => (
-                        <MovieCard
-                          key={movie.id}
-                          movie={movie}
-                          onEdit={(m) => {
-                            setEditingMovie(m);
-                            setIsModalOpen(true);
-                          }}
-                          onDelete={handleDelete}
-                          onToggleWatched={handleToggleWatched}
-                        />
-                      ))}
-                  </div>
-                </div>
-              )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {displayMovies.map((movie) => (
+                <MovieCard
+                  key={movie.id}
+                  movie={movie}
+                  onEdit={(m) => { setEditingMovie(m); setIsModalOpen(true); }}
+                  onDelete={handleDelete}
+                  onRate={handleRate}
+                  currentUser={currentUser}
+                />
+              ))}
             </div>
           )}
         </div>
@@ -424,7 +397,8 @@ export default function MoviesPage() {
           }}
           onSave={handleSave}
           editMovie={editingMovie}
-          currentUser={currentUser}
+          currentUser={currentUser!}
+          forceWatched={activeTab === 'movies' ? true : undefined}
         />
       )}
 

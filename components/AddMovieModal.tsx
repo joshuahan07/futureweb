@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
-import StarRating from './StarRating';
 import type { Movie } from './MovieCard';
 
 interface AddMovieModalProps {
@@ -11,10 +10,11 @@ interface AddMovieModalProps {
   onSave: (movie: Omit<Movie, 'id' | 'created_at'>) => void;
   editMovie?: Movie | null;
   currentUser: 'joshua' | 'sophie';
+  forceWatched?: boolean; // true when adding from "Our Movies" tab
 }
 
 export default function AddMovieModal({
-  isOpen, onClose, onSave, editMovie, currentUser,
+  isOpen, onClose, onSave, editMovie, currentUser, forceWatched,
 }: AddMovieModalProps) {
   const [title, setTitle] = useState('');
   const [type, setType] = useState<'movie' | 'show'>('movie');
@@ -63,7 +63,8 @@ export default function AddMovieModal({
     onSave({
       title: title.trim(), type, date_watched: dateWatched || null, rating,
       notes: notes.trim(), poster_url: posterUrl.trim() || null,
-      added_by: editMovie?.added_by || currentUser, watched,
+      added_by: editMovie?.added_by || currentUser,
+      watched: forceWatched ?? watched,
     });
     onClose();
   };
@@ -142,24 +143,22 @@ export default function AddMovieModal({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-muted mb-1">Rating</label>
-            <StarRating rating={rating} onRate={setRating} size="lg" />
-          </div>
-
-          <div>
             <label className="block text-xs font-medium text-muted mb-1">Notes</label>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)}
               placeholder="Thoughts, favorite scenes, would rewatch..." rows={3}
               className="w-full px-3 py-2.5 rounded-xl bg-background text-foreground placeholder-muted border border-border focus:border-blue-400 focus:outline-none transition-colors resize-none" />
           </div>
 
-          <label className="flex items-center gap-3 cursor-pointer">
-            <div className={`w-11 h-6 rounded-full relative transition-colors ${watched ? 'bg-blue-500' : 'bg-surface-hover border border-border'}`}
-              onClick={() => setWatched(!watched)}>
-              <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-surface shadow transition-transform ${watched ? 'translate-x-5' : 'translate-x-0.5'}`} />
-            </div>
-            <span className="text-sm text-muted">Already watched together</span>
-          </label>
+          {/* Only show toggle when NOT forced (i.e. editing or generic context) */}
+          {forceWatched == null && (
+            <label className="flex items-center gap-3 cursor-pointer">
+              <div className={`w-11 h-6 rounded-full relative transition-colors ${watched ? 'bg-blue-500' : 'bg-surface-hover border border-border'}`}
+                onClick={() => setWatched(!watched)}>
+                <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-surface shadow transition-transform ${watched ? 'translate-x-5' : 'translate-x-0.5'}`} />
+              </div>
+              <span className="text-sm text-muted">Already watched together</span>
+            </label>
+          )}
 
           <button type="submit" disabled={!title.trim()}
             className={`w-full py-3 rounded-xl font-medium transition-colors ${
