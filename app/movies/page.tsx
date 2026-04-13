@@ -61,7 +61,7 @@ export default function MoviesPage() {
       date_watched: m.date_watched ?? m.watched_date ?? null,
       added_by: m.added_by ?? m.created_by ?? null,
       rating: m.rating ?? 0, notes: m.notes ?? '', poster_url: m.poster_url ?? null,
-      date_has_day: m.date_has_day ?? true,
+      poster_position: m.poster_position ?? 'center', date_has_day: m.date_has_day ?? true,
       rating_joshua: m.rating_joshua ?? null,
       rating_sophie: m.rating_sophie ?? null,
     } as Movie)));
@@ -91,7 +91,8 @@ export default function MoviesPage() {
     // Build row with both new and old column names for compatibility
     const newRow: Record<string, unknown> = {
       title: movie.title, type: movie.type, rating: movie.rating || null, notes: movie.notes,
-      poster_url: movie.poster_url, date_has_day: movie.date_has_day ?? true,
+      poster_url: movie.poster_url, poster_position: movie.poster_position || 'center',
+      date_has_day: movie.date_has_day ?? true,
       // New columns
       watched: movie.watched, date_watched: movie.date_watched, added_by: movie.added_by,
       // Old columns
@@ -102,7 +103,8 @@ export default function MoviesPage() {
     if (editingMovie) {
       // Try new cols first
       let { error } = await supabase.from('movies').update({
-        title: movie.title, type: movie.type, notes: movie.notes, poster_url: movie.poster_url,
+        title: movie.title, type: movie.type, notes: movie.notes,
+        poster_url: movie.poster_url, poster_position: movie.poster_position || 'center',
         watched: movie.watched, date_watched: movie.date_watched, rating: movie.rating || null,
         date_has_day: movie.date_has_day ?? true,
       }).eq('id', editingMovie.id);

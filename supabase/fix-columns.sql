@@ -11,6 +11,7 @@ ALTER TABLE movies ADD COLUMN IF NOT EXISTS added_by text;
 ALTER TABLE movies ADD COLUMN IF NOT EXISTS rating_joshua smallint;
 ALTER TABLE movies ADD COLUMN IF NOT EXISTS rating_sophie smallint;
 ALTER TABLE movies ADD COLUMN IF NOT EXISTS date_has_day boolean DEFAULT true;
+ALTER TABLE movies ADD COLUMN IF NOT EXISTS poster_position text DEFAULT 'center';
 
 -- Sync existing data: copy status -> watched, watched_date -> date_watched
 UPDATE movies SET watched = (status = 'watched') WHERE watched IS NULL OR watched = false;

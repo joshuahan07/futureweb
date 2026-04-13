@@ -11,6 +11,7 @@ export interface Movie {
   rating_sophie?: number | null;
   notes: string;
   poster_url: string | null;
+  poster_position?: string | null;
   added_by: 'joshua' | 'sophie';
   watched: boolean;
   created_at: string;
@@ -68,11 +69,13 @@ export default function MovieCard({ movie, onEdit, onDelete, onRate, currentUser
   return (
     <div className="group relative rounded-2xl overflow-hidden bg-surface border border-border transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
       {/* Poster / Gradient placeholder */}
-      <div className="relative overflow-hidden">
+      <div className="relative h-48 overflow-hidden">
         {movie.poster_url ? (
-          <img src={movie.poster_url} alt={movie.title} className="w-full max-h-80 object-contain bg-black/5" />
+          <img src={movie.poster_url} alt={movie.title}
+            className="w-full h-full object-cover"
+            style={{ objectPosition: movie.poster_position || 'center' }} />
         ) : (
-          <div className={`w-full aspect-[16/9] bg-gradient-to-br ${getGradient(movie.title)} flex items-center justify-center`}>
+          <div className={`w-full h-full bg-gradient-to-br ${getGradient(movie.title)} flex items-center justify-center`}>
             <span className="text-6xl font-bold text-white/80">{movie.title.charAt(0).toUpperCase()}</span>
           </div>
         )}

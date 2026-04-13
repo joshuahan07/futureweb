@@ -23,6 +23,7 @@ export default function AddMovieModal({
   const [notes, setNotes] = useState('');
   const [posterUrl, setPosterUrl] = useState('');
   const [watched, setWatched] = useState(false);
+  const [posterPosition, setPosterPosition] = useState('center');
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -35,10 +36,11 @@ export default function AddMovieModal({
       setRating(editMovie.rating);
       setNotes(editMovie.notes);
       setPosterUrl(editMovie.poster_url || '');
+      setPosterPosition(editMovie.poster_position || 'center');
       setWatched(editMovie.watched);
     } else {
       setTitle(''); setType('movie'); setDateWatched(''); setRating(0);
-      setNotes(''); setPosterUrl(''); setWatched(false);
+      setNotes(''); setPosterUrl(''); setPosterPosition('center'); setWatched(false);
     }
   }, [editMovie, isOpen]);
 
@@ -65,7 +67,7 @@ export default function AddMovieModal({
       date_watched: dateWatched ? (dateWatched.length <= 7 ? dateWatched + '-01' : dateWatched) : null,
       date_has_day: dateWatched ? dateWatched.length > 7 : undefined,
       rating: rating || 0,
-      notes: notes.trim(), poster_url: posterUrl.trim() || null,
+      notes: notes.trim(), poster_url: posterUrl.trim() || null, poster_position: posterPosition,
       added_by: editMovie?.added_by || currentUser,
       watched: forceWatched ?? watched,
     });
@@ -109,10 +111,27 @@ export default function AddMovieModal({
           <div>
             <label className="block text-xs font-medium text-muted mb-1">Poster Image</label>
             {posterUrl ? (
-              <div className="relative rounded-xl overflow-hidden h-36">
-                <img src={posterUrl} alt="" className="w-full h-full object-cover" />
-                <button type="button" onClick={() => setPosterUrl('')}
-                  className="absolute top-2 right-2 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center text-white text-xs hover:bg-black/70">✕</button>
+              <div>
+                <div className="relative rounded-xl overflow-hidden h-36">
+                  <img src={posterUrl} alt="" className="w-full h-full object-cover" style={{ objectPosition: posterPosition }} />
+                  <button type="button" onClick={() => setPosterUrl('')}
+                    className="absolute top-2 right-2 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center text-white text-xs hover:bg-black/70">✕</button>
+                </div>
+                <div className="flex items-center gap-1 mt-2">
+                  <span className="text-[10px] text-muted mr-1">Crop focus:</span>
+                  {['top', 'center', 'bottom'].map((pos) => (
+                    <button key={pos} type="button" onClick={() => setPosterPosition(pos)}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-medium capitalize transition-colors ${
+                        posterPosition === pos ? 'bg-blue-100 text-blue-600' : 'bg-surface-hover text-muted'
+                      }`}>{pos}</button>
+                  ))}
+                  {['left', 'right'].map((pos) => (
+                    <button key={pos} type="button" onClick={() => setPosterPosition(pos)}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-medium capitalize transition-colors ${
+                        posterPosition === pos ? 'bg-blue-100 text-blue-600' : 'bg-surface-hover text-muted'
+                      }`}>{pos}</button>
+                  ))}
+                </div>
               </div>
             ) : (
               <div
