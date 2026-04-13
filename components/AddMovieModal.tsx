@@ -112,26 +112,59 @@ export default function AddMovieModal({
             <label className="block text-xs font-medium text-muted mb-1">Poster Image</label>
             {posterUrl ? (
               <div>
-                <div className="relative rounded-xl overflow-hidden h-36">
-                  <img src={posterUrl} alt="" className="w-full h-full object-cover" style={{ objectPosition: posterPosition }} />
-                  <button type="button" onClick={() => setPosterUrl('')}
-                    className="absolute top-2 right-2 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center text-white text-xs hover:bg-black/70">✕</button>
+                <div className="relative rounded-xl overflow-hidden h-36 cursor-grab active:cursor-grabbing select-none"
+                  onMouseDown={(e) => {
+                    const container = e.currentTarget;
+                    const startY = e.clientY;
+                    // Parse current Y% from posterPosition (e.g. "50%" or "center")
+                    let currentY = 50;
+                    const match = posterPosition.match(/(\d+)%/);
+                    if (match) currentY = parseInt(match[1]);
+                    else if (posterPosition === 'top') currentY = 0;
+                    else if (posterPosition === 'bottom') currentY = 100;
+
+                    const onMove = (ev: MouseEvent) => {
+                      const dy = ev.clientY - startY;
+                      const pct = Math.max(0, Math.min(100, currentY - (dy / container.clientHeight) * 100));
+                      setPosterPosition(`50% ${Math.round(pct)}%`);
+                    };
+                    const onUp = () => {
+                      document.removeEventListener('mousemove', onMove);
+                      document.removeEventListener('mouseup', onUp);
+                    };
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
+                  }}
+                  onTouchStart={(e) => {
+                    const container = e.currentTarget;
+                    const startY = e.touches[0].clientY;
+                    let currentY = 50;
+                    const match = posterPosition.match(/(\d+)%/);
+                    if (match) currentY = parseInt(match[1]);
+                    else if (posterPosition === 'top') currentY = 0;
+                    else if (posterPosition === 'bottom') currentY = 100;
+
+                    const onMove = (ev: TouchEvent) => {
+                      const dy = ev.touches[0].clientY - startY;
+                      const pct = Math.max(0, Math.min(100, currentY - (dy / container.clientHeight) * 100));
+                      setPosterPosition(`50% ${Math.round(pct)}%`);
+                    };
+                    const onEnd = () => {
+                      document.removeEventListener('touchmove', onMove);
+                      document.removeEventListener('touchend', onEnd);
+                    };
+                    document.addEventListener('touchmove', onMove);
+                    document.addEventListener('touchend', onEnd);
+                  }}
+                >
+                  <img src={posterUrl} alt="" className="w-full h-full object-cover pointer-events-none" style={{ objectPosition: posterPosition }} />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20">
+                    <span className="text-white text-xs font-medium bg-black/50 px-2 py-1 rounded-full">Drag to reposition</span>
+                  </div>
+                  <button type="button" onClick={(e) => { e.stopPropagation(); setPosterUrl(''); }}
+                    className="absolute top-2 right-2 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center text-white text-xs hover:bg-black/70 z-10">✕</button>
                 </div>
-                <div className="flex items-center gap-1 mt-2">
-                  <span className="text-[10px] text-muted mr-1">Crop focus:</span>
-                  {['top', 'center', 'bottom'].map((pos) => (
-                    <button key={pos} type="button" onClick={() => setPosterPosition(pos)}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-medium capitalize transition-colors ${
-                        posterPosition === pos ? 'bg-blue-100 text-blue-600' : 'bg-surface-hover text-muted'
-                      }`}>{pos}</button>
-                  ))}
-                  {['left', 'right'].map((pos) => (
-                    <button key={pos} type="button" onClick={() => setPosterPosition(pos)}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-medium capitalize transition-colors ${
-                        posterPosition === pos ? 'bg-blue-100 text-blue-600' : 'bg-surface-hover text-muted'
-                      }`}>{pos}</button>
-                  ))}
-                </div>
+                <p className="text-[10px] text-muted mt-1">Drag image up or down to adjust crop position</p>
               </div>
             ) : (
               <div
