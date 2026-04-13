@@ -87,21 +87,39 @@ export default function MoviesPage() {
   useRealtimeSync('watchlist', fetchWatchlist);
 
   const handleSave = async (movie: Omit<Movie, 'id' | 'created_at'>) => {
+    // Build row with both new and old column names for compatibility
+    const newRow: Record<string, unknown> = {
+      title: movie.title, type: movie.type, rating: movie.rating, notes: movie.notes,
+      poster_url: movie.poster_url,
+      // New columns
+      watched: movie.watched, date_watched: movie.date_watched, added_by: movie.added_by,
+      // Old columns
+      status: movie.watched ? 'watched' : 'want_to_watch',
+      watched_date: movie.date_watched, created_by: movie.added_by,
+    };
+
     if (editingMovie) {
-      const { error } = await supabase.from('movies').update(movie).eq('id', editingMovie.id);
-      if (error) console.error('Update movie error:', error.message);
-    } else {
-      // Try with all columns first, fall back to basic columns
-      const { error } = await supabase.from('movies').insert(movie);
+      // Try new cols first
+      let { error } = await supabase.from('movies').update({
+        title: movie.title, type: movie.type, notes: movie.notes, poster_url: movie.poster_url,
+        watched: movie.watched, date_watched: movie.date_watched, rating: movie.rating,
+      }).eq('id', editingMovie.id);
       if (error) {
-        console.error('Insert movie error:', error.message);
-        // Fallback: use old column names
-        const { error: e2 } = await supabase.from('movies').insert({
+        // Fallback: old column names only
+        await supabase.from('movies').update({
+          title: movie.title, type: movie.type, notes: movie.notes, poster_url: movie.poster_url,
+          status: movie.watched ? 'watched' : 'want_to_watch', watched_date: movie.date_watched, rating: movie.rating,
+        }).eq('id', editingMovie.id);
+      }
+    } else {
+      const { error } = await supabase.from('movies').insert(newRow);
+      if (error) {
+        // Fallback: old columns only
+        await supabase.from('movies').insert({
           title: movie.title, type: movie.type, status: movie.watched ? 'watched' : 'want_to_watch',
           watched_date: movie.date_watched, rating: movie.rating, notes: movie.notes,
           poster_url: movie.poster_url, created_by: movie.added_by,
         });
-        if (e2) console.error('Fallback insert error:', e2.message);
       }
     }
     setEditingMovie(null);
@@ -130,7 +148,13 @@ export default function MoviesPage() {
   };
 
   const handleWatchlistUpdate = async (id: string, updates: Partial<WatchlistEntry>) => {
-    await supabase.from('watchlist').update(updates).eq('id', id);
+    const { error } = await supabase.from('watchlist').update(updates).eq('id', id);
+    if (error) {
+      // Fallback: only send columns that likely exist
+      const safe: Record<string, unknown> = { title: updates.title, type: updates.type, notes: updates.notes };
+      if (updates.watched != null) safe.status = updates.watched ? 'watched' : 'want';
+      await supabase.from('watchlist').update(safe).eq('id', id);
+    }
     fetchWatchlist();
   };
 

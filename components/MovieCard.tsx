@@ -42,18 +42,20 @@ function formatDate(dateStr: string | null) {
 function RatingBar({ value, label, color, onRate }: { value: number | null; label: string; color: string; onRate?: (r: number) => void }) {
   return (
     <div className="flex items-center gap-2">
-      <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white ${color}`}>{label}</span>
+      <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0 ${color}`}>{label}</span>
       <div className="flex gap-0.5">
         {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
           <button key={n} onClick={() => onRate?.(n)} disabled={!onRate}
-            className={`w-4 h-4 rounded-sm text-[8px] font-medium transition-colors ${
-              value && n <= value ? 'bg-blue-400 text-white' : 'bg-surface-hover text-muted/40'
-            } ${onRate ? 'hover:bg-blue-300 cursor-pointer' : 'cursor-default'}`}>
+            className={`w-5 h-5 rounded text-[9px] font-bold transition-colors ${
+              value && n <= value
+                ? label === 'J' ? 'bg-blue-500 text-white' : 'bg-rose-400 text-white'
+                : 'bg-border text-foreground/30'
+            } ${onRate ? 'hover:bg-blue-400 hover:text-white cursor-pointer' : 'cursor-default'}`}>
             {n}
           </button>
         ))}
       </div>
-      {value ? <span className="text-xs font-semibold text-foreground">{value}/10</span> : <span className="text-[10px] text-muted italic">—</span>}
+      {value ? <span className="text-xs font-bold text-foreground">{value}<span className="text-muted font-normal">/10</span></span> : <span className="text-[10px] text-muted italic">—</span>}
     </div>
   );
 }

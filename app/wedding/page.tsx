@@ -490,7 +490,11 @@ export default function WeddingPage() {
   const handleSaveElement = async (data: Omit<WeddingElement, 'id' | 'created_at' | 'created_by'>, newImageUrls: string[]) => {
     let elementId: string | null = null;
     if (editingElement) {
-      await supabase.from('wedding_elements').update(data).eq('id', editingElement.id);
+      const { error } = await supabase.from('wedding_elements').update({
+        title: data.title, category: data.category, description: data.description,
+        status: data.status, priority: data.priority,
+      }).eq('id', editingElement.id);
+      if (error) console.error('Update element error:', error.message);
       elementId = editingElement.id;
     } else {
       const { data: inserted, error } = await supabase.from('wedding_elements').insert({ ...data, created_by: currentUser }).select('id').single();
