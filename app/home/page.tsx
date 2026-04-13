@@ -11,12 +11,12 @@ import HomeItem, { HomeItemType } from '@/components/HomeItem';
 
 // ── Seed Data ────────────────────────────────────────────────────
 
-const SEED_ITEMS: Omit<HomeItemType, 'id' | 'created_at'>[] = [
-  { name: 'Giant Teddy Bear', category: 'Decor', status: 'want', notes: 'The really big one from Costco' },
-  { name: 'Human Dog Bed', category: 'Furniture', status: 'want', notes: 'For movie nights' },
-  { name: 'Shower Bench', category: 'Bathroom', status: 'want', notes: 'Teak wood bench' },
-  { name: 'Hidden Library Door', category: 'Furniture', status: 'want', notes: 'Secret bookshelf door' },
-  { name: 'Oversized Rocking Chair', category: 'Furniture', status: 'want', notes: 'Big enough for two' },
+const SEED_ITEMS = [
+  { title: 'Giant Teddy Bear', name: 'Giant Teddy Bear', category: 'Decor', status: 'want', notes: 'The really big one from Costco' },
+  { title: 'Human Dog Bed', name: 'Human Dog Bed', category: 'Furniture', status: 'want', notes: 'For movie nights' },
+  { title: 'Shower Bench', name: 'Shower Bench', category: 'Bathroom', status: 'want', notes: 'Teak wood bench' },
+  { title: 'Hidden Library Door', name: 'Hidden Library Door', category: 'Furniture', status: 'want', notes: 'Secret bookshelf door' },
+  { title: 'Oversized Rocking Chair', name: 'Oversized Rocking Chair', category: 'Furniture', status: 'want', notes: 'Big enough for two' },
 ];
 
 const CATEGORIES = ['Furniture', 'Decor', 'Kitchen', 'Bedroom', 'Bathroom', 'Other'];
@@ -168,7 +168,7 @@ export default function HomePage() {
       .from('home_items')
       .select('*')
       .order('created_at', { ascending: true });
-    if (data) setItems(data);
+    if (data) setItems(data.map((d: any) => ({ ...d, name: d.name ?? d.title ?? '' })));
     return data;
   }, []);
 
@@ -200,13 +200,16 @@ export default function HomePage() {
   // ── Item handlers ────────────────────────────────────────────
 
   const addItem = async (item: Omit<HomeItemType, 'id' | 'created_at'>) => {
-    await supabase.from('home_items').insert(item);
+    // Send both name and title for DB compat
+    const row = { ...item, title: item.name, name: item.name };
+    const { error } = await supabase.from('home_items').insert(row);
+    if (error) await supabase.from('home_items').insert({ ...item, title: item.name });
     await fetchItems();
   };
 
   const updateItem = async (item: HomeItemType) => {
     const { id, created_at, ...updates } = item;
-    await supabase.from('home_items').update(updates).eq('id', id);
+    await supabase.from('home_items').update({ ...updates, title: updates.name }).eq('id', id);
     await fetchItems();
   };
 

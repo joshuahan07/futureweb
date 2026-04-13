@@ -67,7 +67,11 @@ export default function MoviesPage() {
 
   const fetchWatchlist = useCallback(async () => {
     const { data } = await supabase.from('watchlist').select('*').order('created_at', { ascending: true });
-    if (data) setWatchlist(data);
+    if (data) setWatchlist(data.map((w: any) => ({
+      id: w.id, title: w.title, type: w.type, created_at: w.created_at,
+      watched: w.watched != null ? w.watched : (w.status === 'watched'),
+      watched_date: w.watched_date ?? null, notes: w.notes ?? null,
+    })));
   }, []);
 
   useEffect(() => {
@@ -113,7 +117,8 @@ export default function MoviesPage() {
   };
 
   const handleMarkWatched = async (id: string, date: string) => {
-    await supabase.from('watchlist').update({ watched: true, watched_date: date }).eq('id', id);
+    const { error } = await supabase.from('watchlist').update({ watched: true, watched_date: date }).eq('id', id);
+    if (error) await supabase.from('watchlist').update({ status: 'watched', watched_date: date }).eq('id', id);
     fetchWatchlist();
   };
 
@@ -124,12 +129,15 @@ export default function MoviesPage() {
 
   const handleAddWatchlistItem = async () => {
     if (!newWatchlistItem.title.trim()) return;
-    await supabase.from('watchlist').insert({
+    const row: Record<string, unknown> = {
       title: newWatchlistItem.title.trim(),
       type: newWatchlistItem.type,
-      watched: false,
-      notes: newWatchlistItem.notes.trim() || null,
-    });
+    };
+    // Try new columns first, fallback to old
+    const { error } = await supabase.from('watchlist').insert({ ...row, watched: false, notes: newWatchlistItem.notes.trim() || null });
+    if (error) {
+      await supabase.from('watchlist').insert({ ...row, status: 'want' });
+    }
     setNewWatchlistItem({ title: '', type: 'movie', notes: '' });
     setShowAddWatchlist(false);
     fetchWatchlist();
