@@ -61,7 +61,7 @@ export default function AddMovieModal({
     e.preventDefault();
     if (!title.trim()) return;
     onSave({
-      title: title.trim(), type, date_watched: dateWatched || null, rating,
+      title: title.trim(), type, date_watched: dateWatched || null, rating: rating || 0,
       notes: notes.trim(), poster_url: posterUrl.trim() || null,
       added_by: editMovie?.added_by || currentUser,
       watched: forceWatched ?? watched,

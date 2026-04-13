@@ -89,7 +89,7 @@ export default function MoviesPage() {
   const handleSave = async (movie: Omit<Movie, 'id' | 'created_at'>) => {
     // Build row with both new and old column names for compatibility
     const newRow: Record<string, unknown> = {
-      title: movie.title, type: movie.type, rating: movie.rating, notes: movie.notes,
+      title: movie.title, type: movie.type, rating: movie.rating || null, notes: movie.notes,
       poster_url: movie.poster_url,
       // New columns
       watched: movie.watched, date_watched: movie.date_watched, added_by: movie.added_by,
@@ -102,13 +102,13 @@ export default function MoviesPage() {
       // Try new cols first
       let { error } = await supabase.from('movies').update({
         title: movie.title, type: movie.type, notes: movie.notes, poster_url: movie.poster_url,
-        watched: movie.watched, date_watched: movie.date_watched, rating: movie.rating,
+        watched: movie.watched, date_watched: movie.date_watched, rating: movie.rating || null,
       }).eq('id', editingMovie.id);
       if (error) {
         // Fallback: old column names only
         await supabase.from('movies').update({
           title: movie.title, type: movie.type, notes: movie.notes, poster_url: movie.poster_url,
-          status: movie.watched ? 'watched' : 'want_to_watch', watched_date: movie.date_watched, rating: movie.rating,
+          status: movie.watched ? 'watched' : 'want_to_watch', watched_date: movie.date_watched, rating: movie.rating || null,
         }).eq('id', editingMovie.id);
       }
     } else {
@@ -117,7 +117,7 @@ export default function MoviesPage() {
         // Fallback: old columns only
         await supabase.from('movies').insert({
           title: movie.title, type: movie.type, status: movie.watched ? 'watched' : 'want_to_watch',
-          watched_date: movie.date_watched, rating: movie.rating, notes: movie.notes,
+          watched_date: movie.date_watched, rating: movie.rating || null, notes: movie.notes,
           poster_url: movie.poster_url, created_by: movie.added_by,
         });
       }

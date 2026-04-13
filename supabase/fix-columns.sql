@@ -2,6 +2,9 @@
 -- Safe to run multiple times
 
 -- Movies: add missing columns
+-- Drop old rating constraint that blocks rating=0
+ALTER TABLE movies DROP CONSTRAINT IF EXISTS movies_rating_check;
+
 ALTER TABLE movies ADD COLUMN IF NOT EXISTS watched boolean DEFAULT false;
 ALTER TABLE movies ADD COLUMN IF NOT EXISTS date_watched date;
 ALTER TABLE movies ADD COLUMN IF NOT EXISTS added_by text;
