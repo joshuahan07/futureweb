@@ -35,8 +35,15 @@ function getGradient(title: string) {
 
 function formatDate(dateStr: string | null) {
   if (!dateStr) return '';
+  // YYYY-MM (no day) → show "January 2025"
+  // YYYY-MM-DD (with day) → show "January 15, 2025"
+  if (dateStr.length <= 7) {
+    const [y, m] = dateStr.split('-');
+    const d = new Date(parseInt(y), parseInt(m) - 1);
+    return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  }
   const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
 function RatingBar({ value, label, color, onRate }: { value: number | null; label: string; color: string; onRate?: (r: number) => void }) {

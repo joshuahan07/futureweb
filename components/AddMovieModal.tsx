@@ -138,8 +138,21 @@ export default function AddMovieModal({
 
           <div>
             <label className="block text-xs font-medium text-muted mb-1">Date Watched</label>
-            <input type="date" value={dateWatched} onChange={(e) => setDateWatched(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-background text-foreground border border-border focus:border-blue-400 focus:outline-none transition-colors" />
+            <div className="flex gap-2">
+              <input type="month" value={dateWatched.slice(0, 7)} onChange={(e) => setDateWatched(e.target.value)}
+                placeholder="Month"
+                className="flex-1 px-3 py-2.5 rounded-xl bg-background text-foreground border border-border focus:border-blue-400 focus:outline-none transition-colors" />
+              <input type="number" min={1} max={31} placeholder="Day"
+                value={dateWatched.length > 7 ? parseInt(dateWatched.slice(8)) || '' : ''}
+                onChange={(e) => {
+                  const month = dateWatched.slice(0, 7);
+                  if (!month) return;
+                  const day = e.target.value;
+                  setDateWatched(day ? `${month}-${day.padStart(2, '0')}` : month);
+                }}
+                className="w-20 px-3 py-2.5 rounded-xl bg-background text-foreground border border-border focus:border-blue-400 focus:outline-none transition-colors text-center" />
+            </div>
+            <p className="text-[10px] text-muted mt-1">Day is optional — leave blank if you only remember the month</p>
           </div>
 
           <div>
