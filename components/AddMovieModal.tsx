@@ -63,6 +63,7 @@ export default function AddMovieModal({
     onSave({
       title: title.trim(), type,
       date_watched: dateWatched ? (dateWatched.length <= 7 ? dateWatched + '-01' : dateWatched) : null,
+      date_has_day: dateWatched ? dateWatched.length > 7 : undefined,
       rating: rating || 0,
       notes: notes.trim(), poster_url: posterUrl.trim() || null,
       added_by: editMovie?.added_by || currentUser,

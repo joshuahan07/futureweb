@@ -5,6 +5,7 @@ export interface Movie {
   title: string;
   type: 'movie' | 'show';
   date_watched: string | null;
+  date_has_day?: boolean;
   rating: number;
   rating_joshua?: number | null;
   rating_sophie?: number | null;
@@ -33,12 +34,10 @@ function getGradient(title: string) {
   return gradients[title.charCodeAt(0) % gradients.length];
 }
 
-function formatDate(dateStr: string | null) {
+function formatDate(dateStr: string | null, hasDay?: boolean) {
   if (!dateStr) return '';
   const d = new Date(dateStr + 'T00:00:00');
-  // If day is 1, assume month-only entry → show "January 2025"
-  // Otherwise show full "January 15, 2025"
-  if (d.getDate() === 1) {
+  if (hasDay === false) {
     return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   }
   return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -104,7 +103,7 @@ export default function MovieCard({ movie, onEdit, onDelete, onRate, currentUser
           )}
         </div>
 
-        {movie.date_watched && <p className="text-xs text-muted">{formatDate(movie.date_watched)}</p>}
+        {movie.date_watched && <p className="text-xs text-muted">{formatDate(movie.date_watched, movie.date_has_day)}</p>}
 
         {/* Per-person ratings (1-10) */}
         <div className="space-y-1.5 mt-1">
