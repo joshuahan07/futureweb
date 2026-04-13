@@ -35,10 +35,13 @@ function getGradient(title: string) {
   return gradients[title.charCodeAt(0) % gradients.length];
 }
 
-function formatDate(dateStr: string | null, hasDay?: boolean) {
+function formatDate(dateStr: string | null, hasDay?: boolean | null) {
   if (!dateStr) return '';
   const d = new Date(dateStr + 'T00:00:00');
-  if (hasDay === false) {
+  // If hasDay is explicitly true, always show day
+  // If hasDay is false OR null/undefined (old data), check if day is 1 → assume month-only
+  const showDay = hasDay === true ? true : hasDay === false ? false : d.getDate() !== 1;
+  if (!showDay) {
     return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   }
   return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
