@@ -988,7 +988,7 @@ export default function WeddingPage() {
                 ))}
                 <button onClick={() => setShowVisionCatMgr(!showVisionCatMgr)}
                   className="px-3 py-1.5 rounded-full text-xs font-medium bg-surface-hover text-mauve/80 hover:bg-mauve/100/20 transition-all">
-                  ✎ Edit Categories
+                  ⚙ Categories
                 </button>
               </div>
 
