@@ -298,7 +298,7 @@ export default function BucketListPage() {
 
         {/* Category edit modal */}
         {editingItemCategory && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
             <div className="glass-strong rounded-2xl shadow-xl w-full max-w-sm p-5 animate-fade-in border border-border">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-heading text-lg text-foreground">Move to Category</h3>

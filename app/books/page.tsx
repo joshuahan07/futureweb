@@ -400,7 +400,7 @@ export default function BooksPage() {
 
         {/* Add Book Modal */}
         {showAddBook && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-xl" onClick={() => setShowAddBook(false)} />
             <div className="relative glass-strong rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 animate-fade-in">
               <div className="flex items-center justify-between">
@@ -500,7 +500,7 @@ export default function BooksPage() {
 
         {/* Add Duet Modal */}
         {showAddDuet && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-xl" onClick={() => setShowAddDuet(false)} />
             <div className="relative glass-strong rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 animate-fade-in">
               <div className="flex items-center justify-between">

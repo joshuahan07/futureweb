@@ -61,7 +61,7 @@ export default function AddWantModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center">
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-xl"
         style={{ animation: 'fadeIn 0.2s ease-out' }}
