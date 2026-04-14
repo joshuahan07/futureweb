@@ -30,12 +30,15 @@ const tabs = [
 function UserAvatar({ name, color, isOnline, pfpUrl }: {
   name: string; color: string; isOnline: boolean; pfpUrl?: string | null;
 }) {
+  const [imgError, setImgError] = useState(false);
+  const showImg = pfpUrl && !imgError;
+
   return (
     <div className="relative">
       <div className="w-8 h-8 rounded-full overflow-hidden border-2 transition-all"
         style={{ borderColor: isOnline ? color : 'transparent', opacity: isOnline ? 1 : 0.4 }}>
-        {pfpUrl ? (
-          <img src={pfpUrl} alt={name} className="w-full h-full object-cover" />
+        {showImg ? (
+          <img src={pfpUrl} alt={name} className="w-full h-full object-cover" onError={() => setImgError(true)} />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-xs font-bold text-white" style={{ background: color }}>
             {name[0]}
@@ -58,8 +61,18 @@ export default function Layout({ children }: { children: ReactNode }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
-  const joshuaPfp = typeof window !== 'undefined' ? localStorage.getItem('js-pfp-joshua') : null;
-  const sophiePfp = typeof window !== 'undefined' ? localStorage.getItem('js-pfp-sophie') : null;
+  const [joshuaPfp, setJoshuaPfp] = useState<string | null>(null);
+  const [sophiePfp, setSophiePfp] = useState<string | null>(null);
+
+  // Load and validate pfp URLs from localStorage
+  useState(() => {
+    if (typeof window === 'undefined') return;
+    const jp = localStorage.getItem('js-pfp-joshua');
+    const sp = localStorage.getItem('js-pfp-sophie');
+    // Clear broken HEIC URLs
+    if (jp?.includes('.HEIC')) { localStorage.removeItem('js-pfp-joshua'); } else if (jp) setJoshuaPfp(jp);
+    if (sp?.includes('.HEIC')) { localStorage.removeItem('js-pfp-sophie'); } else if (sp) setSophiePfp(sp);
+  });
 
   const handleUploadPfp = async (file: File) => {
     if (!currentUser) return;
@@ -127,7 +140,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 
               {/* Change Photo — direct click */}
               <button onClick={() => fileRef.current?.click()}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-foreground/40 hover:text-foreground hover:bg-foreground/5 transition-all"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-foreground/60 hover:text-foreground hover:bg-foreground/5 transition-all"
                 title="Change profile photo">
                 <Camera className="w-4 h-4" />
               </button>
@@ -135,13 +148,13 @@ export default function Layout({ children }: { children: ReactNode }) {
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUploadPfp(f); e.target.value = ''; }} />
 
               <button onClick={toggleTheme}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-foreground/40 hover:text-foreground hover:bg-foreground/5 transition-all">
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-foreground/60 hover:text-foreground hover:bg-foreground/5 transition-all">
                 {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
 
               {currentUser && (
                 <button onClick={() => { setUser(null); router.push('/'); }}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-foreground/40 hover:text-red-400 hover:bg-red-500/10 transition-all">
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-foreground/60 hover:text-red-400 hover:bg-red-500/10 transition-all">
                   <LogOut className="w-4 h-4" />
                 </button>
               )}
@@ -161,8 +174,8 @@ export default function Layout({ children }: { children: ReactNode }) {
                 <Link key={tab.href} href={tab.href}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 flex-shrink-0 active:scale-95 ${
                     isActive
-                      ? 'bg-foreground/10 text-white'
-                      : 'text-foreground/40 hover:text-foreground/70 hover:bg-foreground/5'
+                      ? 'bg-mauve text-white shadow-lg shadow-mauve/20'
+                      : 'text-foreground/60 hover:text-foreground hover:bg-foreground/5'
                   }`}>
                   <Icon className="w-4 h-4" />
                   <span className="hidden sm:inline">{tab.label}</span>
