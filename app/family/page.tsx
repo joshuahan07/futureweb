@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { useRealtimeSync } from '@/lib/realtime';
 import { useUser } from '@/components/UserContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Star, Trash2, Pencil, Plus, ExternalLink, Check, Bookmark, Heart, X } from 'lucide-react';
+import { Star, Trash2, Pencil, Plus, ExternalLink, Check, Bookmark, Heart, X } from 'lucide-react';
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -52,8 +52,6 @@ async function uploadFamilyImage(file: File, path: string): Promise<string | nul
   return data.publicUrl;
 }
 
-const VIBE_TAGS = ['classic', 'cute', 'strong', 'unique', 'cottagecore', 'modern', 'vintage', 'biblical', 'nature', 'soft', 'elegant'];
-const NAME_ORIGINS = ['Hebrew', 'Japanese', 'Irish', 'Greek', 'Latin', 'Korean', 'English', 'French', 'Arabic', 'Spanish', 'Italian', 'Celtic', 'Other'];
 const TIP_SUBCATS = ['Pregnancy', 'Newborn', 'Sleep', 'Feeding', 'Development', 'Health', 'General'] as const;
 const TIP_SOURCES = ['mom', 'friend', 'doctor', 'book', 'research', 'TikTok', 'Instagram', 'podcast', 'other'];
 
@@ -66,15 +64,17 @@ function NameCard({ n, onLove, onEdit, onDelete, currentUser }: {
   onEdit: () => void; onDelete: () => void; currentUser: string | null;
 }) {
   const both = n.joshua_loves && n.sophie_loves;
-  const tint = n.gender === 'girl' ? 'from-rose-50/70 to-pink-50/30' :
-               n.gender === 'boy' ? 'from-emerald-50/70 to-teal-50/30' :
-               'from-amber-50/70 to-yellow-50/30';
+  const tint = n.gender === 'girl' ? 'from-rose-50 via-pink-50/60 to-white/80' :
+               n.gender === 'boy' ? 'from-emerald-50 via-teal-50/60 to-white/80' :
+               'from-amber-50 via-yellow-50/60 to-white/80';
+  const borderTint = n.gender === 'girl' ? 'border-rose-100/70' :
+                     n.gender === 'boy' ? 'border-emerald-100/70' : 'border-amber-100/70';
   return (
     <motion.div layout initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-      className={`relative rounded-2xl p-5 bg-gradient-to-br ${tint} border overflow-hidden group transition-all ${
-        both ? 'border-amber-300 shadow-lg shadow-amber-200/40' : 'border-border/50 hover:shadow-md'
+      className={`relative rounded-3xl p-5 bg-gradient-to-br ${tint} border overflow-hidden group transition-all ${
+        both ? 'border-amber-300 shadow-lg shadow-amber-200/40' : `${borderTint} shadow-sm hover:shadow-md hover:-translate-y-0.5`
       }`}
-      style={both ? { boxShadow: '0 0 0 1px rgba(251, 191, 36, 0.4), 0 10px 25px -5px rgba(251, 191, 36, 0.25)' } : undefined}>
+      style={both ? { boxShadow: '0 0 0 1px rgba(251, 191, 36, 0.5), 0 10px 30px -5px rgba(251, 191, 36, 0.3)' } : undefined}>
       {both && (
         <>
           <motion.div
@@ -95,10 +95,6 @@ function NameCard({ n, onLove, onEdit, onDelete, currentUser }: {
       </div>
       <h3 className="font-heading text-3xl sm:text-4xl text-foreground tracking-tight">{n.name}</h3>
       {n.meaning && <p className="text-xs italic text-muted mt-1">&ldquo;{n.meaning}&rdquo;</p>}
-      <div className="flex flex-wrap gap-1.5 mt-3">
-        {n.origin && <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/60 text-foreground/70 border border-border/40">{n.origin}</span>}
-        {n.vibe_tags.map((v) => <span key={v} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/60 text-mauve border border-mauve/20">{v}</span>)}
-      </div>
       {n.notes && (
         <p className="text-xs text-foreground/70 mt-3 italic">{n.notes}</p>
       )}
@@ -127,9 +123,7 @@ function NameModal({ name, onClose, onSave }: {
 }) {
   const [n, setN] = useState(name?.name || '');
   const [meaning, setMeaning] = useState(name?.meaning || '');
-  const [origin, setOrigin] = useState(name?.origin || '');
   const [gender, setGender] = useState<BabyName['gender']>(name?.gender || 'girl');
-  const [tags, setTags] = useState<string[]>(name?.vibe_tags || []);
   const [notes, setNotes] = useState(name?.notes || '');
   return (
     <div data-modal className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
@@ -149,36 +143,14 @@ function NameModal({ name, onClose, onSave }: {
             <input type="text" value={meaning} onChange={(e) => setMeaning(e.target.value)}
               className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:border-mauve/40" />
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="text-xs font-medium text-foreground/70 mb-1 block">Origin</label>
-              <select value={origin} onChange={(e) => setOrigin(e.target.value)}
-                className="w-full px-2 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:border-mauve/40">
-                <option value="">—</option>
-                {NAME_ORIGINS.map((o) => <option key={o} value={o}>{o}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-foreground/70 mb-1 block">Gender</label>
-              <select value={gender} onChange={(e) => setGender(e.target.value as BabyName['gender'])}
-                className="w-full px-2 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:border-mauve/40">
-                <option value="girl">Girl</option>
-                <option value="boy">Boy</option>
-                <option value="neutral">Neutral</option>
-              </select>
-            </div>
-          </div>
           <div>
-            <label className="text-xs font-medium text-foreground/70 mb-1 block">Vibe tags</label>
-            <div className="flex flex-wrap gap-1.5">
-              {VIBE_TAGS.map((v) => (
-                <button key={v} type="button"
-                  onClick={() => setTags((t) => t.includes(v) ? t.filter((x) => x !== v) : [...t, v])}
-                  className={`px-2.5 py-1 rounded-full text-[11px] font-medium ${
-                    tags.includes(v) ? 'bg-mauve text-white' : 'bg-surface-hover text-muted hover:text-foreground'
-                  }`}>{v}</button>
-              ))}
-            </div>
+            <label className="text-xs font-medium text-foreground/70 mb-1 block">Gender</label>
+            <select value={gender} onChange={(e) => setGender(e.target.value as BabyName['gender'])}
+              className="w-full px-2 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:border-mauve/40">
+              <option value="girl">Girl</option>
+              <option value="boy">Boy</option>
+              <option value="neutral">Neutral</option>
+            </select>
           </div>
           <div>
             <label className="text-xs font-medium text-foreground/70 mb-1 block">Notes</label>
@@ -186,7 +158,7 @@ function NameModal({ name, onClose, onSave }: {
               className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm resize-none focus:outline-none focus:border-mauve/40" />
           </div>
           <button type="button" disabled={!n.trim()}
-            onClick={() => { if (n.trim()) onSave({ name: n.trim(), meaning: meaning.trim() || null, origin: origin || null, gender, vibe_tags: tags, notes: notes.trim() || null }); }}
+            onClick={() => { if (n.trim()) onSave({ name: n.trim(), meaning: meaning.trim() || null, origin: null, gender, vibe_tags: [], notes: notes.trim() || null }); }}
             className={`w-full py-2.5 rounded-xl text-sm font-medium transition-colors ${n.trim() ? 'bg-mauve text-white hover:bg-mauve/90' : 'bg-surface-hover text-muted'}`}>
             {name ? 'Save' : 'Add Name'}
           </button>
@@ -225,54 +197,67 @@ function BabyNamesSection({ names, currentUser, onSave, onDelete, onLove }: {
   const bothCount = names.filter((n) => n.joshua_loves && n.sophie_loves).length;
 
   return (
-    <section id="baby-names" className="scroll-mt-24">
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-        <h2 className="font-heading italic text-2xl text-rose-700">Baby Names ✦</h2>
-        <button onClick={() => { setEditing(null); setShowModal(true); }}
-          className="px-4 py-2 rounded-xl bg-rose-500 text-white text-sm font-medium hover:bg-rose-600 shadow-md shadow-rose-200">
-          + Add Name
-        </button>
+    <section id="baby-names" className="scroll-mt-28">
+      {/* Section hero */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-rose-50/80 via-pink-50/60 to-amber-50/30 px-6 py-8 mb-6 border border-rose-100/50">
+        <div className="absolute top-4 right-6 opacity-10 text-6xl select-none pointer-events-none">👶</div>
+        <div className="absolute bottom-3 left-6 opacity-10 text-3xl select-none pointer-events-none">💕</div>
+        <div className="flex items-center justify-between flex-wrap gap-3 relative">
+          <div>
+            <h2 className="font-heading italic text-3xl sm:text-4xl text-rose-700 tracking-tight">Baby Names</h2>
+            <p className="text-sm text-rose-700/60 mt-1">dreaming up the perfect name, together</p>
+          </div>
+          <button onClick={() => { setEditing(null); setShowModal(true); }}
+            className="px-4 py-2.5 rounded-full bg-rose-500 text-white text-sm font-medium hover:bg-rose-600 active:scale-95 transition-all shadow-lg shadow-rose-200 flex items-center gap-1.5">
+            <Plus className="w-4 h-4" /> Add Name
+          </button>
+        </div>
       </div>
 
       {/* Stats card */}
-      <div className="grid grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[
-          { v: names.length, l: 'Total', c: '#C9A0B4' },
-          { v: bothCount, l: 'Both love ✦', c: '#f59e0b' },
-          { v: names.filter((n) => n.gender === 'girl').length, l: 'Girl', c: '#F4A5B0' },
-          { v: names.filter((n) => n.gender === 'boy').length, l: 'Boy', c: '#10b981' },
+          { v: names.length, l: 'Names added', c: '#C9A0B4', bg: 'from-rose-50 to-pink-50/30' },
+          { v: bothCount, l: 'Both love ✦', c: '#f59e0b', bg: 'from-amber-50 to-yellow-50/30' },
+          { v: names.filter((n) => n.gender === 'girl').length, l: 'Girl', c: '#f472b6', bg: 'from-pink-50 to-rose-50/30' },
+          { v: names.filter((n) => n.gender === 'boy').length, l: 'Boy', c: '#10b981', bg: 'from-emerald-50 to-teal-50/30' },
         ].map((s) => (
-          <div key={s.l} className="glass-card rounded-2xl p-3 relative overflow-hidden" style={{ borderLeft: `3px solid ${s.c}` }}>
-            <div className="text-xl font-bold" style={{ color: s.c }}>{s.v}</div>
-            <div className="text-[10px] text-muted">{s.l}</div>
+          <div key={s.l} className={`rounded-2xl p-4 bg-gradient-to-br ${s.bg} border border-white/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all relative overflow-hidden`}
+               style={{ borderLeft: `3px solid ${s.c}` }}>
+            <div className="text-2xl font-bold" style={{ color: s.c }}>{s.v}</div>
+            <div className="text-[11px] text-muted mt-0.5">{s.l}</div>
           </div>
         ))}
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex flex-wrap gap-2 mb-5">
         {([
           ['all', 'All'], ['girl', 'Girl'], ['boy', 'Boy'], ['neutral', 'Neutral'],
           ['both', '✦ Both love'], ['joshua', 'Joshua\u2019s'], ['sophie', 'Sophie\u2019s'],
         ] as const).map(([k, l]) => (
           <button key={k} onClick={() => setFilter(k)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-              filter === k ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'glass text-muted hover:text-foreground'
+            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+              filter === k ? 'bg-rose-500 text-white shadow-sm shadow-rose-200' : 'bg-surface-hover/60 text-muted hover:bg-surface-hover hover:text-foreground'
             }`}>{l}</button>
         ))}
         <div className="w-px h-6 bg-border mx-1 self-center" />
         {([['alpha', 'A–Z'], ['recent', 'Recent'], ['loved', 'Most loved']] as const).map(([k, l]) => (
           <button key={k} onClick={() => setSort(k)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-              sort === k ? 'bg-mauve/10 text-mauve border border-mauve/20' : 'glass text-muted hover:text-foreground'
+            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+              sort === k ? 'bg-foreground text-background' : 'bg-surface-hover/60 text-muted hover:text-foreground'
             }`}>{l}</button>
         ))}
       </div>
 
       {/* Two columns */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
         <div>
-          <h3 className="font-heading italic text-sm text-rose-600 mb-2 px-1">Girl Names · {girls.length}</h3>
+          <div className="flex items-center gap-2 mb-3 px-1">
+            <span className="w-2 h-2 rounded-full bg-rose-400" />
+            <h3 className="font-heading italic text-base text-rose-700">Girl Names</h3>
+            <span className="text-[11px] text-rose-700/60 bg-rose-100 px-2 py-0.5 rounded-full font-medium">{girls.length}</span>
+          </div>
           <div className="space-y-3">
             <AnimatePresence>
               {girls.map((n) => (
@@ -282,11 +267,19 @@ function BabyNamesSection({ names, currentUser, onSave, onDelete, onLove }: {
                   onDelete={() => { if (confirm(`Delete "${n.name}"?`)) onDelete(n.id); }} />
               ))}
             </AnimatePresence>
-            {girls.length === 0 && <p className="text-xs text-muted italic py-4 text-center">No girl names yet</p>}
+            {girls.length === 0 && (
+              <div className="border-2 border-dashed border-rose-100 rounded-2xl py-8 text-center text-xs text-rose-400 italic">
+                ✦ No girl names yet
+              </div>
+            )}
           </div>
         </div>
         <div>
-          <h3 className="font-heading italic text-sm text-emerald-600 mb-2 px-1">Boy Names · {boys.length}</h3>
+          <div className="flex items-center gap-2 mb-3 px-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <h3 className="font-heading italic text-base text-emerald-700">Boy Names</h3>
+            <span className="text-[11px] text-emerald-700/60 bg-emerald-100 px-2 py-0.5 rounded-full font-medium">{boys.length}</span>
+          </div>
           <div className="space-y-3">
             <AnimatePresence>
               {boys.map((n) => (
@@ -296,7 +289,11 @@ function BabyNamesSection({ names, currentUser, onSave, onDelete, onLove }: {
                   onDelete={() => { if (confirm(`Delete "${n.name}"?`)) onDelete(n.id); }} />
               ))}
             </AnimatePresence>
-            {boys.length === 0 && <p className="text-xs text-muted italic py-4 text-center">No boy names yet</p>}
+            {boys.length === 0 && (
+              <div className="border-2 border-dashed border-emerald-100 rounded-2xl py-8 text-center text-xs text-emerald-400 italic">
+                ✦ No boy names yet
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -304,7 +301,11 @@ function BabyNamesSection({ names, currentUser, onSave, onDelete, onLove }: {
       {/* Neutral */}
       {(neutral.length > 0 || filter === 'all' || filter === 'neutral') && (
         <div>
-          <h3 className="font-heading italic text-sm text-amber-600 mb-2 px-1">Gender Neutral · {neutral.length}</h3>
+          <div className="flex items-center gap-2 mb-3 px-1">
+            <span className="w-2 h-2 rounded-full bg-amber-400" />
+            <h3 className="font-heading italic text-base text-amber-700">Gender Neutral</h3>
+            <span className="text-[11px] text-amber-700/60 bg-amber-100 px-2 py-0.5 rounded-full font-medium">{neutral.length}</span>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <AnimatePresence>
               {neutral.map((n) => (
@@ -314,7 +315,11 @@ function BabyNamesSection({ names, currentUser, onSave, onDelete, onLove }: {
                   onDelete={() => { if (confirm(`Delete "${n.name}"?`)) onDelete(n.id); }} />
               ))}
             </AnimatePresence>
-            {neutral.length === 0 && <p className="text-xs text-muted italic py-4 text-center col-span-2">No neutral names yet</p>}
+            {neutral.length === 0 && (
+              <div className="col-span-2 border-2 border-dashed border-amber-100 rounded-2xl py-8 text-center text-xs text-amber-400 italic">
+                ✦ No neutral names yet
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -551,23 +556,31 @@ function ParentingSection({ tips, todos, currentUser, onSaveTip, onUpdateTip, on
   const doneCount = todos.filter((t) => t.status === 'done').length;
 
   return (
-    <section id="parenting" className="scroll-mt-24">
-      <h2 className="font-heading italic text-2xl text-purple-700 mb-4">Parenting Tips ✦</h2>
-
-      {/* Subtabs */}
-      <div className="flex gap-1.5 flex-wrap mb-4">
-        {[...TIP_SUBCATS, 'Todo' as const].map((c) => (
-          <button key={c} onClick={() => setSubtab(c as SubTab)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-              subtab === c ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'glass text-muted hover:text-foreground'
-            }`}>{c === 'Todo' ? 'To Get / To Do' : c}</button>
-        ))}
-        <div className="ml-auto">
+    <section id="parenting" className="scroll-mt-28">
+      {/* Section hero */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-purple-50/80 via-violet-50/60 to-fuchsia-50/30 px-6 py-8 mb-6 border border-purple-100/50">
+        <div className="absolute top-4 right-6 opacity-10 text-6xl select-none pointer-events-none">💭</div>
+        <div className="absolute bottom-3 left-6 opacity-10 text-3xl select-none pointer-events-none">🌷</div>
+        <div className="flex items-center justify-between flex-wrap gap-3 relative">
+          <div>
+            <h2 className="font-heading italic text-3xl sm:text-4xl text-purple-700 tracking-tight">Parenting</h2>
+            <p className="text-sm text-purple-700/60 mt-1">tips, research, and everything we&apos;ll need</p>
+          </div>
           <button onClick={() => subtab === 'Todo' ? setTodoModal(true) : setTipModal(true)}
-            className="px-3 py-1.5 rounded-full text-xs font-medium bg-mauve text-white hover:bg-mauve/90 flex items-center gap-1">
-            <Plus className="w-3 h-3" /> Add {subtab === 'Todo' ? 'Item' : 'Tip'}
+            className="px-4 py-2.5 rounded-full bg-purple-500 text-white text-sm font-medium hover:bg-purple-600 active:scale-95 transition-all shadow-lg shadow-purple-200 flex items-center gap-1.5">
+            <Plus className="w-4 h-4" /> Add {subtab === 'Todo' ? 'Item' : 'Tip'}
           </button>
         </div>
+      </div>
+
+      {/* Subtabs */}
+      <div className="flex gap-1.5 flex-wrap mb-5">
+        {[...TIP_SUBCATS, 'Todo' as const].map((c) => (
+          <button key={c} onClick={() => setSubtab(c as SubTab)}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+              subtab === c ? 'bg-purple-500 text-white shadow-sm shadow-purple-200' : 'bg-surface-hover/60 text-muted hover:bg-surface-hover hover:text-foreground'
+            }`}>{c === 'Todo' ? 'To Get / To Do' : c}</button>
+        ))}
       </div>
 
       {subtab !== 'Todo' && (
@@ -910,11 +923,16 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Notes & Vibe */}
-      <div className="rounded-2xl border border-border/50 bg-surface/50 p-5">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-heading italic text-lg text-foreground">{room.name}</h3>
-          <div className="flex gap-2">
-            <button onClick={() => setShowRoomEdit(true)} className="text-xs text-muted hover:text-foreground">✎ Edit room</button>
+      <div className="rounded-3xl border border-amber-100/50 bg-gradient-to-br from-white/80 to-amber-50/30 p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            {room.color_palette[0] && <span className="w-4 h-4 rounded-full shadow-inner border-2 border-white" style={{ backgroundColor: room.color_palette[0] }} />}
+            <h3 className="font-heading italic text-2xl text-amber-800">{room.name}</h3>
+          </div>
+          <div className="flex gap-3">
+            <button onClick={() => setShowRoomEdit(true)} className="text-xs text-muted hover:text-foreground flex items-center gap-1">
+              <Pencil className="w-3 h-3" /> Edit
+            </button>
             <button onClick={() => { if (confirm(`Delete room "${room.name}" and everything in it?`)) onDeleteRoom(); }}
               className="text-xs text-red-400 hover:text-red-600">Delete</button>
           </div>
@@ -988,7 +1006,7 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
       </div>
 
       {/* Moodboard */}
-      <div className="rounded-2xl border border-border/50 bg-surface/50 p-5">
+      <div className="rounded-3xl border border-amber-100/50 bg-gradient-to-br from-white/80 to-amber-50/30 p-6 shadow-sm">
         <RoomMoodboard media={media} roomName={room.name} onUpload={onAddMedia} onDelete={onDeleteMedia} onUpdateCaption={onUpdateMediaCaption} />
       </div>
 
@@ -1038,48 +1056,63 @@ function HomeSection({ rooms, items, media, currentUser, onAddRoom, onUpdateRoom
   const acquired = items.filter((i) => i.status === 'have_it').length;
 
   return (
-    <section id="home" className="scroll-mt-24">
-      <h2 className="font-heading italic text-2xl text-amber-700 mb-4">Our Future Home ✦</h2>
-
-      {/* Summary */}
-      <div className="glass-card rounded-2xl p-5 mb-4 relative overflow-hidden" style={{ borderLeft: '4px solid #d97706', background: 'linear-gradient(90deg, rgba(217,119,6,0.06) 0%, transparent 100%)' }}>
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-6xl opacity-5 select-none pointer-events-none">🏡</div>
-        <div className="flex items-center gap-6 flex-wrap relative">
-          <div>
-            <div className="text-2xl font-bold text-amber-700">{rooms.length}</div>
-            <div className="text-[11px] text-muted">Rooms planned</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-amber-700">{totalItems}</div>
-            <div className="text-[11px] text-muted">Items total</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-emerald-600">{acquired}</div>
-            <div className="text-[11px] text-muted">Acquired</div>
-          </div>
-          <div className="flex-1 min-w-[150px]">
-            <div className="h-2 rounded-full bg-surface-hover overflow-hidden">
-              <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-emerald-400 transition-all"
-                style={{ width: `${totalItems > 0 ? (acquired / totalItems) * 100 : 0}%` }} />
-            </div>
-          </div>
+    <section id="home" className="scroll-mt-28">
+      {/* Section hero */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-amber-50/80 via-orange-50/60 to-yellow-50/30 px-6 py-8 mb-6 border border-amber-100/50">
+        <div className="absolute top-4 right-6 opacity-10 text-6xl select-none pointer-events-none">🏡</div>
+        <div className="absolute bottom-3 left-6 opacity-10 text-3xl select-none pointer-events-none">🪴</div>
+        <div className="relative">
+          <h2 className="font-heading italic text-3xl sm:text-4xl text-amber-700 tracking-tight">Our Future Home</h2>
+          <p className="text-sm text-amber-700/60 mt-1">designing the spaces we&apos;ll fill with love</p>
         </div>
       </div>
 
+      {/* Summary */}
+      <div className="grid grid-cols-3 gap-3 mb-5">
+        <div className="rounded-2xl p-4 bg-gradient-to-br from-amber-50 to-orange-50/30 border border-amber-100/60 shadow-sm" style={{ borderLeft: '3px solid #d97706' }}>
+          <div className="text-2xl font-bold text-amber-700">{rooms.length}</div>
+          <div className="text-[11px] text-muted mt-0.5">Rooms planned</div>
+        </div>
+        <div className="rounded-2xl p-4 bg-gradient-to-br from-yellow-50 to-amber-50/30 border border-amber-100/60 shadow-sm" style={{ borderLeft: '3px solid #f59e0b' }}>
+          <div className="text-2xl font-bold text-amber-700">{totalItems}</div>
+          <div className="text-[11px] text-muted mt-0.5">Items total</div>
+        </div>
+        <div className="rounded-2xl p-4 bg-gradient-to-br from-emerald-50 to-teal-50/30 border border-emerald-100/60 shadow-sm" style={{ borderLeft: '3px solid #10b981' }}>
+          <div className="text-2xl font-bold text-emerald-700">{acquired}</div>
+          <div className="text-[11px] text-muted mt-0.5">Acquired</div>
+        </div>
+      </div>
+
+      {/* Progress */}
+      {totalItems > 0 && (
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[11px] text-muted">Home progress</span>
+            <span className="text-[11px] font-semibold text-emerald-700">{Math.round((acquired / totalItems) * 100)}%</span>
+          </div>
+          <div className="h-2 rounded-full bg-surface-hover overflow-hidden">
+            <div className="h-full rounded-full bg-gradient-to-r from-amber-400 via-orange-400 to-emerald-400 transition-all duration-700"
+              style={{ width: `${(acquired / totalItems) * 100}%` }} />
+          </div>
+        </div>
+      )}
+
       {/* Room tabs */}
-      <div className="flex gap-2 mb-4 overflow-x-auto pb-2 -mx-1 px-1">
+      <div className="flex gap-2 mb-5 overflow-x-auto pb-2 -mx-1 px-1">
         {rooms.map((r) => (
           <button key={r.id} onClick={() => setSelectedRoomId(r.id)}
             className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
-              selectedRoomId === r.id ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-surface-hover text-muted hover:text-foreground'
+              selectedRoomId === r.id
+                ? 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 shadow-sm border border-amber-200'
+                : 'bg-surface-hover/60 text-muted hover:bg-surface-hover hover:text-foreground'
             }`}>
-            {r.color_palette[0] && <span className="w-3 h-3 rounded-full" style={{ backgroundColor: r.color_palette[0] }} />}
+            {r.color_palette[0] && <span className="w-3 h-3 rounded-full shadow-inner" style={{ backgroundColor: r.color_palette[0] }} />}
             {r.name}
-            <span className="text-[10px] opacity-70">{items.filter((i) => i.room_id === r.id).length}</span>
+            <span className="text-[10px] opacity-70 bg-white/40 px-1.5 py-0.5 rounded-full">{items.filter((i) => i.room_id === r.id).length}</span>
           </button>
         ))}
         <button onClick={() => setShowRoomModal(true)}
-          className="shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 flex items-center gap-1">
+          className="shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 active:scale-95 transition-all shadow-sm shadow-amber-200 flex items-center gap-1">
           <Plus className="w-3.5 h-3.5" /> Add Room
         </button>
       </div>
@@ -1261,33 +1294,29 @@ export default function FamilyPage() {
   return (
     <Layout>
       <div className="pb-12 space-y-8">
-        {/* Hero */}
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-rose-50 via-amber-50 to-emerald-50/40 px-6 py-10 sm:py-14 text-center">
-          <div className="absolute top-6 right-8 opacity-10 text-5xl select-none pointer-events-none">👶</div>
-          <div className="absolute bottom-6 left-8 opacity-10 text-4xl select-none pointer-events-none">🏡</div>
-          <div className="absolute top-8 left-12 opacity-10 text-3xl select-none pointer-events-none">💕</div>
-          <h1 className="font-heading italic text-4xl sm:text-5xl tracking-tight relative"
-              style={{ background: 'linear-gradient(90deg, #e11d48, #d97706, #10b981)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            Our Future Family
-          </h1>
-          <p className="font-heading italic text-base text-foreground/60 mt-2 relative">dreaming, planning, building — together</p>
-        </div>
-
         {/* Sticky sub-nav */}
-        <div className="sticky top-20 z-30 bg-background/80 backdrop-blur-xl rounded-full shadow-sm border border-border/40 py-2 px-2 flex items-center justify-center gap-1 w-fit mx-auto">
-          {([
-            { id: 'baby-names' as const, label: '✦ Baby Names', color: 'text-rose-700 bg-rose-100' },
-            { id: 'parenting' as const, label: '✦ Parenting', color: 'text-purple-700 bg-purple-100' },
-            { id: 'home' as const, label: '✦ Our Home', color: 'text-amber-700 bg-amber-100' },
-          ]).map((s) => (
-            <a key={s.id} href={`#${s.id}`} onClick={(e) => {
-              e.preventDefault();
-              document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
-                activeSection === s.id ? s.color : 'text-muted hover:text-foreground'
-              }`}>{s.label}</a>
-          ))}
+        <div className="sticky top-20 z-30 flex items-center justify-center">
+          <div className="bg-background/70 backdrop-blur-2xl rounded-full shadow-lg shadow-black/5 border border-border/50 p-1 flex items-center gap-0.5">
+            {([
+              { id: 'baby-names' as const, label: 'Baby Names', icon: '✦', activeBg: 'bg-gradient-to-r from-rose-100 to-pink-100', activeText: 'text-rose-700' },
+              { id: 'parenting' as const, label: 'Parenting', icon: '✦', activeBg: 'bg-gradient-to-r from-purple-100 to-violet-100', activeText: 'text-purple-700' },
+              { id: 'home' as const, label: 'Our Home', icon: '✦', activeBg: 'bg-gradient-to-r from-amber-100 to-yellow-100', activeText: 'text-amber-700' },
+            ]).map((s) => {
+              const active = activeSection === s.id;
+              return (
+                <a key={s.id} href={`#${s.id}`} onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+                  className={`px-4 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
+                    active ? `${s.activeBg} ${s.activeText} shadow-sm` : 'text-muted hover:text-foreground hover:bg-surface-hover/60'
+                  }`}>
+                  <span className={active ? 'opacity-100' : 'opacity-40'}>{s.icon}</span>
+                  {s.label}
+                </a>
+              );
+            })}
+          </div>
         </div>
 
         <BabyNamesSection names={names} currentUser={currentUser}
