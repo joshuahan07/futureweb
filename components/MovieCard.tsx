@@ -1,5 +1,8 @@
 'use client';
 
+import { useState } from 'react';
+import { Star } from 'lucide-react';
+
 export interface Movie {
   id: string;
   title: string;
@@ -38,88 +41,120 @@ function getGradient(title: string) {
 function formatDate(dateStr: string | null, hasDay?: boolean | null) {
   if (!dateStr) return '';
   const d = new Date(dateStr + 'T00:00:00');
-  // If hasDay is explicitly true, always show day
-  // If hasDay is false OR null/undefined (old data), check if day is 1 → assume month-only
   const showDay = hasDay === true ? true : hasDay === false ? false : d.getDate() !== 1;
-  if (!showDay) {
-    return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  }
-  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  if (!showDay) return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function RatingBar({ value, label, color, onRate }: { value: number | null; label: string; color: string; onRate?: (r: number) => void }) {
+// Convert 1-10 rating to 0-5 star value (e.g. 7 → 3.5)
+function toStars(rating10: number | null | undefined): number {
+  if (!rating10) return 0;
+  return Math.round(rating10 / 2 * 2) / 2; // round to nearest 0.5
+}
+
+// Convert 0-5 star value back to 1-10
+function toRating10(stars: number): number {
+  return Math.round(stars * 2);
+}
+
+function StarRating({ value, color, onRate, label }: {
+  value: number; color: string; label: string;
+  onRate?: (stars: number) => void;
+}) {
+  const [hover, setHover] = useState<number | null>(null);
+  const display = hover ?? value;
+
   return (
-    <div className="flex items-center gap-2">
-      <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0 ${color}`}>{label}</span>
-      <div className="flex gap-0.5">
-        {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-          <button key={n} onClick={() => onRate?.(n)} disabled={!onRate}
-            className={`w-5 h-5 rounded text-[9px] font-bold transition-colors ${
-              value && n <= value
-                ? label === 'J' ? 'bg-mauve text-white' : 'bg-rose-400 text-white'
-                : 'bg-border text-foreground/30'
-            } ${onRate ? 'hover:bg-blue-400 hover:text-white cursor-pointer' : 'cursor-default'}`}>
-            {n}
-          </button>
-        ))}
+    <div className="flex items-center gap-1.5">
+      <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0`}
+        style={{ backgroundColor: color }}>{label}</span>
+      <div className="flex" onMouseLeave={() => setHover(null)}>
+        {[1, 2, 3, 4, 5].map((star) => {
+          const full = display >= star;
+          const half = !full && display >= star - 0.5;
+          return (
+            <div key={star} className="relative w-5 h-5 cursor-pointer"
+              onClick={() => onRate?.(star)}
+              onMouseMove={(e) => {
+                if (!onRate) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const isLeft = e.clientX - rect.left < rect.width / 2;
+                setHover(isLeft ? star - 0.5 : star);
+              }}>
+              {/* Background star */}
+              <Star className="w-5 h-5 text-foreground/10 absolute inset-0" />
+              {/* Filled star — full or half via clip */}
+              {(full || half) && (
+                <div className="absolute inset-0 overflow-hidden" style={{ width: full ? '100%' : '50%' }}>
+                  <Star className="w-5 h-5" style={{ color, fill: color }} />
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
-      {value ? <span className="text-xs font-bold text-foreground">{value}<span className="text-muted font-normal">/10</span></span> : <span className="text-[10px] text-muted italic">—</span>}
+      {value > 0 ? (
+        <span className="text-[11px] font-semibold text-foreground">{value}</span>
+      ) : onRate ? (
+        <span className="text-[10px] text-muted">rate</span>
+      ) : (
+        <span className="text-[10px] text-muted">—</span>
+      )}
     </div>
   );
 }
 
 export default function MovieCard({ movie, onEdit, onDelete, onRate, currentUser }: MovieCardProps) {
+  const joshuaStars = toStars(movie.rating_joshua);
+  const sophieStars = toStars(movie.rating_sophie);
+
   return (
-    <div className="group relative rounded-2xl overflow-hidden glass-card transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
-      {/* Poster / Gradient placeholder */}
-      <div className="relative h-48 overflow-hidden">
+    <div className="group relative rounded-2xl overflow-hidden glass-card transition-all duration-300 hover:shadow-lg hover:scale-[1.02] w-full">
+      {/* Vertical poster */}
+      <div className="relative aspect-[2/3] overflow-hidden">
         {movie.poster_url ? (
           <img src={movie.poster_url} alt={movie.title}
             className="w-full h-full object-cover"
             style={{ objectPosition: movie.poster_position || 'center' }} />
         ) : (
           <div className={`w-full h-full bg-gradient-to-br ${getGradient(movie.title)} flex items-center justify-center`}>
-            <span className="text-6xl font-bold text-white/80">{movie.title.charAt(0).toUpperCase()}</span>
+            <span className="text-5xl font-bold text-white/80">{movie.title.charAt(0).toUpperCase()}</span>
           </div>
         )}
 
         {/* Type badge */}
-        <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full text-xs font-medium bg-black/50 text-white backdrop-blur-sm">
-          {movie.type === 'movie' ? '🎬 Movie' : '📺 Show'}
+        <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-medium bg-black/50 text-white backdrop-blur-sm">
+          {movie.type === 'movie' ? '🎬' : '📺'} {movie.type === 'movie' ? 'Movie' : 'Show'}
         </span>
 
         {/* Hover actions */}
-        <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <button onClick={() => onEdit(movie)}
-            className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-colors">✎</button>
+            className="w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white text-xs hover:bg-black/70 transition-colors">✎</button>
           <button onClick={() => onDelete(movie.id)}
-            className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-red-500/70 transition-colors">✕</button>
+            className="w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white text-xs hover:bg-red-500/70 transition-colors">✕</button>
+        </div>
+
+        {/* Bottom gradient overlay for text readability */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/70 to-transparent" />
+
+        {/* Title overlay at bottom of poster */}
+        <div className="absolute bottom-0 left-0 right-0 p-3">
+          <h3 className="font-semibold text-sm leading-tight text-white drop-shadow-lg">{movie.title}</h3>
+          {movie.date_watched && (
+            <p className="text-[10px] text-white/70 mt-0.5">{formatDate(movie.date_watched, movie.date_has_day)}</p>
+          )}
         </div>
       </div>
 
-      {/* Card body */}
-      <div className="p-4 space-y-2">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold text-base leading-tight text-foreground">{movie.title}</h3>
-          {movie.added_by && (
-            <span className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-              style={{ backgroundColor: movie.added_by === 'joshua' ? '#7BA5D4' : '#F4A5B0' }}>
-              {movie.added_by === 'joshua' ? 'J' : 'S'}
-            </span>
-          )}
-        </div>
+      {/* Rating section */}
+      <div className="p-3 space-y-1.5">
+        <StarRating value={joshuaStars} label="J" color="#3B82F6"
+          onRate={currentUser === 'joshua' && onRate ? (s) => onRate(movie.id, 'joshua', toRating10(s)) : undefined} />
+        <StarRating value={sophieStars} label="S" color="#EC4899"
+          onRate={currentUser === 'sophie' && onRate ? (s) => onRate(movie.id, 'sophie', toRating10(s)) : undefined} />
 
-        {movie.date_watched && <p className="text-xs text-muted">{formatDate(movie.date_watched, movie.date_has_day)}</p>}
-
-        {/* Per-person ratings (1-10) */}
-        <div className="space-y-1.5 mt-1">
-          <RatingBar value={movie.rating_joshua ?? null} label="J" color="bg-blue-400"
-            onRate={currentUser === 'joshua' && onRate ? (r) => onRate(movie.id, 'joshua', r) : undefined} />
-          <RatingBar value={movie.rating_sophie ?? null} label="S" color="bg-rose-400"
-            onRate={currentUser === 'sophie' && onRate ? (r) => onRate(movie.id, 'sophie', r) : undefined} />
-        </div>
-
-        {movie.notes && <p className="text-xs text-muted line-clamp-2 italic mt-1">{movie.notes}</p>}
+        {movie.notes && <p className="text-[10px] text-muted line-clamp-1 italic mt-1">{movie.notes}</p>}
       </div>
     </div>
   );
