@@ -255,23 +255,6 @@ export default function MoviesPage() {
       {/* ═══════════ MOVIES TAB ═══════════ */}
       {activeTab === 'movies' && (
         <div className="space-y-6 animate-fade-in">
-          {/* Stats bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { value: totalWatched, label: 'Watched Together', icon: '❤️', accent: '#F4A5B0' },
-              { value: movieCount, label: 'Movies', icon: '🎬', accent: '#ec4899' },
-              { value: showCount, label: 'Shows', icon: '📺', accent: '#a855f7' },
-              { value: mostRecent ? new Date(mostRecent.date_watched!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—', label: 'Last Watch', icon: '📅', accent: '#f59e0b' },
-            ].map((s) => (
-              <div key={s.label} className="rounded-2xl p-4 glass-card hover:shadow-md hover:-translate-y-0.5 transition-all relative overflow-hidden" style={{ borderLeft: `3px solid ${s.accent}` }}>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-base">{s.icon}</span>
-                  <span className="text-xl font-bold" style={{ color: s.accent }}>{s.value}</span>
-                </div>
-                <div className="text-[11px] text-muted">{s.label}</div>
-              </div>
-            ))}
-          </div>
 
           {/* Filters + Add */}
           <div className="flex flex-wrap items-center gap-2">

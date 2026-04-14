@@ -277,15 +277,6 @@ function Dashboard() {
 
   return (
     <div className="relative z-10 space-y-8">
-      {/* Greeting */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-rose-50 via-pink-50 to-mauve/10 px-6 py-8 sm:py-10">
-        <div className="absolute top-4 right-8 opacity-10 text-6xl select-none pointer-events-none">💕</div>
-        <div className="absolute bottom-3 left-8 opacity-10 text-3xl select-none pointer-events-none">✨</div>
-        <h1 className="font-heading italic text-3xl sm:text-4xl text-mauve tracking-tight relative">
-          {getGreeting(currentUser!)}
-        </h1>
-        <p className="text-muted mt-1 text-sm relative">Here&apos;s what&apos;s happening in your world</p>
-      </div>
 
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
