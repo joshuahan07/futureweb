@@ -13,7 +13,7 @@ import { usePfps, invalidatePfpCache } from '@/lib/pfp';
 import {
   Film, Star, BookOpen, UtensilsCrossed, Heart,
   MessageCircleQuestion, MapPin, Gift, LayoutDashboard,
-  Sun, Moon, LogOut, Camera,
+  Sun, Moon, LogOut, Camera, Baby,
 } from 'lucide-react';
 
 const tabs = [
@@ -24,6 +24,7 @@ const tabs = [
   { label: 'Recipes', href: '/recipes', icon: UtensilsCrossed },
   { label: 'Travel', href: '/travel', icon: MapPin },
   { label: 'Wedding', href: '/wedding', icon: Heart },
+  { label: 'Family', href: '/family', icon: Baby },
   { label: 'Q&A', href: '/qa', icon: MessageCircleQuestion },
   { label: 'Gifts', href: '/gifts', icon: Gift },
 ] as const;
