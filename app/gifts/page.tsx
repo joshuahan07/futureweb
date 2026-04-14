@@ -145,7 +145,7 @@ export default function GiftsPage() {
                 {displayCategories.map((cat) => {
                   const catItems = matching.filter((m) => m.category === cat);
                   // Show category even if empty (for custom ones)
-                  if (catItems.length === 0 && !customCats.includes(cat) && !DEFAULT_CATEGORIES.includes(cat)) return null;
+                  if (catItems.length === 0 && !liveCategories.includes(cat) && !DEFAULT_CATEGORIES.includes(cat)) return null;
                   return (
                     <GiftCategory
                       key={cat}

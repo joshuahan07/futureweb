@@ -299,6 +299,69 @@ function ElementModal({ element, onClose, onSave, categories }: {
 
 // ── Element Card ────────────────────────────────────────────
 
+// ── People Checklist (guest list as todo) ───────────────────
+
+function PeopleChecklist({ items, onUpdate, onAdd, onDelete }: {
+  items: WeddingElement[];
+  onUpdate: (id: string, updates: Record<string, unknown>) => void;
+  onAdd: (title: string, description: string) => void;
+  onDelete: (id: string) => void;
+}) {
+  const [newJoshua, setNewJoshua] = useState('');
+  const [newSophie, setNewSophie] = useState('');
+
+  // Split by description field: "joshua" or "sophie"
+  const joshuaSide = items.filter((i) => i.description === 'joshua');
+  const sophieSide = items.filter((i) => i.description === 'sophie');
+
+  const GuestColumn = ({ side, guests, newName, setNewName }: {
+    side: 'joshua' | 'sophie'; guests: WeddingElement[]; newName: string; setNewName: (v: string) => void;
+  }) => (
+    <div className="flex-1">
+      <div className="flex items-center gap-2 mb-3">
+        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${side === 'joshua' ? 'bg-blue-500' : 'bg-pink-500'}`}>
+          {side === 'joshua' ? 'J' : 'S'}
+        </div>
+        <span className="text-sm font-semibold text-foreground">{side === 'joshua' ? "Joshua's Side" : "Sophie's Side"}</span>
+        <span className="text-[10px] text-muted">{guests.length}</span>
+      </div>
+      <div className="space-y-1.5">
+        {guests.map((g) => (
+          <div key={g.id} className="flex items-center gap-2 group/guest">
+            <button onClick={() => onUpdate(g.id, { priority: !g.priority })}
+              className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all shrink-0 ${
+                g.priority ? 'bg-sage border-sage text-white' : 'border-foreground/20 hover:border-mauve'
+              }`}>
+              {g.priority && <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+            </button>
+            <span className={`text-sm flex-1 ${g.priority ? 'line-through text-muted' : 'text-foreground'}`}>{g.title}</span>
+            <button onClick={() => { if (confirm(`Remove "${g.title}"?`)) onDelete(g.id); }}
+              className="opacity-0 group-hover/guest:opacity-100 text-muted hover:text-red-400 text-xs transition-all">✕</button>
+          </div>
+        ))}
+      </div>
+      {/* Add new */}
+      <div className="flex gap-2 mt-3">
+        <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter' && newName.trim()) { onAdd(newName.trim(), side); setNewName(''); } }}
+          placeholder="Add name..."
+          className="flex-1 px-2.5 py-1.5 rounded-lg text-sm bg-foreground/5 border border-foreground/10 text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-mauve/30" />
+        <button onClick={() => { if (newName.trim()) { onAdd(newName.trim(), side); setNewName(''); } }}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${newName.trim() ? 'bg-mauve text-white active:scale-95' : 'bg-foreground/5 text-muted'}`}>
+          Add
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <GuestColumn side="joshua" guests={joshuaSide} newName={newJoshua} setNewName={setNewJoshua} />
+      <GuestColumn side="sophie" guests={sophieSide} newName={newSophie} setNewName={setNewSophie} />
+    </div>
+  );
+}
+
 function ElementCard({ el, images, allCategories, onEdit, onDelete, onAddImages, onDeleteImage, onMoveCategory, onMoveUp, onMoveDown }: {
   el: WeddingElement; images: ElementImage[]; allCategories: string[];
   onEdit: () => void; onDelete: () => void;
@@ -1144,6 +1207,20 @@ export default function WeddingPage() {
                               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
                                 exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }}
                                 className={hasSubLabel ? 'border-t border-border/40' : ''}>
+
+                                {/* Special: People subtab renders as guest checklist */}
+                                {subKey.toLowerCase() === 'people' ? (
+                                  <PeopleChecklist items={items} onUpdate={async (id, updates) => {
+                                    await supabase.from('wedding_elements').update(updates).eq('id', id);
+                                    fetchElements();
+                                  }} onAdd={async (title, desc) => {
+                                    await supabase.from('wedding_elements').insert({ title, description: desc, category: `${parent} (${subKey})`, status: 'dream', priority: false, created_by: currentUser });
+                                    fetchElements();
+                                  }} onDelete={async (id) => {
+                                    await supabase.from('wedding_elements').delete().eq('id', id);
+                                    fetchElements();
+                                  }} />
+                                ) : (
                                 <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${hasSubLabel ? 'p-4' : ''}`}>
                                   {items.map((el) => (
                                     <ElementCard key={el.id} el={el}
@@ -1158,6 +1235,7 @@ export default function WeddingPage() {
                                       onMoveDown={() => handleReorder(el.id, 'down', items)} />
                                   ))}
                                 </div>
+                                )}
                               </motion.div>
                             )}
                           </AnimatePresence>
