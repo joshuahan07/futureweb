@@ -25,8 +25,8 @@ export default function AnimatedBackground() {
 
     const orbs = [
       { x: 0.3, y: 0.3, radius: 0.4, color: '#3B82F6', speed: 0.0003 },
-      { x: 0.7, y: 0.5, radius: 0.35, color: '#EC4899', speed: 0.0004 },
-      { x: 0.5, y: 0.8, radius: 0.3, color: '#8B5CF6', speed: 0.0005 },
+      { x: 0.7, y: 0.5, radius: 0.35, color: '#10B981', speed: 0.0004 },
+      { x: 0.5, y: 0.8, radius: 0.3, color: '#3B82F6', speed: 0.0005 },
     ];
 
     const animate = () => {

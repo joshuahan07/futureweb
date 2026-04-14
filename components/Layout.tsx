@@ -11,7 +11,7 @@ import AnimatedBackground from './AnimatedBackground';
 import {
   Film, Star, BookOpen, UtensilsCrossed, Heart,
   MessageCircleQuestion, MapPin, Gift, LayoutDashboard,
-  Sun, Moon, LogOut, Camera, Settings,
+  Sun, Moon, LogOut, Camera,
 } from 'lucide-react';
 
 const tabs = [
@@ -54,7 +54,6 @@ export default function Layout({ children }: { children: ReactNode }) {
   const { currentUser, setUser } = useUser();
   const { theme, toggleTheme } = useTheme();
   const onlineUsers = usePresence(currentUser);
-  const [showSettings, setShowSettings] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -70,7 +69,6 @@ export default function Layout({ children }: { children: ReactNode }) {
     const { data } = supabase.storage.from('media').getPublicUrl(path);
     localStorage.setItem(`js-pfp-${currentUser}`, data.publicUrl + '?t=' + Date.now());
     setUploading(false);
-    setShowSettings(false);
     window.location.reload();
   };
 
@@ -97,27 +95,14 @@ export default function Layout({ children }: { children: ReactNode }) {
               <UserAvatar name="Sophie" color="#EC4899" isOnline={onlineUsers.includes('sophie')} pfpUrl={sophiePfp} />
               <div className="w-px h-5 bg-white/10 mx-1" />
 
-              {/* Settings */}
-              <div className="relative">
-                <button onClick={() => setShowSettings(!showSettings)}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/5 transition-all">
-                  <Settings className="w-4 h-4" />
-                </button>
-                {showSettings && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setShowSettings(false)} />
-                    <div className="absolute top-full right-0 mt-2 w-48 glass-strong rounded-2xl p-2 z-50 animate-scale-in">
-                      <button onClick={() => fileRef.current?.click()}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-foreground/70 hover:text-foreground hover:bg-white/5 transition-all">
-                        <Camera className="w-4 h-4" />
-                        {uploading ? 'Uploading...' : 'Change Photo'}
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
+              {/* Change Photo — direct click */}
+              <button onClick={() => fileRef.current?.click()}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/5 transition-all"
+                title="Change profile photo">
+                <Camera className="w-4 h-4" />
+              </button>
               <input ref={fileRef} type="file" accept="image/*" className="hidden"
-                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUploadPfp(f); }} />
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUploadPfp(f); e.target.value = ''; }} />
 
               <button onClick={toggleTheme}
                 className="w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/5 transition-all">

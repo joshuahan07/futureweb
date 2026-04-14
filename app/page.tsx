@@ -14,11 +14,55 @@ import { motion, AnimatePresence } from 'framer-motion';
 // ── Identity Picker ──────────────────────────────────────────
 
 const users = [
-  { id: 'joshua' as const, name: 'Joshua', color: '#3B82F6', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Joshua&backgroundColor=b6e3f4' },
-  { id: 'sophie' as const, name: 'Sophie', color: '#EC4899', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie&backgroundColor=ffdfbf' },
+  { id: 'joshua' as const, name: 'Joshua', color: '#3B82F6' },
+  { id: 'sophie' as const, name: 'Sophie', color: '#EC4899' },
 ];
 
+function LoadingScreen({ onDone }: { onDone: () => void }) {
+  useEffect(() => { const t = setTimeout(onDone, 2000); return () => clearTimeout(t); }, [onDone]);
+
+  return (
+    <div className="fixed inset-0 bg-[#0F0F13] flex items-center justify-center z-[200]">
+      <div className="relative z-10 flex flex-col items-center">
+        <motion.div className="relative mb-8" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5 }}>
+          <motion.div className="w-24 h-24 rounded-full flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.2), rgba(236,72,153,0.2))', border: '1px solid rgba(255,255,255,0.2)' }}
+            animate={{ boxShadow: ['0 0 20px rgba(139,92,246,0.3)', '0 0 60px rgba(139,92,246,0.6)', '0 0 20px rgba(139,92,246,0.3)'] }}
+            transition={{ duration: 2, repeat: Infinity }}>
+            <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>
+              <Heart className="w-12 h-12" fill="url(#heartGrad)" stroke="none" />
+            </motion.div>
+            <svg width="0" height="0"><defs>
+              <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#3B82F6" /><stop offset="100%" stopColor="#EC4899" />
+              </linearGradient>
+            </defs></svg>
+          </motion.div>
+        </motion.div>
+        <motion.h1 className="text-3xl font-bold mb-2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+          <span className="gradient-text">LoveNest</span>
+        </motion.h1>
+        <motion.p className="text-white/40 text-sm mb-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
+          Joshua & Sophie&apos;s Space
+        </motion.p>
+        <motion.div className="relative w-12 h-12" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
+          <svg className="w-full h-full -rotate-90" viewBox="0 0 48 48">
+            <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3" />
+            <motion.circle cx="24" cy="24" r="20" fill="none" stroke="url(#progGrad)" strokeWidth="3" strokeLinecap="round"
+              strokeDasharray="125.6" initial={{ strokeDashoffset: 125.6 }} animate={{ strokeDashoffset: 0 }}
+              transition={{ duration: 1.5, ease: 'easeInOut' }} />
+            <defs><linearGradient id="progGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#3B82F6" /><stop offset="100%" stopColor="#EC4899" />
+            </linearGradient></defs>
+          </svg>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
 function IdentityPicker({ onPick }: { onPick: (user: 'joshua' | 'sophie') => void }) {
+  const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const joshuaPfp = typeof window !== 'undefined' ? localStorage.getItem('js-pfp-joshua') : null;
@@ -30,20 +74,13 @@ function IdentityPicker({ onPick }: { onPick: (user: 'joshua' | 'sophie') => voi
     setTimeout(() => onPick(user), 800);
   };
 
+  if (loading) return <LoadingScreen onDone={() => setLoading(false)} />;
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-[100]">
+    <div className="fixed inset-0 flex items-center justify-center z-[100] bg-[#0F0F13]">
       <AnimatedBackground />
 
-      {/* Pulsing bg orbs */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute w-[600px] h-[600px] rounded-full animate-pulse-soft"
-          style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%)', filter: 'blur(60px)', left: '10%', top: '20%' }} />
-        <div className="absolute w-[500px] h-[500px] rounded-full animate-pulse-soft"
-          style={{ background: 'radial-gradient(circle, rgba(236,72,153,0.12) 0%, transparent 70%)', filter: 'blur(60px)', right: '10%', bottom: '20%', animationDelay: '2s' }} />
-      </div>
-
       <div className="relative z-10 text-center px-6">
-        {/* Badge */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="mb-4">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6">
             <Sparkles className="w-4 h-4 text-yellow-400" />
@@ -52,64 +89,41 @@ function IdentityPicker({ onPick }: { onPick: (user: 'joshua' | 'sophie') => voi
         </motion.div>
 
         <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-5xl md:text-6xl font-bold text-white mb-4">
-          Who are you?
-        </motion.h1>
+          className="text-5xl md:text-6xl font-bold text-white mb-4">Who are you?</motion.h1>
 
         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-          className="text-white/40 text-lg mb-12">
-          Select your profile to continue
-        </motion.p>
+          className="text-white/40 text-lg mb-12">Select your profile to continue</motion.p>
 
-        {/* User cards */}
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
           {users.map((user, index) => {
             const pfp = user.id === 'joshua' ? joshuaPfp : sophiePfp;
             return (
-              <motion.button key={user.id} onClick={() => handleSelect(user.id)}
-                className="relative group"
+              <motion.button key={user.id} onClick={() => handleSelect(user.id)} className="relative group"
                 initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 + index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
                 whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
-
-                {/* Color burst on select */}
                 <AnimatePresence>
                   {selectedUser === user.id && isTransitioning && (
-                    <motion.div className="absolute inset-0 rounded-3xl z-20"
-                      style={{ backgroundColor: user.color }}
-                      initial={{ scale: 1, opacity: 1 }}
-                      animate={{ scale: 50, opacity: 0 }}
-                      exit={{ opacity: 0 }}
+                    <motion.div className="absolute inset-0 rounded-3xl z-20" style={{ backgroundColor: user.color }}
+                      initial={{ scale: 1, opacity: 1 }} animate={{ scale: 50, opacity: 0 }} exit={{ opacity: 0 }}
                       transition={{ duration: 0.8, ease: 'easeInOut' }} />
                   )}
                 </AnimatePresence>
-
-                <div className={`relative w-64 h-80 rounded-3xl overflow-hidden transition-all duration-500 ${selectedUser === user.id ? 'ring-4 ring-white/50' : ''}`}
-                  style={{
-                    background: `linear-gradient(135deg, ${user.color}20 0%, ${user.color}05 100%)`,
-                    border: `1px solid ${user.color}40`,
-                    boxShadow: `0 0 40px ${user.color}20`,
-                  }}>
-
-                  {/* Hover glow */}
+                <div className={`relative w-56 h-72 rounded-3xl overflow-hidden transition-all duration-500 ${selectedUser === user.id ? 'ring-4 ring-white/50' : ''}`}
+                  style={{ background: `linear-gradient(135deg, ${user.color}15 0%, ${user.color}05 100%)`, border: `1px solid ${user.color}30`, boxShadow: `0 0 40px ${user.color}15` }}>
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                    style={{ background: `radial-gradient(circle at 50% 30%, ${user.color}30 0%, transparent 60%)` }} />
-
-                  {/* Avatar */}
-                  <div className="absolute top-12 left-1/2 -translate-x-1/2">
-                    <div className="w-28 h-28 rounded-full overflow-hidden border-4"
-                      style={{ borderColor: `${user.color}50` }}>
-                      <img src={pfp || user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                    style={{ background: `radial-gradient(circle at 50% 30%, ${user.color}25 0%, transparent 60%)` }} />
+                  <div className="absolute top-10 left-1/2 -translate-x-1/2">
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-2 flex items-center justify-center"
+                      style={{ borderColor: `${user.color}40`, background: pfp ? undefined : `${user.color}15` }}>
+                      {pfp ? <img src={pfp} alt={user.name} className="w-full h-full object-cover" />
+                        : <span className="text-2xl font-bold" style={{ color: user.color }}>{user.name[0]}</span>}
                     </div>
                   </div>
-
-                  {/* Name */}
-                  <div className="absolute bottom-12 left-0 right-0 text-center">
-                    <h2 className="text-3xl font-bold text-white">{user.name}</h2>
-                    <p className="text-white/40 text-sm mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click to enter</p>
+                  <div className="absolute bottom-10 left-0 right-0 text-center">
+                    <h2 className="text-2xl font-bold text-white">{user.name}</h2>
+                    <p className="text-white/30 text-xs mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click to enter</p>
                   </div>
-
-                  {/* Decorative dot */}
                   <div className="absolute top-4 right-4">
                     <div className="w-3 h-3 rounded-full animate-pulse-glow" style={{ backgroundColor: user.color }} />
                   </div>
@@ -120,9 +134,7 @@ function IdentityPicker({ onPick }: { onPick: (user: 'joshua' | 'sophie') => voi
         </div>
 
         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
-          className="mt-16 text-white/20 text-sm">
-          Joshua & Sophie&apos;s Private Space
-        </motion.p>
+          className="mt-16 text-white/20 text-sm">Joshua & Sophie&apos;s Private Space</motion.p>
       </div>
     </div>
   );
