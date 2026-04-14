@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Star, Pencil, ArrowRightLeft } from 'lucide-react';
+import { Star, Pencil, ArrowRightLeft, Trash2 } from 'lucide-react';
 
 interface Book {
   id: string;
@@ -18,6 +18,7 @@ interface Book {
 interface BookCardProps {
   book: Book;
   onUpdate: (id: string, updates: Partial<Book>) => void;
+  onDelete?: (id: string) => void;
 }
 
 const genreColors: Record<string, string> = {
@@ -40,7 +41,6 @@ function getGradient(title: string): string {
   return coverGradients[Math.abs(hash) % coverGradients.length];
 }
 
-// Half-star rating (same style as movies)
 function HalfStarRating({ value, onChange }: { value: number; onChange?: (v: number) => void }) {
   const [hover, setHover] = useState<number | null>(null);
   const display = hover ?? value;
@@ -74,8 +74,12 @@ function HalfStarRating({ value, onChange }: { value: number; onChange?: (v: num
   );
 }
 
-export default function BookCard({ book, onUpdate }: BookCardProps) {
+export default function BookCard({ book, onUpdate, onDelete }: BookCardProps) {
   const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(book.title);
+  const [editAuthor, setEditAuthor] = useState(book.author);
+  const [editSeries, setEditSeries] = useState(book.series || '');
+  const [editGenre, setEditGenre] = useState(book.genre || '');
   const [editNotes, setEditNotes] = useState(book.notes || '');
   const gradient = getGradient(book.title);
   const genreClass = book.genre ? genreColors[book.genre] || 'bg-foreground/5 text-foreground/50' : '';
@@ -85,7 +89,19 @@ export default function BookCard({ book, onUpdate }: BookCardProps) {
     onUpdate(book.id, {
       status: newStatus,
       read_date: newStatus === 'read' ? new Date().toISOString().split('T')[0] : null,
+      rating: newStatus === 'tbr' ? null : book.rating,
     });
+  };
+
+  const saveEdits = () => {
+    onUpdate(book.id, {
+      title: editTitle.trim() || book.title,
+      author: editAuthor.trim() || book.author,
+      series: editSeries.trim() || null,
+      genre: editGenre.trim() || null,
+      notes: editNotes.trim() || null,
+    });
+    setEditing(false);
   };
 
   return (
@@ -103,7 +119,6 @@ export default function BookCard({ book, onUpdate }: BookCardProps) {
               <h4 className="text-sm font-semibold text-foreground truncate leading-tight">{book.title}</h4>
               <p className="text-xs text-muted mt-0.5">{book.author}</p>
             </div>
-            {/* Edit + Move buttons */}
             <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
               <button onClick={toggleStatus} title={book.status === 'tbr' ? 'Mark as Read' : 'Move to TBR'}
                 className="w-6 h-6 rounded-md flex items-center justify-center text-foreground/30 hover:text-mauve hover:bg-mauve/10 transition-all">
@@ -122,14 +137,11 @@ export default function BookCard({ book, onUpdate }: BookCardProps) {
             {book.genre && (
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${genreClass}`}>{book.genre}</span>
             )}
-
-            {/* Status badge */}
             <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
               book.status === 'read' ? 'bg-green-500/15 text-green-400' : 'bg-amber-500/15 text-amber-400'
             }`}>
               {book.status === 'read' ? '✓ Read' : 'TBR'}
             </span>
-
             {book.read_date && (
               <span className="text-[10px] text-muted">
                 {new Date(book.read_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
@@ -137,32 +149,77 @@ export default function BookCard({ book, onUpdate }: BookCardProps) {
             )}
           </div>
 
-          {/* Half-star rating — always visible, clickable */}
-          <div className="mt-2">
-            <HalfStarRating
-              value={book.rating ? Math.round(book.rating * 2) / 2 : 0}
-              onChange={(r) => onUpdate(book.id, { rating: r })}
-            />
-          </div>
+          {/* Rating — only for read books */}
+          {book.status === 'read' && (
+            <div className="mt-2">
+              <HalfStarRating
+                value={book.rating ? Math.round(book.rating * 2) / 2 : 0}
+                onChange={(r) => onUpdate(book.id, { rating: r })}
+              />
+            </div>
+          )}
         </div>
       </div>
 
       {/* Expanded edit section */}
       {editing && (
-        <div className="mt-3 pt-3 border-t border-foreground/5 space-y-2 animate-fade-in">
+        <div className="mt-3 pt-3 border-t border-foreground/5 space-y-2.5 animate-fade-in">
+          {/* Editable fields */}
+          <div className="space-y-2">
+            <div>
+              <label className="text-[10px] text-muted mb-0.5 block">Title</label>
+              <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)}
+                className="w-full px-2.5 py-1.5 rounded-lg text-sm bg-foreground/5 border border-foreground/10 text-foreground focus:outline-none focus:border-mauve/30" />
+            </div>
+            <div>
+              <label className="text-[10px] text-muted mb-0.5 block">Author</label>
+              <input type="text" value={editAuthor} onChange={(e) => setEditAuthor(e.target.value)}
+                className="w-full px-2.5 py-1.5 rounded-lg text-sm bg-foreground/5 border border-foreground/10 text-foreground focus:outline-none focus:border-mauve/30" />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] text-muted mb-0.5 block">Series</label>
+                <input type="text" value={editSeries} onChange={(e) => setEditSeries(e.target.value)} placeholder="Optional"
+                  className="w-full px-2.5 py-1.5 rounded-lg text-sm bg-foreground/5 border border-foreground/10 text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-mauve/30" />
+              </div>
+              <div>
+                <label className="text-[10px] text-muted mb-0.5 block">Genre</label>
+                <input type="text" value={editGenre} onChange={(e) => setEditGenre(e.target.value)} placeholder="Optional"
+                  className="w-full px-2.5 py-1.5 rounded-lg text-sm bg-foreground/5 border border-foreground/10 text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-mauve/30" />
+              </div>
+            </div>
+            <div>
+              <label className="text-[10px] text-muted mb-0.5 block">Notes</label>
+              <textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)} placeholder="Optional" rows={2}
+                className="w-full px-2.5 py-1.5 rounded-lg text-sm bg-foreground/5 border border-foreground/10 text-foreground placeholder:text-foreground/20 resize-none focus:outline-none focus:border-mauve/30" />
+            </div>
+          </div>
+
+          {/* Status toggle */}
+          <button onClick={toggleStatus}
+            className={`w-full py-2 rounded-lg text-xs font-medium transition-colors ${
+              book.status === 'tbr' ? 'bg-green-500/15 text-green-400 hover:bg-green-500/25' : 'bg-amber-500/15 text-amber-400 hover:bg-amber-500/25'
+            }`}>
+            {book.status === 'tbr' ? 'Mark as Read ✓' : 'Move to TBR →'}
+          </button>
+
+          {/* Save + Delete */}
           <div className="flex gap-2">
-            <button onClick={toggleStatus}
-              className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors ${
-                book.status === 'tbr' ? 'bg-green-500/15 text-green-400 hover:bg-green-500/25' : 'bg-amber-500/15 text-amber-400 hover:bg-amber-500/25'
-              }`}>
-              {book.status === 'tbr' ? 'Mark as Read ✓' : 'Move to TBR →'}
+            <button onClick={saveEdits}
+              className="flex-1 py-2 rounded-lg text-xs font-medium bg-mauve text-white hover:bg-mauve/90 active:scale-95 transition-all">
+              Save Changes
+            </button>
+            {onDelete && (
+              <button onClick={() => { if (confirm(`Delete "${book.title}"?`)) onDelete(book.id); }}
+                className="py-2 px-3 rounded-lg text-xs font-medium text-red-400 hover:bg-red-500/10 transition-all">
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+            <button onClick={() => setEditing(false)}
+              className="py-2 px-3 rounded-lg text-xs text-muted hover:text-foreground hover:bg-foreground/5 transition-all">
+              Cancel
             </button>
           </div>
-          <textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)}
-            onBlur={() => { if (editNotes !== (book.notes || '')) onUpdate(book.id, { notes: editNotes }); }}
-            placeholder="Add notes..."
-            className="w-full px-3 py-2 rounded-lg text-xs bg-foreground/5 border border-foreground/10 text-foreground placeholder:text-foreground/30 resize-none focus:outline-none focus:border-mauve/30" rows={2} />
-          <button onClick={() => setEditing(false)} className="text-[10px] text-muted hover:text-foreground">Close</button>
         </div>
       )}
     </div>

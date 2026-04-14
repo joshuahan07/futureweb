@@ -131,6 +131,11 @@ export default function BooksPage() {
     fetchBooks();
   };
 
+  const handleBookDelete = async (id: string) => {
+    await supabase.from('books').delete().eq('id', id);
+    fetchBooks();
+  };
+
   const handleAddBook = async () => {
     if (!newBook.title.trim()) return;
     await supabase.from('books').insert({
@@ -297,7 +302,7 @@ export default function BooksPage() {
                       {expandedAuthors[author] && (
                         <div className="space-y-1.5 ml-1 mt-1 animate-fade-in">
                           {authorBooks.map((book) => (
-                            <BookCard key={book.id} book={book} onUpdate={handleBookUpdate} />
+                            <BookCard key={book.id} book={book} onUpdate={handleBookUpdate} onDelete={handleBookDelete} />
                           ))}
                         </div>
                       )}
@@ -319,7 +324,7 @@ export default function BooksPage() {
                 </div>
                 <div className="space-y-1.5">
                   {readBooks.map((book) => (
-                    <BookCard key={book.id} book={book} onUpdate={handleBookUpdate} />
+                    <BookCard key={book.id} book={book} onUpdate={handleBookUpdate} onDelete={handleBookDelete} />
                   ))}
                   {readBooks.length === 0 && (
                     <p className="text-sm text-muted/60 text-center py-8">No books in this filter</p>
