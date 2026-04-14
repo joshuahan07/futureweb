@@ -63,7 +63,9 @@ export default function Layout({ children }: { children: ReactNode }) {
   const [cropFile, setCropFile] = useState<string | null>(null);
   const [cropOffset, setCropOffset] = useState({ x: 0, y: 0 });
   const [cropImgSize, setCropImgSize] = useState({ w: 0, h: 0 });
-  const cropImgRef = useRef<HTMLImageElement>(null);
+  const [cropZoom, setCropZoom] = useState(1);
+  const [cropDragging, setCropDragging] = useState(false);
+  const CIRCLE = 240;
 
   const [joshuaPfp, setJoshuaPfp] = useState<string | null>(null);
   const [sophiePfp, setSophiePfp] = useState<string | null>(null);
@@ -85,6 +87,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     img.onload = () => {
       setCropImgSize({ w: img.width, h: img.height });
       setCropOffset({ x: 0, y: 0 });
+      setCropZoom(1);
       setCropFile(url);
     };
     img.src = url;
@@ -105,12 +108,14 @@ export default function Layout({ children }: { children: ReactNode }) {
       canvas.height = outSize;
       const ctx = canvas.getContext('2d')!;
 
-      // Calculate crop region based on drag offset
-      const scale = Math.max(outSize / img.width, outSize / img.height);
+      // Calculate crop region based on drag offset + zoom
+      const baseScale = Math.max(outSize / img.width, outSize / img.height);
+      const scale = baseScale * cropZoom;
       const scaledW = img.width * scale;
       const scaledH = img.height * scale;
-      const drawX = (outSize - scaledW) / 2 + cropOffset.x * scale;
-      const drawY = (outSize - scaledH) / 2 + cropOffset.y * scale;
+      const renderScale = outSize / CIRCLE;
+      const drawX = (outSize - scaledW) / 2 + cropOffset.x * renderScale;
+      const drawY = (outSize - scaledH) / 2 + cropOffset.y * renderScale;
 
       // Clip to circle shape
       ctx.beginPath();
@@ -229,63 +234,113 @@ export default function Layout({ children }: { children: ReactNode }) {
       </footer>
 
       {/* ═══ CROP MODAL ═══ */}
-      {cropFile && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-xl p-4">
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            className="glass-strong rounded-3xl p-6 w-full max-w-sm">
-            <h3 className="text-lg font-bold text-foreground text-center mb-2">Position Your Photo</h3>
-            <p className="text-foreground/40 text-xs text-center mb-5">Drag the image to adjust</p>
+      {cropFile && (() => {
+        const aspect = cropImgSize.w / (cropImgSize.h || 1);
+        const scaledW = aspect >= 1 ? CIRCLE * cropZoom * aspect : CIRCLE * cropZoom;
+        const scaledH = aspect >= 1 ? CIRCLE * cropZoom : CIRCLE * cropZoom / aspect;
+        // Clamp offset so image covers circle
+        const maxX = Math.max(0, (scaledW - CIRCLE) / 2);
+        const maxY = Math.max(0, (scaledH - CIRCLE) / 2);
+        const cx = Math.min(maxX, Math.max(-maxX, cropOffset.x));
+        const cy = Math.min(maxY, Math.max(-maxY, cropOffset.y));
 
-            {/* Crop area — circular mask */}
-            <div className="relative w-64 h-64 mx-auto rounded-full overflow-hidden border-2 border-foreground/20 cursor-grab active:cursor-grabbing select-none"
-              onMouseDown={(e) => {
-                const startX = e.clientX;
-                const startY = e.clientY;
-                const startOff = { ...cropOffset };
-                const onMove = (ev: MouseEvent) => {
-                  setCropOffset({ x: startOff.x + (ev.clientX - startX), y: startOff.y + (ev.clientY - startY) });
-                };
-                const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
-                document.addEventListener('mousemove', onMove);
-                document.addEventListener('mouseup', onUp);
-              }}
-              onTouchStart={(e) => {
-                const startX = e.touches[0].clientX;
-                const startY = e.touches[0].clientY;
-                const startOff = { ...cropOffset };
-                const onMove = (ev: TouchEvent) => {
-                  setCropOffset({ x: startOff.x + (ev.touches[0].clientX - startX), y: startOff.y + (ev.touches[0].clientY - startY) });
-                };
-                const onEnd = () => { document.removeEventListener('touchmove', onMove); document.removeEventListener('touchend', onEnd); };
-                document.addEventListener('touchmove', onMove);
-                document.addEventListener('touchend', onEnd);
-              }}
-            >
-              <img ref={cropImgRef} src={cropFile} alt="Crop preview" draggable={false}
-                className="absolute pointer-events-none"
-                style={{
-                  width: cropImgSize.w > cropImgSize.h ? 'auto' : '100%',
-                  height: cropImgSize.h > cropImgSize.w ? 'auto' : '100%',
-                  minWidth: '100%', minHeight: '100%',
-                  left: `calc(50% + ${cropOffset.x}px)`,
-                  top: `calc(50% + ${cropOffset.y}px)`,
-                  transform: 'translate(-50%, -50%)',
+        return (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-xl p-4">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+              className="rounded-3xl p-6 w-full max-w-sm flex flex-col items-center gap-6"
+              style={{ background: '#0a0a0a' }}>
+
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-white">Profile photo</h3>
+                <p className="text-white/40 text-sm mt-1">Drag to reposition · Scroll to zoom</p>
+              </div>
+
+              {/* Crop circle */}
+              <div className="relative select-none" style={{ width: CIRCLE + 40, height: CIRCLE + 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: cropDragging ? 'grabbing' : 'grab', touchAction: 'none' }}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  setCropDragging(true);
+                  const startX = e.clientX, startY = e.clientY;
+                  const startOff = { x: cx, y: cy };
+                  e.currentTarget.setPointerCapture(e.pointerId);
+                  const onMove = (ev: PointerEvent) => {
+                    const nx = startOff.x + (ev.clientX - startX);
+                    const ny = startOff.y + (ev.clientY - startY);
+                    setCropOffset({ x: nx, y: ny });
+                  };
+                  const onUp = () => { setCropDragging(false); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
+                  document.addEventListener('pointermove', onMove);
+                  document.addEventListener('pointerup', onUp);
+                }}
+                onWheel={(e) => { e.preventDefault(); setCropZoom(z => Math.min(3, Math.max(1, z - e.deltaY * 0.002))); }}
+              >
+                {/* Image in circle */}
+                <div style={{ position: 'absolute', width: CIRCLE, height: CIRCLE, borderRadius: '50%', overflow: 'hidden' }}>
+                  <img src={cropFile} alt="" draggable={false}
+                    style={{
+                      position: 'absolute', pointerEvents: 'none',
+                      left: `calc(50% - ${scaledW / 2}px + ${cx}px)`,
+                      top: `calc(50% - ${scaledH / 2}px + ${cy}px)`,
+                      width: scaledW, height: scaledH, objectFit: 'cover',
+                      transition: cropDragging ? 'none' : 'all 0.15s',
+                    }} />
+                </div>
+                {/* Border + shadow */}
+                <div style={{
+                  position: 'absolute', width: CIRCLE, height: CIRCLE, borderRadius: '50%',
+                  border: '2px solid rgba(255,255,255,0.15)',
+                  boxShadow: '0 0 0 9999px rgba(0,0,0,0.55), inset 0 0 30px rgba(0,0,0,0.2)',
+                  pointerEvents: 'none',
                 }} />
-            </div>
+                {/* Grid lines while dragging */}
+                {cropDragging && (
+                  <svg width={CIRCLE} height={CIRCLE} viewBox={`0 0 ${CIRCLE} ${CIRCLE}`}
+                    style={{ position: 'absolute', pointerEvents: 'none', opacity: 0.3 }}>
+                    <defs><clipPath id="cc"><circle cx={CIRCLE/2} cy={CIRCLE/2} r={CIRCLE/2} /></clipPath></defs>
+                    <g clipPath="url(#cc)">
+                      <line x1={CIRCLE/3} y1={0} x2={CIRCLE/3} y2={CIRCLE} stroke="white" strokeWidth="0.5" />
+                      <line x1={CIRCLE*2/3} y1={0} x2={CIRCLE*2/3} y2={CIRCLE} stroke="white" strokeWidth="0.5" />
+                      <line y1={CIRCLE/3} x1={0} y2={CIRCLE/3} x2={CIRCLE} stroke="white" strokeWidth="0.5" />
+                      <line y1={CIRCLE*2/3} x1={0} y2={CIRCLE*2/3} x2={CIRCLE} stroke="white" strokeWidth="0.5" />
+                    </g>
+                  </svg>
+                )}
+              </div>
 
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => { URL.revokeObjectURL(cropFile); setCropFile(null); }}
-                className="flex-1 py-2.5 rounded-xl border border-foreground/10 text-foreground/60 text-sm hover:bg-foreground/5 transition-all">
-                Cancel
-              </button>
-              <button onClick={handleCropConfirm} disabled={uploading}
-                className="flex-1 py-2.5 rounded-xl bg-mauve text-white text-sm font-medium hover:bg-mauve/90 active:scale-95 transition-all disabled:opacity-50">
-                {uploading ? 'Saving...' : 'Save'}
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
+              {/* Zoom slider */}
+              <div className="flex items-center gap-3 w-full max-w-[280px]">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#737373" strokeWidth="2" strokeLinecap="round">
+                  <circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /><line x1="8" y1="11" x2="14" y2="11" />
+                </svg>
+                <div className="flex-1 relative h-9 flex items-center">
+                  <div className="absolute left-0 right-0 h-[3px] rounded-full bg-white/10" />
+                  <div className="absolute left-0 h-[3px] rounded-full" style={{ width: `${((cropZoom - 1) / 2) * 100}%`, background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)' }} />
+                  <input type="range" min="1" max="3" step="0.01" value={cropZoom}
+                    onChange={(e) => setCropZoom(parseFloat(e.target.value))}
+                    className="relative w-full h-9 appearance-none bg-transparent cursor-pointer z-10 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer" />
+                </div>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#737373" strokeWidth="2" strokeLinecap="round">
+                  <circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /><line x1="8" y1="11" x2="14" y2="11" /><line x1="11" y1="8" x2="11" y2="14" />
+                </svg>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 w-full max-w-[280px]">
+                <button onClick={() => { URL.revokeObjectURL(cropFile); setCropFile(null); }}
+                  className="flex-1 py-3 rounded-xl border border-white/10 text-white text-sm hover:bg-white/5 transition-all">
+                  Cancel
+                </button>
+                <button onClick={handleCropConfirm} disabled={uploading}
+                  className="flex-1 py-3 rounded-xl text-white text-sm font-semibold active:scale-95 transition-all disabled:opacity-50"
+                  style={{ background: uploading ? '#22c55e' : 'linear-gradient(135deg, #3b82f6, #8b5cf6)' }}>
+                  {uploading ? '✓ Saving...' : 'Save'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
