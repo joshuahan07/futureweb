@@ -952,13 +952,7 @@ export default function WeddingPage() {
   return (
     <Layout>
       <div className="pb-12">
-        {/* ── Header ──────────────────────────────────────── */}
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#F8FAFF] via-[#EEF2FF] to-[#DBEAFE]/30 px-6 py-10 sm:py-14 text-center mb-10">
-          <div className="absolute top-4 right-8 opacity-10 text-5xl select-none pointer-events-none">💍</div>
-          <div className="absolute bottom-4 left-8 opacity-10 text-3xl select-none pointer-events-none">🌸</div>
-          <h1 className="font-heading italic text-4xl sm:text-5xl text-mauve/80 tracking-tight">J + S</h1>
-          <p className="font-heading italic text-lg text-mauve/80/60 mt-1">Our Wedding</p>
-        </div>
+        {/* Header removed */}
 
         {/* ── Main layout: sidebar + content ──────────────── */}
         <div className="flex gap-8">
