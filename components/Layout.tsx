@@ -3,6 +3,7 @@
 import { ReactNode, useState, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from './UserContext';
 import { useTheme } from './ThemeContext';
 import { usePresence } from '@/lib/presence';
@@ -174,9 +175,18 @@ export default function Layout({ children }: { children: ReactNode }) {
 
       {/* ═══ CONTENT ═══ */}
       <main className="flex-1 relative z-10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 animate-fade-in">
-          {children}
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={pathname}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="max-w-6xl mx-auto px-4 sm:px-6 py-6"
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Footer */}
