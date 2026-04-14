@@ -36,7 +36,7 @@ interface BudgetItem {
 
 // Top-level category structure (order matters). Budget is a special pseudo-category.
 const CATEGORY_STRUCTURE: { name: string; subs: string[] }[] = [
-  { name: 'Preparation', subs: ['Bride', 'Groom', 'Together'] },
+  { name: 'Preparations', subs: ['Bride', 'Groom', 'Together'] },
   { name: 'Vision', subs: [] },
   { name: 'Invites', subs: [] },
   { name: 'Venue', subs: [] },
@@ -65,12 +65,12 @@ const LEGACY_REMAP: Record<string, string> = {
   'Videographer': 'Memories (Videographer)',
   'Flowers & Decor': 'Aesthetics (Decor)',
   'Colors & Mood': 'Aesthetics (Colours)',
-  'On the Day': 'Preparation (Together)',
+  'On the Day': 'Preparations (Together)',
   'Dress': 'Aesthetics (Decor)',
 };
 
 const PARENT_COLORS: Record<string, string> = {
-  'Preparation': 'bg-violet-50 text-violet-600 border-violet-200',
+  'Preparations': 'bg-violet-50 text-violet-600 border-violet-200',
   'Vision': 'bg-amber-50 text-amber-700 border-amber-200',
   'Invites': 'bg-mauve/10 text-mauve border-mauve/20',
   'Venue': 'bg-teal-50 text-teal-600 border-teal-200',
@@ -109,14 +109,14 @@ const SEED_ELEMENTS: Omit<WeddingElement, 'id' | 'created_at' | 'created_by'>[] 
   { title: 'Start seating early and intentionally', category: 'On the Day', description: null, status: 'dream', priority: false },
   { title: 'Over-communicate everything', category: 'On the Day', description: 'Wedding website, reminder texts, signage', status: 'dream', priority: false },
   { title: 'Have someone in charge of coordination', category: 'On the Day', description: 'Planner, coordinator, or one assertive friend', status: 'dream', priority: false },
-  { title: 'Trial hair and makeup', category: 'Preparation (Bride)', description: null, status: 'dream', priority: false },
-  { title: 'Make list for photos', category: 'Preparation (Bride)', description: null, status: 'dream', priority: false },
-  { title: 'Save the small things', category: 'Preparation (Bride)', description: null, status: 'dream', priority: false },
-  { title: 'Get haircut 2 weeks prior', category: 'Preparation (Groom)', description: null, status: 'dream', priority: false },
-  { title: 'Be emotional and show feelings', category: 'Preparation (Groom)', description: null, status: 'dream', priority: false },
-  { title: 'Take time together before reception', category: 'Preparation (Together)', description: null, status: 'dream', priority: false },
-  { title: 'Practice the dance', category: 'Preparation (Together)', description: null, status: 'dream', priority: false },
-  { title: 'Eat before the ceremony', category: 'Preparation (Together)', description: null, status: 'dream', priority: false },
+  { title: 'Trial hair and makeup', category: 'Preparations (Bride)', description: null, status: 'dream', priority: false },
+  { title: 'Make list for photos', category: 'Preparations (Bride)', description: null, status: 'dream', priority: false },
+  { title: 'Save the small things', category: 'Preparations (Bride)', description: null, status: 'dream', priority: false },
+  { title: 'Get haircut 2 weeks prior', category: 'Preparations (Groom)', description: null, status: 'dream', priority: false },
+  { title: 'Be emotional and show feelings', category: 'Preparations (Groom)', description: null, status: 'dream', priority: false },
+  { title: 'Take time together before reception', category: 'Preparations (Together)', description: null, status: 'dream', priority: false },
+  { title: 'Practice the dance', category: 'Preparations (Together)', description: null, status: 'dream', priority: false },
+  { title: 'Eat before the ceremony', category: 'Preparations (Together)', description: null, status: 'dream', priority: false },
   { title: 'Written agreement', category: 'Photographer', description: null, status: 'dream', priority: false },
   { title: 'Backup plan if gear fails', category: 'Photographer', description: 'Multiple cameras', status: 'dream', priority: false },
   { title: 'Timeline and lighting help', category: 'Photographer', description: 'Thinking about the full picture #goldenhour', status: 'dream', priority: false },
