@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Dancing+Script:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Dancing+Script:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 /* ═══ LIGHT MODE ═══ */
@@ -22,21 +22,21 @@
 
 /* ═══ DARK MODE ═══ */
 .dark {
-  --background: #0c0c10;
+  --background: #0F0F13;
   --foreground: #FFFFFF;
-  --surface: rgba(255, 255, 255, 0.045);
+  --surface: rgba(255, 255, 255, 0.03);
   --surface-hover: rgba(255, 255, 255, 0.08);
-  --border: rgba(255, 255, 255, 0.08);
-  --border-light: rgba(255, 255, 255, 0.04);
-  --muted: rgba(255, 255, 255, 0.4);
-  --rose: #F472B6;
-  --mauve: #A78BFA;
-  --sage: #34D399;
-  --glass: rgba(255, 255, 255, 0.035);
-  --glass-strong: rgba(255, 255, 255, 0.06);
-  --glass-border: rgba(255, 255, 255, 0.06);
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.2);
-  --topnav-bg: rgba(12, 12, 16, 0.75);
+  --border: rgba(255, 255, 255, 0.1);
+  --border-light: rgba(255, 255, 255, 0.05);
+  --muted: #A0A0B0;
+  --rose: #EC4899;
+  --mauve: #8B5CF6;
+  --sage: #10B981;
+  --glass: rgba(255, 255, 255, 0.03);
+  --glass-strong: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+  --topnav-bg: rgba(15, 15, 19, 0.95);
 }
 
 @theme inline {
@@ -53,8 +53,8 @@
   --color-glass: var(--glass);
   --color-glass-strong: var(--glass-strong);
   --color-glass-border: var(--glass-border);
-  --font-heading: 'Bricolage Grotesque', system-ui, sans-serif;
-  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-heading: 'Inter', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
   --font-script: 'Dancing Script', cursive;
 }
 
@@ -94,11 +94,17 @@ h1, h2, h3 {
 }
 
 .glass-card {
-  background: var(--glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
   box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+:root .glass-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.4) 100%);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 /* ═══ ANIMATIONS ═══ */
@@ -227,6 +233,14 @@ h1, h2, h3 {
 }
 .floating-bg .heart { animation: float-heart linear infinite; }
 .floating-bg .star { animation: float-star linear infinite; }
+
+/* ═══ GRADIENT TEXT ═══ */
+.gradient-text {
+  background: linear-gradient(135deg, #3B82F6 0%, #EC4899 50%, #8B5CF6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 
 /* ═══ SCROLLBAR ═══ */
 .scrollbar-hide {
