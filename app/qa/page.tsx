@@ -1,27 +1,16 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRealtimeSync } from '@/lib/realtime'
 import { useUser } from '@/components/UserContext'
 import { seedIfEmpty } from '@/lib/seed'
 import Layout from '@/components/Layout'
-import { MessageCircle, Plus, ChevronRight } from 'lucide-react'
-import AnswerPanel from '@/components/AnswerPanel'
+import { MessageCircleQuestion, Plus, ChevronDown, Check } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
-interface Question {
-  id: string
-  question: string
-  category: string | null
-  order_index: number | null
-}
-
-interface Answer {
-  id: string
-  question_id: string
-  answered_by: string
-  answer: string
-}
+interface Question { id: string; question: string; category: string | null; order_index: number | null; }
+interface Answer { id: string; question_id: string; answered_by: string; answer: string; }
 
 const SEED_QUESTIONS: { question: string; category: string; order_index: number }[] = [
   { question: 'How will we handle money when things get tight?', category: 'Financial', order_index: 1 },
@@ -56,22 +45,74 @@ const SEED_QUESTIONS: { question: string; category: string; order_index: number 
   { question: 'How do you feel about raising children with a specific faith?', category: 'Beliefs', order_index: 30 },
 ]
 
-const DEFAULT_CATEGORIES = [
-  'All', 'Financial', 'Credit & Debt', 'Parenting',
-  'Dream Life', 'Likes / Dislikes / Fears', 'Expectations', 'Beliefs',
-]
+const CATEGORIES = ['All', 'Financial', 'Credit & Debt', 'Parenting', 'Dream Life', 'Likes / Dislikes / Fears', 'Expectations', 'Beliefs']
 
-const CAT_ICONS: Record<string, string> = {
-  'Financial': '💰', 'Credit & Debt': '💳', 'Parenting': '👶',
-  'Dream Life': '✨', 'Likes / Dislikes / Fears': '💭', 'Expectations': '🤝', 'Beliefs': '🕊',
+// ── Answer Panel (inline) ───────────────────────────────────
+
+function AnswerBox({ questionId, person, currentUser, existingAnswer }: {
+  questionId: string; person: 'joshua' | 'sophie'; currentUser: string | null;
+  existingAnswer: { id: string; answer: string } | null;
+}) {
+  const isOwner = currentUser === person;
+  const [text, setText] = useState(existingAnswer?.answer || '');
+  const answerId = useRef(existingAnswer?.id || null);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => { setText(existingAnswer?.answer || ''); answerId.current = existingAnswer?.id || null; }, [existingAnswer]);
+
+  const save = useCallback(async (value: string) => {
+    if (!currentUser) return;
+    if (answerId.current) {
+      await supabase.from('qa_answers').update({ answer: value }).eq('id', answerId.current);
+    } else {
+      const { data } = await supabase.from('qa_answers').insert({ question_id: questionId, answered_by: person, answer: value, created_by: currentUser }).select().single();
+      if (data) answerId.current = data.id;
+    }
+  }, [questionId, person, currentUser]);
+
+  const handleChange = (value: string) => {
+    setText(value);
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => save(value), 500);
+  };
+
+  const isJoshua = person === 'joshua';
+  const label = isJoshua ? 'Joshua' : 'Sophie';
+  const color = isJoshua ? 'blue' : 'pink';
+  const pfp = typeof window !== 'undefined' ? localStorage.getItem(`js-pfp-${person}`) : null;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <div className={`w-6 h-6 rounded-full overflow-hidden border flex items-center justify-center text-[10px] font-bold text-white`}
+          style={{ borderColor: isJoshua ? '#3B82F6' : '#EC4899', background: pfp ? undefined : (isJoshua ? '#3B82F6' : '#EC4899') }}>
+          {pfp ? <img src={pfp} alt={label} className="w-full h-full object-cover" /> : label[0]}
+        </div>
+        <span className={`text-sm font-medium ${isJoshua ? 'text-blue-400' : 'text-pink-400'}`}>{label}&apos;s Answer</span>
+      </div>
+      {isOwner ? (
+        <textarea value={text} onChange={(e) => handleChange(e.target.value)}
+          placeholder="Write your answer..."
+          className={`w-full min-h-[120px] p-4 rounded-xl border resize-none text-foreground placeholder:text-foreground/30 focus:outline-none ${
+            isJoshua ? 'bg-blue-500/5 border-blue-500/20 focus:border-blue-500/40' : 'bg-pink-500/5 border-pink-500/20 focus:border-pink-500/40'
+          }`} />
+      ) : (
+        <div className={`min-h-[120px] p-4 rounded-xl border ${isJoshua ? 'bg-blue-500/5 border-blue-500/20' : 'bg-pink-500/5 border-pink-500/20'}`}>
+          {text ? <p className="text-foreground/80 whitespace-pre-wrap">{text}</p> : <p className="text-foreground/30 italic">{`Hasn't answered yet...`}</p>}
+        </div>
+      )}
+    </div>
+  );
 }
+
+// ── Main Page ───────────────────────────────────────────────
 
 export default function QAPage() {
   const { currentUser } = useUser()
   const [questions, setQuestions] = useState<Question[]>([])
   const [answers, setAnswers] = useState<Answer[]>([])
   const [activeCategory, setActiveCategory] = useState('All')
-  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set())
+  const [expandedQuestion, setExpandedQuestion] = useState<string | null>(null)
   const [showAddQuestion, setShowAddQuestion] = useState(false)
   const [newQuestion, setNewQuestion] = useState('')
   const [newCategory, setNewCategory] = useState('Financial')
@@ -90,43 +131,29 @@ export default function QAPage() {
     if (data) setAnswers(data)
   }, [])
 
-  const fetchAll = useCallback(async () => {
-    const qs = await fetchQuestions()
-    await fetchAnswers()
-    return qs
-  }, [fetchQuestions, fetchAnswers])
-
   useEffect(() => {
-    async function init() {
+    (async () => {
       await seedIfEmpty('qa_questions', SEED_QUESTIONS.map((q) => ({ ...q, created_by: 'joshua' })))
-      await fetchAll()
+      await Promise.all([fetchQuestions(), fetchAnswers()])
       setLoaded(true)
-    }
-    init()
+    })()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useRealtimeSync('qa_questions', fetchQuestions)
   useRealtimeSync('qa_answers', fetchAnswers)
 
-  const toggleCategory = (cat: string) => {
-    setCollapsedCategories((prev) => {
-      const next = new Set(prev)
-      if (next.has(cat)) next.delete(cat); else next.add(cat)
-      return next
-    })
-  }
-
-  // Dynamic categories from data
   const liveCats = [...new Set(questions.map((q) => q.category).filter(Boolean))] as string[]
-  const allCategories = [...new Set([...DEFAULT_CATEGORIES, ...liveCats])]
-
+  const allCategories = [...new Set([...CATEGORIES, ...liveCats])]
   const filteredQuestions = activeCategory === 'All' ? questions : questions.filter((q) => q.category === activeCategory)
-  const groupedByCategory = filteredQuestions.reduce<Record<string, Question[]>>((acc, q) => {
-    const cat = q.category || 'Other'
-    if (!acc[cat]) acc[cat] = []
-    acc[cat].push(q)
-    return acc
-  }, {})
+
+  const answeredByJoshua = questions.filter((q) => answers.some((a) => a.question_id === q.id && a.answered_by === 'joshua')).length
+  const answeredBySophie = questions.filter((q) => answers.some((a) => a.question_id === q.id && a.answered_by === 'sophie')).length
+
+  const getCompletion = (qId: string) => {
+    const j = answers.some((a) => a.question_id === qId && a.answered_by === 'joshua' && a.answer.trim())
+    const s = answers.some((a) => a.question_id === qId && a.answered_by === 'sophie' && a.answer.trim())
+    return (j ? 50 : 0) + (s ? 50 : 0)
+  }
 
   const handleAddQuestion = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -134,184 +161,168 @@ export default function QAPage() {
     setSaving(true)
     const finalCategory = newCategory === '__custom__' ? customCategory.trim() : newCategory
     if (!finalCategory) { setSaving(false); return }
-    await supabase.from('qa_questions').insert({
-      question: newQuestion.trim(), category: finalCategory, order_index: null, created_by: currentUser,
-    })
+    await supabase.from('qa_questions').insert({ question: newQuestion.trim(), category: finalCategory, order_index: null, created_by: currentUser })
     setSaving(false)
     setNewQuestion(''); setCustomCategory(''); setNewCategory('Financial'); setShowAddQuestion(false)
     await fetchQuestions()
   }
 
-  // Stats
-  const totalQuestions = questions.length
-  const answeredByJoshua = questions.filter((q) => answers.some((a) => a.question_id === q.id && a.answered_by === 'joshua')).length
-  const answeredBySophie = questions.filter((q) => answers.some((a) => a.question_id === q.id && a.answered_by === 'sophie')).length
-
-  if (!loaded) {
-    return (
-      <Layout>
-        <div className="flex items-center justify-center py-32">
-          <div className="w-8 h-8 border-2 border-mauve/40 border-t-transparent rounded-full animate-spin" />
-        </div>
-      </Layout>
-    )
-  }
+  if (!loaded) return <Layout><div className="flex items-center justify-center py-32"><div className="w-8 h-8 border-2 border-foreground/20 border-t-mauve rounded-full animate-spin" /></div></Layout>
 
   return (
     <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-heading text-foreground flex items-center gap-2">
-              <MessageCircle className="w-6 h-6 text-rose" />
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+              <MessageCircleQuestion className="w-8 h-8 text-purple-400" />
               Q&A Journal
             </h1>
-            <p className="text-sm text-muted mt-1">Questions to explore together</p>
+            <p className="text-foreground/40 mt-1">Deep conversations and shared understanding</p>
           </div>
-          <button onClick={() => setShowAddQuestion(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-mauve text-white text-sm font-medium hover:bg-mauve/90 active:scale-95 transition-all shadow-lg shadow-mauve/25">
-            <Plus className="w-4 h-4" /> Add Question
-          </button>
-        </div>
+          <div className="flex items-center gap-3">
+            {/* Stats pill */}
+            <div className="glass-card px-4 py-2 flex items-center gap-4">
+              <div className="text-center"><p className="text-lg font-bold text-foreground">{questions.length}</p><p className="text-xs text-foreground/40">Questions</p></div>
+              <div className="w-px h-8 bg-foreground/10" />
+              <div className="text-center"><p className="text-lg font-bold text-blue-400">{answeredByJoshua}</p><p className="text-xs text-foreground/40">Joshua</p></div>
+              <div className="w-px h-8 bg-foreground/10" />
+              <div className="text-center"><p className="text-lg font-bold text-pink-400">{answeredBySophie}</p><p className="text-xs text-foreground/40">Sophie</p></div>
+            </div>
+            <motion.button onClick={() => setShowAddQuestion(true)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-violet-500 text-white font-medium">
+              <Plus className="w-4 h-4" /> Add
+            </motion.button>
+          </div>
+        </motion.div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="glass-card rounded-2xl p-4 text-center">
-            <div className="text-2xl font-bold text-foreground">{totalQuestions}</div>
-            <div className="text-[10px] text-muted uppercase tracking-wider">Questions</div>
-          </div>
-          <div className="bg-blue-50 rounded-2xl p-4 border border-mauve/15 text-center">
-            <div className="text-2xl font-bold text-mauve">{answeredByJoshua}</div>
-            <div className="text-[10px] text-mauve/80 uppercase tracking-wider">Joshua answered</div>
-          </div>
-          <div className="glass-card rounded-2xl p-4 text-center">
-            <div className="text-2xl font-bold text-rose-500">{answeredBySophie}</div>
-            <div className="text-[10px] text-rose-400 uppercase tracking-wider">Sophie answered</div>
-          </div>
-        </div>
-
-        {/* Category pills */}
-        <div className="flex flex-wrap gap-1.5">
+        {/* Category Filter */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex flex-wrap gap-2">
           {allCategories.map((cat) => (
-            <button key={cat} onClick={() => setActiveCategory(cat)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            <motion.button key={cat} onClick={() => setActiveCategory(cat)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 activeCategory === cat
-                  ? 'bg-gradient-to-r from-mauve to-mauve/90 text-white shadow-sm'
-                  : 'glass text-muted hover:text-foreground'
-              }`}>
-              {cat}
-            </button>
+                  ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                  : 'bg-foreground/5 text-foreground/50 border border-foreground/10 hover:border-foreground/20'
+              }`}>{cat}</motion.button>
           ))}
-        </div>
+        </motion.div>
 
-        {/* Questions grouped by category */}
-        <div className="space-y-8">
-          {Object.entries(groupedByCategory).map(([category, qs]) => {
-            const answered = qs.filter((q) => answers.some((a) => a.question_id === q.id)).length
-            const isCollapsed = collapsedCategories.has(category)
-            const icon = CAT_ICONS[category] || '📋'
+        {/* Questions — Accordion */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="space-y-3">
+          <AnimatePresence mode="popLayout">
+            {filteredQuestions.map((q, index) => {
+              const isExpanded = expandedQuestion === q.id
+              const completion = getCompletion(q.id)
+              const joshuaAnswer = answers.find((a) => a.question_id === q.id && a.answered_by === 'joshua') || null
+              const sophieAnswer = answers.find((a) => a.question_id === q.id && a.answered_by === 'sophie') || null
+              const jAnswered = !!(joshuaAnswer && joshuaAnswer.answer.trim())
+              const sAnswered = !!(sophieAnswer && sophieAnswer.answer.trim())
 
-            return (
-              <div key={category}>
-                <button onClick={() => toggleCategory(category)}
-                  className="flex items-center gap-2.5 mb-4 group w-full text-left">
-                  <ChevronRight className={`w-4 h-4 text-muted transition-transform duration-200 ${isCollapsed ? '' : 'rotate-90'}`} />
-                  <span className="text-lg">{icon}</span>
-                  <h2 className="text-sm font-semibold uppercase tracking-wider text-foreground/60 group-hover:text-foreground transition-colors">
-                    {category}
-                  </h2>
-                  <span className="text-[10px] px-2 py-0.5 rounded-xl glass text-muted font-medium">
-                    {answered}/{qs.length} answered
-                  </span>
-                  <div className="flex-1 h-px bg-border ml-2" />
-                </button>
+              return (
+                <motion.div key={q.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }} transition={{ delay: index * 0.02 }}
+                  className="glass-card overflow-hidden">
 
-                {!isCollapsed && (
-                  <div className="space-y-4 ml-2">
-                    {qs.map((q) => {
-                      const joshuaAnswer = answers.find((a) => a.question_id === q.id && a.answered_by === 'joshua') || null
-                      const sophieAnswer = answers.find((a) => a.question_id === q.id && a.answered_by === 'sophie') || null
-
-                      return (
-                        <div key={q.id} className="rounded-2xl glass-card overflow-hidden hover:shadow-sm transition-shadow">
-                          {/* Question header */}
-                          <div className="px-5 py-4 bg-gradient-to-r from-mauve/5 to-rose/5 border-b border-border">
-                            <p className="text-center font-medium italic text-foreground/80 text-sm leading-relaxed">
-                              &ldquo;{q.question}&rdquo;
-                            </p>
-                          </div>
-                          {/* Answer panels */}
-                          <div className="p-4 flex flex-col sm:flex-row gap-4">
-                            <AnswerPanel
-                              questionId={q.id} person="joshua" currentUser={currentUser}
-                              existingAnswer={joshuaAnswer ? { id: joshuaAnswer.id, answer: joshuaAnswer.answer } : null}
-                            />
-                            <AnswerPanel
-                              questionId={q.id} person="sophie" currentUser={currentUser}
-                              existingAnswer={sophieAnswer ? { id: sophieAnswer.id, answer: sophieAnswer.answer } : null}
-                            />
-                          </div>
+                  {/* Collapsed header */}
+                  <button onClick={() => setExpandedQuestion(isExpanded ? null : q.id)}
+                    className="w-full p-5 flex items-center justify-between text-left hover:bg-foreground/[0.02] transition-colors">
+                    <div className="flex items-center gap-4">
+                      {/* Progress ring */}
+                      <div className="relative w-10 h-10 shrink-0">
+                        <svg className="w-full h-full -rotate-90" viewBox="0 0 40 40">
+                          <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" />
+                          <circle cx="20" cy="20" r="16" fill="none" stroke="url(#qaGrad)" strokeWidth="3" strokeLinecap="round"
+                            strokeDasharray={`${completion * 1.005} 100.5`} className="transition-all duration-500" />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          {completion === 100 ? <Check className="w-4 h-4 text-green-400" /> : <span className="text-[10px] text-foreground/50">{completion}%</span>}
                         </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
+                      </div>
+                      <div>
+                        <p className="text-foreground font-medium">{q.question}</p>
+                        <p className="text-sm text-foreground/40">{q.category}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="flex gap-1">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${jAnswered ? 'bg-blue-500/20 text-blue-400' : 'bg-foreground/5 text-foreground/20'}`}>J</div>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${sAnswered ? 'bg-pink-500/20 text-pink-400' : 'bg-foreground/5 text-foreground/20'}`}>S</div>
+                      </div>
+                      <ChevronDown className={`w-5 h-5 text-foreground/30 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                    </div>
+                  </button>
 
-        {Object.keys(groupedByCategory).length === 0 && (
-          <div className="text-center py-16">
-            <MessageCircle className="w-12 h-12 text-muted mx-auto mb-3" />
-            <p className="text-muted">No questions match this category</p>
-          </div>
+                  {/* Expanded answers */}
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}
+                        className="border-t border-foreground/10">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
+                          <AnswerBox questionId={q.id} person="joshua" currentUser={currentUser}
+                            existingAnswer={joshuaAnswer ? { id: joshuaAnswer.id, answer: joshuaAnswer.answer } : null} />
+                          <AnswerBox questionId={q.id} person="sophie" currentUser={currentUser}
+                            existingAnswer={sophieAnswer ? { id: sophieAnswer.id, answer: sophieAnswer.answer } : null} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              )
+            })}
+          </AnimatePresence>
+        </motion.div>
+
+        {filteredQuestions.length === 0 && (
+          <div className="text-center py-16 glass-card"><MessageCircleQuestion className="w-10 h-10 text-white/15 mx-auto mb-2" /><p className="text-foreground/30">No questions match</p></div>
         )}
       </div>
 
       {/* Add question modal */}
       {showAddQuestion && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
-          <form onSubmit={handleAddQuestion}
-            className="glass-strong rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 animate-fade-in border border-border">
-            <h2 className="font-heading text-xl text-foreground">Add a Question</h2>
-            <div>
-              <label className="block text-xs font-medium text-muted mb-1">Question</label>
-              <textarea value={newQuestion} onChange={(e) => setNewQuestion(e.target.value)}
-                className="w-full border border-border rounded-lg px-3 py-2 bg-background text-foreground text-sm focus:ring-2 focus:ring-mauve/20 outline-none resize-none"
-                rows={3} placeholder="Type your question..." required />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xl p-4">
+          <motion.form onSubmit={handleAddQuestion} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+            className="glass-strong rounded-2xl w-full max-w-md p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-foreground">Add New Question</h2>
+              <button type="button" onClick={() => setShowAddQuestion(false)} className="w-8 h-8 rounded-lg flex items-center justify-center text-foreground/40 hover:text-foreground hover:bg-foreground/5">✕</button>
             </div>
             <div>
-              <label className="block text-xs font-medium text-muted mb-1">Category</label>
+              <label className="text-sm text-foreground/50 mb-2 block">Question *</label>
+              <input type="text" value={newQuestion} onChange={(e) => setNewQuestion(e.target.value)} required autoFocus
+                placeholder="What would you like to ask?"
+                className="w-full px-3 py-2.5 rounded-xl glass border border-foreground/10 text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-foreground/20" />
+            </div>
+            <div>
+              <label className="text-sm text-foreground/50 mb-2 block">Category</label>
               <select value={newCategory} onChange={(e) => setNewCategory(e.target.value)}
-                className="w-full border border-border rounded-lg px-3 py-2 bg-background text-foreground text-sm focus:ring-2 focus:ring-mauve/20 outline-none">
-                {allCategories.filter((c) => c !== 'All').map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-                <option value="__custom__">+ Custom Category...</option>
+                className="w-full px-3 py-2 rounded-lg glass border border-foreground/10 text-foreground bg-transparent">
+                {allCategories.filter((c) => c !== 'All').map((c) => <option key={c} value={c} className="bg-[#1a1a1f]">{c}</option>)}
+                <option value="__custom__" className="bg-[#1a1a1f]">+ Custom...</option>
               </select>
               {newCategory === '__custom__' && (
                 <input type="text" value={customCategory} onChange={(e) => setCustomCategory(e.target.value)}
-                  className="w-full border border-border rounded-lg px-3 py-2 bg-background text-foreground text-sm focus:ring-2 focus:ring-mauve/20 outline-none mt-2"
-                  placeholder="Enter category name..." autoFocus />
+                  className="w-full mt-2 px-3 py-2 rounded-lg glass border border-foreground/10 text-foreground placeholder:text-foreground/30 focus:outline-none"
+                  placeholder="Category name..." autoFocus />
               )}
             </div>
-            <div className="flex gap-3 pt-2">
-              <button type="button" onClick={() => setShowAddQuestion(false)}
-                className="flex-1 px-4 py-2.5 rounded-lg border border-border text-muted hover:bg-surface-hover transition-colors text-sm">
-                Cancel
-              </button>
-              <button type="submit" disabled={saving}
-                className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  newQuestion.trim() ? 'bg-mauve text-white hover:bg-mauve/90' : 'bg-surface-hover text-muted'
-                } disabled:opacity-50`}>
-                {saving ? 'Adding...' : 'Add Question'}
-              </button>
-            </div>
-          </form>
+            <button type="submit" disabled={saving || !newQuestion.trim()}
+              className={`w-full py-3 rounded-xl font-medium transition-all ${
+                newQuestion.trim() ? 'bg-gradient-to-r from-purple-500 to-violet-500 text-white active:scale-95' : 'bg-foreground/5 text-foreground/30'
+              }`}>{saving ? 'Adding...' : 'Add Question'}</button>
+          </motion.form>
         </div>
       )}
+
+      {/* SVG gradient for progress rings */}
+      <svg width="0" height="0"><defs>
+        <linearGradient id="qaGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#3B82F6" /><stop offset="50%" stopColor="#8B5CF6" /><stop offset="100%" stopColor="#EC4899" />
+        </linearGradient>
+      </defs></svg>
     </Layout>
   )
 }

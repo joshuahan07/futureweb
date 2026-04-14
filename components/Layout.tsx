@@ -77,7 +77,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <AnimatedBackground />
 
       {/* ═══ TOP NAV ═══ */}
-      <nav className="sticky top-0 z-50 glass-strong border-b border-glass-border">
+      <nav className="sticky top-0 z-50 border-b border-glass-border bg-background/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
             {/* Logo */}
@@ -93,11 +93,11 @@ export default function Layout({ children }: { children: ReactNode }) {
             <div className="flex items-center gap-2.5">
               <UserAvatar name="Joshua" color="#3B82F6" isOnline={onlineUsers.includes('joshua')} pfpUrl={joshuaPfp} />
               <UserAvatar name="Sophie" color="#EC4899" isOnline={onlineUsers.includes('sophie')} pfpUrl={sophiePfp} />
-              <div className="w-px h-5 bg-white/10 mx-1" />
+              <div className="w-px h-5 bg-foreground/10 mx-1" />
 
               {/* Change Photo — direct click */}
               <button onClick={() => fileRef.current?.click()}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/5 transition-all"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-foreground/40 hover:text-foreground hover:bg-foreground/5 transition-all"
                 title="Change profile photo">
                 <Camera className="w-4 h-4" />
               </button>
@@ -105,13 +105,13 @@ export default function Layout({ children }: { children: ReactNode }) {
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUploadPfp(f); e.target.value = ''; }} />
 
               <button onClick={toggleTheme}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/5 transition-all">
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-foreground/40 hover:text-foreground hover:bg-foreground/5 transition-all">
                 {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
 
               {currentUser && (
                 <button onClick={() => { setUser(null); router.push('/'); }}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-all">
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-foreground/40 hover:text-red-400 hover:bg-red-500/10 transition-all">
                   <LogOut className="w-4 h-4" />
                 </button>
               )}
@@ -121,7 +121,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       </nav>
 
       {/* ═══ TAB BAR ═══ */}
-      <div className="sticky top-14 z-40 glass border-b border-glass-border">
+      <div className="sticky top-14 z-40 border-b border-glass-border bg-background/70 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-2 sm:px-4">
           <div className="flex items-center justify-center gap-1 overflow-x-auto py-2 scrollbar-hide">
             {tabs.map((tab) => {
@@ -131,8 +131,8 @@ export default function Layout({ children }: { children: ReactNode }) {
                 <Link key={tab.href} href={tab.href}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 flex-shrink-0 active:scale-95 ${
                     isActive
-                      ? 'bg-white/10 text-white'
-                      : 'text-white/40 hover:text-white/70 hover:bg-white/5'
+                      ? 'bg-foreground/10 text-white'
+                      : 'text-foreground/40 hover:text-foreground/70 hover:bg-foreground/5'
                   }`}>
                   <Icon className="w-4 h-4" />
                   <span className="hidden sm:inline">{tab.label}</span>
@@ -152,7 +152,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 
       {/* Footer */}
       <footer className="relative z-10 py-6 text-center">
-        <p className="text-white/20 text-xs">Joshua & Sophie&apos;s Private Space</p>
+        <p className="text-foreground/20 text-xs">Joshua & Sophie&apos;s Private Space</p>
       </footer>
     </div>
   );
