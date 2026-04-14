@@ -84,7 +84,7 @@ const PARENT_COLORS: Record<string, string> = {
 const CAT_COLORS = new Proxy({} as Record<string, string>, {
   get: (_t, key: string) => PARENT_COLORS[parseCategory(key).parent] || PARENT_COLORS['Other'],
 });
-const STATUS_COLORS: Record<string, string> = {
+const _STATUS_COLORS: Record<string, string> = {
   dream: 'bg-surface-hover text-mauve/80',
   in_progress: 'bg-mauve/10 text-mauve',
   done: 'bg-green-50 text-sage',
@@ -281,15 +281,6 @@ function ElementModal({ element, onClose, onSave, categories }: {
               onChange={(e: ChangeEvent<HTMLInputElement>) => { if (e.target.files?.length) handleFiles(e.target.files); e.target.value = ''; }} />
           </div>
 
-          <div className="flex items-center gap-3">
-            <label className="text-xs font-medium text-foreground/70">Status:</label>
-            {(['dream', 'in_progress', 'done'] as const).map((s) => (
-              <button key={s} type="button" onClick={() => setStatus(s)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors capitalize ${status === s ? STATUS_COLORS[s] : 'bg-surface-hover/50 text-muted'}`}>
-                {s === 'in_progress' ? 'In Progress' : s.charAt(0).toUpperCase() + s.slice(1)}
-              </button>
-            ))}
-          </div>
           <div className="flex items-center gap-2">
             <button type="button" onClick={() => setPriority(!priority)}
               className={`text-lg transition-transform ${priority ? 'text-mauve/80 scale-110' : 'text-muted/60'}`}>✦</button>
@@ -308,10 +299,9 @@ function ElementModal({ element, onClose, onSave, categories }: {
 
 // ── Element Card ────────────────────────────────────────────
 
-function ElementCard({ el, images, allCategories, onEdit, onDelete, onStatusChange, onAddImages, onDeleteImage, onMoveCategory, onMoveUp, onMoveDown }: {
+function ElementCard({ el, images, allCategories, onEdit, onDelete, onAddImages, onDeleteImage, onMoveCategory, onMoveUp, onMoveDown }: {
   el: WeddingElement; images: ElementImage[]; allCategories: string[];
   onEdit: () => void; onDelete: () => void;
-  onStatusChange: (status: WeddingElement['status']) => void;
   onAddImages: (files: FileList) => void;
   onDeleteImage: (imageId: string) => void;
   onMoveCategory: (id: string, category: string) => void;
@@ -372,14 +362,6 @@ function ElementCard({ el, images, allCategories, onEdit, onDelete, onStatusChan
         {el.description && !expanded && (
           <p className="text-xs text-muted mt-1 line-clamp-2">{el.description}</p>
         )}
-      </button>
-
-      {/* Status pill */}
-      <button onClick={() => {
-        const next: Record<string, WeddingElement['status']> = { dream: 'in_progress', in_progress: 'done', done: 'dream' };
-        onStatusChange(next[el.status]);
-      }} className={`mt-2 px-2.5 py-1 rounded-full text-[10px] font-medium ${STATUS_COLORS[el.status]}`}>
-        {el.status === 'dream' ? 'Dream' : el.status === 'in_progress' ? 'In Progress' : '✓ Done'}
       </button>
 
       {/* Secondary image thumbnails (if >1 image, show rest as strip) */}
@@ -673,32 +655,67 @@ export default function WeddingPage() {
     })();
   }, [elements, fetchElements]);
 
+  // Top-level pill order persisted in localStorage. Default: structure + Budget before Other.
+  const DEFAULT_PILL_ORDER = [...TOP_LEVEL_CATS, 'Budget', 'Other'];
+  const [pillOrder, setPillOrder] = useState<string[]>(DEFAULT_PILL_ORDER);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const saved = JSON.parse(localStorage.getItem('js-wedding-pill-order-v1') || 'null');
+      if (Array.isArray(saved) && saved.length > 0) {
+        const merged = [...saved.filter((c: string) => DEFAULT_PILL_ORDER.includes(c) || !TOP_LEVEL_CATS.includes(c))];
+        DEFAULT_PILL_ORDER.forEach((c) => { if (!merged.includes(c)) merged.push(c); });
+        setPillOrder(merged);
+      }
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const savePillOrder = (next: string[]) => {
+    setPillOrder(next);
+    localStorage.setItem('js-wedding-pill-order-v1', JSON.stringify(next));
+  };
+
+  const handleMovePillOrder = (cat: string, dir: -1 | 1) => {
+    const next = [...pillOrder];
+    const idx = next.indexOf(cat);
+    const swap = idx + dir;
+    if (idx < 0 || swap < 0 || swap >= next.length) return;
+    [next[idx], next[swap]] = [next[swap], next[idx]];
+    savePillOrder(next);
+  };
+
   const handleAddVisionCat = () => {
     const name = newVisionCat.trim();
-    if (!name || allVisionCats.includes(name)) return;
-    const custom: string[] = JSON.parse(localStorage.getItem('js-wedding-cats') || '[]');
-    custom.push(name);
-    localStorage.setItem('js-wedding-cats', JSON.stringify(custom));
+    if (!name || pillOrder.includes(name)) return;
+    savePillOrder([...pillOrder, name]);
     setNewVisionCat('');
-    setShowVisionCatMgr(false);
-    setElements([...elements]); // force re-render
   };
 
   const handleRenameVisionCat = async (oldName: string, newName: string) => {
-    if (!newName.trim() || newName === oldName) return;
-    await supabase.from('wedding_elements').update({ category: newName.trim() }).eq('category', oldName);
-    const custom: string[] = JSON.parse(localStorage.getItem('js-wedding-cats') || '[]');
-    const idx = custom.indexOf(oldName);
-    if (idx !== -1) custom[idx] = newName.trim();
-    localStorage.setItem('js-wedding-cats', JSON.stringify(custom));
+    const name = newName.trim();
+    if (!name || name === oldName) { setRenamingVisionCat(null); return; }
+    if (oldName === 'Budget') { alert('Budget cannot be renamed.'); setRenamingVisionCat(null); return; }
+    // Rename cascades to `Parent (sub)` items too.
+    await supabase.from('wedding_elements').update({ category: name }).eq('category', oldName);
+    const { data: nested } = await supabase.from('wedding_elements').select('id, category').like('category', `${oldName} (%`);
+    if (nested) {
+      for (const row of nested) {
+        const newCat = row.category.replace(new RegExp(`^${oldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\(`), `${name} (`);
+        await supabase.from('wedding_elements').update({ category: newCat }).eq('id', row.id);
+      }
+    }
+    savePillOrder(pillOrder.map((c) => (c === oldName ? name : c)));
     setRenamingVisionCat(null);
     fetchElements();
   };
 
   const handleDeleteVisionCat = async (catName: string) => {
+    if (catName === 'Budget') { alert('Budget cannot be deleted.'); return; }
     await supabase.from('wedding_elements').delete().eq('category', catName);
-    const custom: string[] = JSON.parse(localStorage.getItem('js-wedding-cats') || '[]');
-    localStorage.setItem('js-wedding-cats', JSON.stringify(custom.filter((c) => c !== catName)));
+    await supabase.from('wedding_elements').delete().like('category', `${catName} (%`);
+    savePillOrder(pillOrder.filter((c) => c !== catName));
     fetchElements();
   };
 
@@ -726,10 +743,10 @@ export default function WeddingPage() {
   // Ordered parent list for rendering (defined structure first, then any extras).
   const orderedParents = useMemo(() => {
     const parents = Object.keys(nestedGroups);
-    const extras = parents.filter((p) => !TOP_LEVEL_CATS.includes(p));
-    const ordered = TOP_LEVEL_CATS.filter((p) => parents.includes(p));
+    const ordered = pillOrder.filter((p) => parents.includes(p) && p !== 'Budget');
+    const extras = parents.filter((p) => !pillOrder.includes(p));
     return [...ordered, ...extras];
-  }, [nestedGroups]);
+  }, [nestedGroups, pillOrder]);
 
   // Collapse state for subtabs (key = `${parent}::${sub}`).
   const [collapsedSubtabs, setCollapsedSubtabs] = useState<Record<string, boolean>>({});
@@ -847,7 +864,7 @@ export default function WeddingPage() {
 
               {/* Filter pills — Budget first, then top-level categories */}
               <div className="flex flex-wrap gap-1.5 mb-4">
-                {['All', 'Budget', ...TOP_LEVEL_CATS, 'Other'].map((c) => (
+                {['All', ...pillOrder].map((c) => (
                   <button key={c} onClick={() => setFilterCat(c)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                       filterCat === c ? 'bg-mauve text-white' : 'bg-surface-hover text-foreground/70 hover:bg-mauve/100/20'
@@ -869,26 +886,35 @@ export default function WeddingPage() {
                     <button onClick={handleAddVisionCat}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${newVisionCat.trim() ? 'bg-mauve text-white hover:bg-mauve/90' : 'bg-surface-hover text-muted'}`}>Add</button>
                   </div>
-                  <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                    {displayVisionCats.map((cat) => (
-                      <div key={cat} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface/60">
-                        {renamingVisionCat === cat ? (
-                          <input type="text" value={renameVisionVal} onChange={(e) => setRenameVisionVal(e.target.value)} autoFocus
-                            onKeyDown={(e) => { if (e.key === 'Enter') handleRenameVisionCat(cat, renameVisionVal); if (e.key === 'Escape') setRenamingVisionCat(null); }}
-                            className="flex-1 px-2 py-1 rounded border border-border bg-surface text-sm text-foreground focus:outline-none" />
-                        ) : (
-                          <span className="flex-1 text-sm text-foreground">{cat}</span>
-                        )}
-                        <span className="text-[10px] text-muted">{elements.filter((e) => e.category === cat).length}</span>
-                        {renamingVisionCat === cat ? (
-                          <button onClick={() => handleRenameVisionCat(cat, renameVisionVal)} className="text-xs text-mauve/80 hover:text-blue-300 font-medium">Save</button>
-                        ) : (
-                          <button onClick={() => { setRenamingVisionCat(cat); setRenameVisionVal(cat); }} className="text-xs text-muted hover:text-mauve/80">Rename</button>
-                        )}
-                        <button onClick={() => { if (confirm(`Delete "${cat}" and all its elements?`)) handleDeleteVisionCat(cat); }}
-                          className="text-xs text-muted hover:text-red-400">Delete</button>
-                      </div>
-                    ))}
+                  <div className="space-y-1.5 max-h-72 overflow-y-auto">
+                    {pillOrder.map((cat, i) => {
+                      const count = cat === 'Budget'
+                        ? budget.length
+                        : elements.filter((e) => parseCategory(e.category).parent === cat || e.category === cat).length;
+                      return (
+                        <div key={cat} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface/60">
+                          <button onClick={() => handleMovePillOrder(cat, -1)} disabled={i === 0}
+                            className="text-xs text-muted hover:text-foreground/70 disabled:opacity-30">↑</button>
+                          <button onClick={() => handleMovePillOrder(cat, 1)} disabled={i === pillOrder.length - 1}
+                            className="text-xs text-muted hover:text-foreground/70 disabled:opacity-30">↓</button>
+                          {renamingVisionCat === cat ? (
+                            <input type="text" value={renameVisionVal} onChange={(e) => setRenameVisionVal(e.target.value)} autoFocus
+                              onKeyDown={(e) => { if (e.key === 'Enter') handleRenameVisionCat(cat, renameVisionVal); if (e.key === 'Escape') setRenamingVisionCat(null); }}
+                              className="flex-1 px-2 py-1 rounded border border-border bg-surface text-sm text-foreground focus:outline-none" />
+                          ) : (
+                            <span className="flex-1 text-sm text-foreground">{cat}</span>
+                          )}
+                          <span className="text-[10px] text-muted">{count}</span>
+                          {renamingVisionCat === cat ? (
+                            <button onClick={() => handleRenameVisionCat(cat, renameVisionVal)} className="text-xs text-mauve/80 hover:text-blue-300 font-medium">Save</button>
+                          ) : (
+                            <button onClick={() => { setRenamingVisionCat(cat); setRenameVisionVal(cat); }} className="text-xs text-muted hover:text-mauve/80">Rename</button>
+                          )}
+                          <button onClick={() => { if (confirm(`Delete "${cat}" and all its elements?`)) handleDeleteVisionCat(cat); }}
+                            className="text-xs text-muted hover:text-red-400">Delete</button>
+                        </div>
+                      );
+                    })}
                   </div>
                   <button onClick={() => setShowVisionCatMgr(false)} className="text-xs text-muted hover:text-foreground/70">Close</button>
                 </div>
@@ -990,7 +1016,7 @@ export default function WeddingPage() {
                   ...Object.keys(subs).filter((k) => k !== '' && !subOrder.includes(k)),
                 ].filter((k) => subs[k]);
                 const subKeys = activeSub ? allSubKeys.filter((k) => k === activeSub) : allSubKeys;
-                const hasAnySubs = subOrder.length > 0 || allSubKeys.some((k) => k !== '');
+                const hasAnySubs = true;
                 return (
                   <div key={parent} className="mb-8">
                     <div className="flex items-center gap-3 mb-3">
@@ -1104,7 +1130,6 @@ export default function WeddingPage() {
                                       allCategories={displayVisionCats}
                                       onEdit={() => { setEditingElement(el); setShowAddElement(true); }}
                                       onDelete={() => handleDeleteElement(el.id)}
-                                      onStatusChange={(s) => handleElementStatus(el.id, s)}
                                       onAddImages={(files) => handleAddImagesToElement(el.id, files)}
                                       onDeleteImage={handleDeleteElementImage}
                                       onMoveCategory={handleMoveCategory}
