@@ -209,10 +209,8 @@ export default function AddMovieModal({
                         <line y1={PH*2/3} x1={0} y2={PH*2/3} x2={PW} stroke="white" strokeWidth="0.5" />
                       </svg>
                     )}
-                    <button type="button" onClick={(e) => { e.stopPropagation(); setPosterUrl(''); }}
-                      className="absolute top-2 right-2 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white text-xs hover:bg-black/80 z-10">✕</button>
                   </div>
-                  {/* Zoom slider */}
+                  {/* Zoom slider + remove button */}
                   <div className="flex items-center gap-2" style={{ width: PW }}>
                     <span className="text-[10px] text-muted">−</span>
                     <div className="flex-1 relative h-5 flex items-center">
@@ -224,6 +222,10 @@ export default function AddMovieModal({
                     </div>
                     <span className="text-[10px] text-muted">+</span>
                   </div>
+                  <button type="button" onClick={() => { setPosterUrl(''); setPosterZoom(1); posterZoomRef.current = 1; setPosterOffset({ x: 0, y: 0 }); }}
+                    className="text-xs text-red-400 hover:text-red-300 transition-colors mt-1">
+                    Remove image
+                  </button>
                 </div>
               );
             })() : (
