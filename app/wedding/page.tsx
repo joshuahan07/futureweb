@@ -39,7 +39,7 @@ const DEFAULT_CATEGORIES = [
 ];
 const CAT_COLORS: Record<string, string> = {
   'Vision': 'bg-amber-50 text-amber-700 border-amber-200',
-  'Invites': 'bg-blue-50 text-blue-600 border-blue-200',
+  'Invites': 'bg-mauve/10 text-mauve border-mauve/20',
   'On the Day': 'bg-rose-50 text-rose-600 border-rose-200',
   'Preparation (Bride)': 'bg-pink-50 text-pink-600 border-pink-200',
   'Preparation (Groom)': 'bg-sky-50 text-sky-600 border-sky-200',
@@ -52,9 +52,9 @@ const CAT_COLORS: Record<string, string> = {
   'Other': 'bg-surface-hover/50 text-muted border-border',
 };
 const STATUS_COLORS: Record<string, string> = {
-  dream: 'bg-surface-hover text-blue-400',
-  in_progress: 'bg-blue-50 text-blue-500',
-  done: 'bg-green-50 text-green-600',
+  dream: 'bg-surface-hover text-mauve/80',
+  in_progress: 'bg-mauve/10 text-mauve',
+  done: 'bg-green-50 text-sage',
 };
 const BUDGET_CATS = ['Venue', 'Catering', 'Photography', 'Dress', 'Decor', 'Music', 'Invites', 'Rings', 'Honeymoon', 'Other'];
 
@@ -140,7 +140,7 @@ function JotPad({ user, label, color }: { user: string; label: string; color: st
         <span className="text-xs font-medium text-foreground/70">{label}&apos;s notes</span>
       </div>
       <textarea value={content} onChange={(e) => handleChange(e.target.value)}
-        className="w-full h-28 p-3 rounded-xl bg-surface border border-border text-sm text-foreground resize-none focus:outline-none focus:border-blue-400/50 placeholder-muted"
+        className="w-full h-28 p-3 rounded-xl glass-card text-sm text-foreground resize-none focus:outline-none focus:border-mauve/40/50 placeholder-muted"
         placeholder="Jot down ideas..." />
       {lastSaved && (
         <p className="text-[10px] text-muted mt-1">Last saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
@@ -184,8 +184,8 @@ function ElementModal({ element, onClose, onSave, categories }: {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
-      <div className="bg-surface rounded-2xl shadow-xl w-full max-w-lg p-6 animate-fade-in border border-border max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
+      <div className="glass-strong rounded-2xl shadow-xl w-full max-w-lg p-6 animate-fade-in border border-border max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
           <h3 className="font-heading italic text-xl text-foreground/70">{element ? 'Edit Element' : 'Add Element'}</h3>
           <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-muted hover:bg-surface-hover transition-colors">✕</button>
@@ -194,19 +194,19 @@ function ElementModal({ element, onClose, onSave, categories }: {
           <div>
             <label className="text-xs font-medium text-foreground/70 mb-1 block">Title *</label>
             <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus
-              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm text-foreground focus:outline-none focus:border-blue-400" />
+              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm text-foreground focus:outline-none focus:border-mauve/40" />
           </div>
           <div>
             <label className="text-xs font-medium text-foreground/70 mb-1 block">Category</label>
             <select value={category} onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm text-foreground focus:outline-none focus:border-blue-400">
+              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm text-foreground focus:outline-none focus:border-mauve/40">
               {categories.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div>
             <label className="text-xs font-medium text-foreground/70 mb-1 block">Description</label>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
-              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm text-foreground resize-none focus:outline-none focus:border-blue-400"
+              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm text-foreground resize-none focus:outline-none focus:border-mauve/40"
               placeholder="Notes, ideas, details..." />
           </div>
 
@@ -230,11 +230,11 @@ function ElementModal({ element, onClose, onSave, categories }: {
               onDrop={(e) => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); }}
               onClick={() => fileRef.current?.click()}
               className={`h-20 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors ${
-                dragOver ? 'border-blue-400 bg-surface-hover' : 'border-border hover:border-blue-400/50 hover:bg-surface'
+                dragOver ? 'border-mauve/40 bg-surface-hover' : 'border-border hover:border-mauve/40/50 hover:bg-surface'
               }`}
             >
               {uploading ? (
-                <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-mauve/40 border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
                   <svg className="w-5 h-5 text-muted mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -259,12 +259,12 @@ function ElementModal({ element, onClose, onSave, categories }: {
           </div>
           <div className="flex items-center gap-2">
             <button type="button" onClick={() => setPriority(!priority)}
-              className={`text-lg transition-transform ${priority ? 'text-blue-400 scale-110' : 'text-muted/60'}`}>✦</button>
+              className={`text-lg transition-transform ${priority ? 'text-mauve/80 scale-110' : 'text-muted/60'}`}>✦</button>
             <span className="text-xs text-foreground/70">High priority</span>
           </div>
           <button type="button" onClick={() => { if (!title.trim()) return; onSave({ title: title.trim(), category, description: description.trim() || null, status, priority }, pendingImages); }}
             disabled={!title.trim()}
-            className={`w-full py-2.5 rounded-xl text-sm font-medium transition-colors ${title.trim() ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-surface-hover text-muted'}`}>
+            className={`w-full py-2.5 rounded-xl text-sm font-medium transition-colors ${title.trim() ? 'bg-mauve text-white hover:bg-mauve/90' : 'bg-surface-hover text-muted'}`}>
             {element ? 'Save Changes' : 'Add Element'}
           </button>
         </div>
@@ -292,15 +292,15 @@ function ElementCard({ el, images, allCategories, onEdit, onDelete, onStatusChan
   const hasImages = images.length > 0;
 
   return (
-    <div className="group relative bg-surface rounded-2xl border border-border/60 p-4 hover:shadow-md transition-all">
+    <div className="group relative glass-card rounded-2xl/60 p-4 hover:shadow-md transition-all">
       {/* Priority star */}
-      {el.priority && <span className="absolute top-3 right-10 text-blue-400 text-sm">✦</span>}
+      {el.priority && <span className="absolute top-3 right-10 text-mauve/80 text-sm">✦</span>}
 
       {/* Hover actions */}
       <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-        <button onClick={onMoveUp} title="Move up" className="w-6 h-6 rounded-full bg-surface-hover flex items-center justify-center text-foreground/70 hover:bg-blue-500/20 text-[10px]">↑</button>
-        <button onClick={onMoveDown} title="Move down" className="w-6 h-6 rounded-full bg-surface-hover flex items-center justify-center text-foreground/70 hover:bg-blue-500/20 text-[10px]">↓</button>
-        <button onClick={onEdit} className="w-6 h-6 rounded-full bg-surface-hover flex items-center justify-center text-foreground/70 hover:bg-blue-500/20 text-xs">✎</button>
+        <button onClick={onMoveUp} title="Move up" className="w-6 h-6 rounded-full bg-surface-hover flex items-center justify-center text-foreground/70 hover:bg-mauve/100/20 text-[10px]">↑</button>
+        <button onClick={onMoveDown} title="Move down" className="w-6 h-6 rounded-full bg-surface-hover flex items-center justify-center text-foreground/70 hover:bg-mauve/100/20 text-[10px]">↓</button>
+        <button onClick={onEdit} className="w-6 h-6 rounded-full bg-surface-hover flex items-center justify-center text-foreground/70 hover:bg-mauve/100/20 text-xs">✎</button>
         <button onClick={onDelete} className="w-6 h-6 rounded-full bg-surface-hover flex items-center justify-center text-red-400 hover:bg-red-50 text-xs">✕</button>
       </div>
 
@@ -361,7 +361,7 @@ function ElementCard({ el, images, allCategories, onEdit, onDelete, onStatusChan
       {/* Add photo button */}
       <div className="flex items-center gap-2 mt-2">
         <button onClick={() => addFileRef.current?.click()}
-          className="text-[10px] text-muted hover:text-blue-400 transition-colors opacity-0 group-hover:opacity-100">
+          className="text-[10px] text-muted hover:text-mauve/80 transition-colors opacity-0 group-hover:opacity-100">
           + Add photo
         </button>
       </div>
@@ -676,7 +676,7 @@ export default function WeddingPage() {
   }, [budget]);
 
   if (loading) {
-    return <Layout><div className="flex items-center justify-center py-32"><div className="w-8 h-8 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" /></div></Layout>;
+    return <Layout><div className="flex items-center justify-center py-32"><div className="w-8 h-8 rounded-full border-2 border-mauve/40 border-t-transparent animate-spin" /></div></Layout>;
   }
 
   return (
@@ -686,8 +686,8 @@ export default function WeddingPage() {
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#F8FAFF] via-[#EEF2FF] to-[#DBEAFE]/30 px-6 py-10 sm:py-14 text-center mb-10">
           <div className="absolute top-4 right-8 opacity-10 text-5xl select-none pointer-events-none">💍</div>
           <div className="absolute bottom-4 left-8 opacity-10 text-3xl select-none pointer-events-none">🌸</div>
-          <h1 className="font-heading italic text-4xl sm:text-5xl text-blue-400 tracking-tight">J + S</h1>
-          <p className="font-heading italic text-lg text-blue-400/60 mt-1">Our Wedding</p>
+          <h1 className="font-heading italic text-4xl sm:text-5xl text-mauve/80 tracking-tight">J + S</h1>
+          <p className="font-heading italic text-lg text-mauve/80/60 mt-1">Our Wedding</p>
         </div>
 
         {/* ── Main layout: sidebar + content ──────────────── */}
@@ -695,7 +695,7 @@ export default function WeddingPage() {
           {/* Left Sidebar — Jot Pad (desktop only) */}
           <aside className="hidden lg:block w-64 shrink-0">
             <div className="sticky top-36">
-              <h3 className="font-heading italic text-sm text-blue-400 mb-4">Quick Ideas ✦</h3>
+              <h3 className="font-heading italic text-sm text-mauve/80 mb-4">Quick Ideas ✦</h3>
               <JotPad user="joshua" label="Joshua" color="#7BA5D4" />
               <JotPad user="sophie" label="Sophie" color="#F4A5B0" />
             </div>
@@ -709,7 +709,7 @@ export default function WeddingPage() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-heading italic text-2xl text-foreground/70">Wedding Board ✦</h2>
                 <button onClick={() => { setEditingElement(null); setShowAddElement(true); }}
-                  className="px-4 py-2 rounded-xl bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors shadow-sm">
+                  className="px-4 py-2 rounded-xl bg-mauve text-white text-sm font-medium hover:bg-mauve/90 active:scale-95 transition-all shadow-lg shadow-mauve/25">
                   + Add Element
                 </button>
               </div>
@@ -719,11 +719,11 @@ export default function WeddingPage() {
                 {['All', ...displayVisionCats].map((c) => (
                   <button key={c} onClick={() => setFilterCat(c)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                      filterCat === c ? 'bg-blue-500 text-white' : 'bg-surface-hover text-foreground/70 hover:bg-blue-500/20'
+                      filterCat === c ? 'bg-mauve text-white' : 'bg-surface-hover text-foreground/70 hover:bg-mauve/100/20'
                     }`}>{c}</button>
                 ))}
                 <button onClick={() => setShowVisionCatMgr(!showVisionCatMgr)}
-                  className="px-3 py-1.5 rounded-full text-xs font-medium bg-surface-hover text-blue-400 hover:bg-blue-500/20 transition-all">
+                  className="px-3 py-1.5 rounded-full text-xs font-medium bg-surface-hover text-mauve/80 hover:bg-mauve/100/20 transition-all">
                   ⚙ Categories
                 </button>
               </div>
@@ -734,9 +734,9 @@ export default function WeddingPage() {
                   <div className="flex gap-2">
                     <input type="text" value={newVisionCat} onChange={(e) => setNewVisionCat(e.target.value)}
                       placeholder="New category name..." onKeyDown={(e) => e.key === 'Enter' && handleAddVisionCat()}
-                      className="flex-1 px-3 py-2 rounded-lg border border-border bg-surface text-sm text-foreground focus:outline-none focus:border-blue-400" />
+                      className="flex-1 px-3 py-2 rounded-lg border border-border bg-surface text-sm text-foreground focus:outline-none focus:border-mauve/40" />
                     <button onClick={handleAddVisionCat}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${newVisionCat.trim() ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-surface-hover text-muted'}`}>Add</button>
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${newVisionCat.trim() ? 'bg-mauve text-white hover:bg-mauve/90' : 'bg-surface-hover text-muted'}`}>Add</button>
                   </div>
                   <div className="space-y-1.5 max-h-48 overflow-y-auto">
                     {displayVisionCats.map((cat) => (
@@ -750,9 +750,9 @@ export default function WeddingPage() {
                         )}
                         <span className="text-[10px] text-muted">{elements.filter((e) => e.category === cat).length}</span>
                         {renamingVisionCat === cat ? (
-                          <button onClick={() => handleRenameVisionCat(cat, renameVisionVal)} className="text-xs text-blue-400 hover:text-blue-300 font-medium">Save</button>
+                          <button onClick={() => handleRenameVisionCat(cat, renameVisionVal)} className="text-xs text-mauve/80 hover:text-blue-300 font-medium">Save</button>
                         ) : (
-                          <button onClick={() => { setRenamingVisionCat(cat); setRenameVisionVal(cat); }} className="text-xs text-muted hover:text-blue-400">Rename</button>
+                          <button onClick={() => { setRenamingVisionCat(cat); setRenameVisionVal(cat); }} className="text-xs text-muted hover:text-mauve/80">Rename</button>
                         )}
                         <button onClick={() => { if (confirm(`Delete "${cat}" and all its elements?`)) handleDeleteVisionCat(cat); }}
                           className="text-xs text-muted hover:text-red-400">Delete</button>
@@ -822,7 +822,7 @@ export default function WeddingPage() {
                     {budget.map((item, idx) => {
                       const diff = item.estimated - item.actual;
                       return (
-                        <tr key={item.id} className={`border-t border-border/30 transition-colors ${item.paid ? 'bg-green-50/30' : idx % 2 === 0 ? 'bg-surface/50' : ''} hover:bg-surface-hover/50 group`}>
+                        <tr key={item.id} className={`border-t border-border/30 transition-colors ${item.paid ? 'bg-sage/10' : idx % 2 === 0 ? 'bg-surface/50' : ''} hover:bg-surface-hover/50 group`}>
                           <td className="px-4 py-2.5">
                             <select value={item.category} onChange={(e) => handleUpdateBudget({ ...item, category: e.target.value })}
                               className="bg-transparent text-xs text-foreground outline-none cursor-pointer">
@@ -831,26 +831,26 @@ export default function WeddingPage() {
                           </td>
                           <td className="px-4 py-2.5">
                             <input type="text" value={item.label} onChange={(e) => handleUpdateBudget({ ...item, label: e.target.value })}
-                              className="bg-transparent text-sm text-foreground outline-none w-full border-b border-transparent focus:border-blue-400/50" />
+                              className="bg-transparent text-sm text-foreground outline-none w-full border-b border-transparent focus:border-mauve/40/50" />
                           </td>
                           <td className="text-right px-4 py-2.5">
                             <input type="number" value={item.estimated} onChange={(e) => handleUpdateBudget({ ...item, estimated: parseFloat(e.target.value) || 0 })}
-                              className="bg-transparent text-sm text-foreground outline-none w-20 text-right border-b border-transparent focus:border-blue-400/50" />
+                              className="bg-transparent text-sm text-foreground outline-none w-20 text-right border-b border-transparent focus:border-mauve/40/50" />
                           </td>
                           <td className="text-right px-4 py-2.5">
                             <input type="number" value={item.actual} onChange={(e) => handleUpdateBudget({ ...item, actual: parseFloat(e.target.value) || 0 })}
-                              className="bg-transparent text-sm text-foreground outline-none w-20 text-right border-b border-transparent focus:border-blue-400/50" />
+                              className="bg-transparent text-sm text-foreground outline-none w-20 text-right border-b border-transparent focus:border-mauve/40/50" />
                           </td>
-                          <td className={`text-right px-4 py-2.5 text-xs font-medium ${diff > 0 ? 'text-green-600' : diff < 0 ? 'text-red-500' : 'text-muted'}`}>
+                          <td className={`text-right px-4 py-2.5 text-xs font-medium ${diff > 0 ? 'text-sage' : diff < 0 ? 'text-red-500' : 'text-muted'}`}>
                             {diff !== 0 && (diff > 0 ? '+' : '')}${Math.abs(diff).toLocaleString()}
                           </td>
                           <td className="text-center px-3 py-2.5">
                             <input type="checkbox" checked={item.paid} onChange={(e) => handleUpdateBudget({ ...item, paid: e.target.checked })}
-                              className="w-4 h-4 rounded border-border text-green-500 focus:ring-green-200 cursor-pointer" />
+                              className="w-4 h-4 rounded border-border text-sage focus:ring-green-200 cursor-pointer" />
                           </td>
                           <td className="px-4 py-2.5">
                             <input type="text" value={item.notes} onChange={(e) => handleUpdateBudget({ ...item, notes: e.target.value })}
-                              className="bg-transparent text-xs text-muted outline-none w-full border-b border-transparent focus:border-blue-400/50" placeholder="Notes..." />
+                              className="bg-transparent text-xs text-muted outline-none w-full border-b border-transparent focus:border-mauve/40/50" placeholder="Notes..." />
                           </td>
                           <td className="px-2 py-2.5">
                             <button onClick={() => handleDeleteBudget(item.id)}
@@ -865,7 +865,7 @@ export default function WeddingPage() {
                       <td className="px-4 py-3 font-medium text-foreground" colSpan={2}>Total</td>
                       <td className="text-right px-4 py-3 font-semibold text-foreground">${totals.estimated.toLocaleString()}</td>
                       <td className="text-right px-4 py-3 font-semibold text-foreground">${totals.actual.toLocaleString()}</td>
-                      <td className={`text-right px-4 py-3 font-semibold ${totals.diff >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                      <td className={`text-right px-4 py-3 font-semibold ${totals.diff >= 0 ? 'text-sage' : 'text-red-500'}`}>
                         {totals.diff >= 0 ? '+' : ''}${totals.diff.toLocaleString()}
                       </td>
                       <td colSpan={3} />
@@ -874,7 +874,7 @@ export default function WeddingPage() {
                 </table>
                 <div className="px-4 py-3 border-t border-border/40">
                   <button onClick={handleAddBudget}
-                    className="flex items-center gap-1.5 text-sm text-blue-400 hover:text-blue-300 transition-colors">
+                    className="flex items-center gap-1.5 text-sm text-mauve/80 hover:text-blue-300 transition-colors">
                     + Add expense
                   </button>
                 </div>
@@ -887,13 +887,13 @@ export default function WeddingPage() {
 
       {/* ── Mobile jot pad drawer ────────────────────────── */}
       <button onClick={() => setJotDrawerOpen(!jotDrawerOpen)}
-        className="lg:hidden fixed bottom-6 right-6 w-12 h-12 rounded-full bg-blue-500 text-white shadow-lg flex items-center justify-center z-50 hover:bg-blue-600 transition-colors">
+        className="lg:hidden fixed bottom-6 right-6 w-12 h-12 rounded-full bg-mauve text-white shadow-lg flex items-center justify-center z-50 hover:bg-mauve/90 transition-colors">
         ✎
       </button>
       {jotDrawerOpen && (
         <div className="lg:hidden fixed inset-x-0 bottom-0 z-50 bg-surface border-t border-border rounded-t-3xl p-6 shadow-2xl animate-fade-in max-h-[60vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-heading italic text-sm text-blue-400">Quick Ideas ✦</h3>
+            <h3 className="font-heading italic text-sm text-mauve/80">Quick Ideas ✦</h3>
             <button onClick={() => setJotDrawerOpen(false)} className="text-muted text-lg">✕</button>
           </div>
           <JotPad user="joshua" label="Joshua" color="#7BA5D4" />

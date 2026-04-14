@@ -72,7 +72,7 @@ export default function BookCard({ book, onUpdate }: BookCardProps) {
   const genreClass = book.genre ? genreColors[book.genre] || 'bg-surface-hover text-foreground/70' : '';
 
   return (
-    <div className="group flex gap-3 p-3 rounded-xl bg-surface border border-border hover:border-border hover:shadow-sm transition-all duration-200">
+    <div className="group flex gap-3 p-3 rounded-xl glass-card hover:border-border hover:shadow-sm transition-all duration-200">
       {/* Cover placeholder */}
       <div
         className={`shrink-0 w-12 h-16 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}

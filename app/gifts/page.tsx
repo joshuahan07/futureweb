@@ -155,7 +155,7 @@ export default function GiftsPage() {
           <div className="space-y-4 animate-fade-in">
             {loading ? (
               <div className="flex justify-center py-16">
-                <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-2 border-mauve/40 border-t-transparent rounded-full animate-spin" />
               </div>
             ) : (
               <>
@@ -187,11 +187,11 @@ export default function GiftsPage() {
                       <div className="flex gap-2">
                         <input type="text" value={newCatName} onChange={(e) => setNewCatName(e.target.value)}
                           placeholder="New category name..."
-                          className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300"
+                          className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30"
                           onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()} />
                         <button onClick={handleAddCategory}
                           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            newCatName.trim() ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-surface-hover text-muted'
+                            newCatName.trim() ? 'bg-mauve text-white hover:bg-mauve/90' : 'bg-surface-hover text-muted'
                           }`}>Add</button>
                       </div>
 
@@ -201,7 +201,7 @@ export default function GiftsPage() {
                           <div key={cat} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-hover/50">
                             {renamingCat === cat ? (
                               <input type="text" value={renameValue} onChange={(e) => setRenameValue(e.target.value)}
-                                className="flex-1 px-2 py-1 rounded border border-blue-200 bg-background text-foreground text-sm focus:outline-none"
+                                className="flex-1 px-2 py-1 rounded border border-mauve/20 bg-background text-foreground text-sm focus:outline-none"
                                 autoFocus onKeyDown={(e) => { if (e.key === 'Enter') handleRenameCategory(cat, renameValue); if (e.key === 'Escape') setRenamingCat(null); }} />
                             ) : (
                               <span className="flex-1 text-sm text-foreground">{cat}</span>
@@ -209,10 +209,10 @@ export default function GiftsPage() {
                             <span className="text-[10px] text-muted">{matching.filter((m) => m.category === cat).length} items</span>
                             {renamingCat === cat ? (
                               <button onClick={() => handleRenameCategory(cat, renameValue)}
-                                className="text-xs text-blue-500 hover:text-blue-600 font-medium">Save</button>
+                                className="text-xs text-mauve hover:text-mauve font-medium">Save</button>
                             ) : (
                               <button onClick={() => { setRenamingCat(cat); setRenameValue(cat); }}
-                                className="text-xs text-muted hover:text-blue-500 transition-colors">Rename</button>
+                                className="text-xs text-muted hover:text-mauve transition-colors">Rename</button>
                             )}
                             <button onClick={() => { if (confirm(`Delete "${cat}" and all its items?`)) handleDeleteCategory(cat); }}
                               className="text-xs text-muted hover:text-red-400 transition-colors">Delete</button>
@@ -226,7 +226,7 @@ export default function GiftsPage() {
                   ) : (
                     <div className="flex items-center justify-center gap-4">
                       <button onClick={() => setShowCategoryManager(true)}
-                        className="text-sm text-blue-400 hover:text-blue-500 font-medium transition-colors">
+                        className="text-sm text-mauve/80 hover:text-mauve font-medium transition-colors">
                         + Add Category
                       </button>
                       <span className="text-muted">·</span>

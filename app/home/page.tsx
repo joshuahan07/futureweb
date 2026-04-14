@@ -51,8 +51,8 @@ function AddItemModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
-      <div className="bg-surface rounded-2xl shadow-xl w-full max-w-md p-6 animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
+      <div className="glass-strong rounded-2xl shadow-xl w-full max-w-md p-6 animate-fade-in">
         <div className="flex items-center justify-between mb-5">
           <h3 className="font-heading text-xl text-foreground">Add Item</h3>
           <button

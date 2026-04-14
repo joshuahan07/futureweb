@@ -49,10 +49,10 @@ export default function AddLocationModal({ open, onClose, onAdded }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-overlay-in">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-xl animate-overlay-in">
       <form
         onSubmit={handleSubmit}
-        className="bg-surface rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 space-y-4 animate-modal-in"
+        className="glass-strong rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 space-y-4 animate-modal-in"
       >
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-foreground">Add Travel Location</h2>

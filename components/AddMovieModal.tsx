@@ -76,7 +76,7 @@ export default function AddMovieModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-xl" onClick={onClose} />
       <div className="relative w-full max-w-lg bg-surface rounded-2xl p-6 max-h-[90vh] overflow-y-auto animate-fade-in border border-border">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-xl font-heading text-foreground">
@@ -90,18 +90,18 @@ export default function AddMovieModal({
             <label className="block text-xs font-medium text-muted mb-1">Title</label>
             <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}
               placeholder="What did you watch?" autoFocus
-              className="w-full px-3 py-2.5 rounded-xl bg-background text-foreground placeholder-muted border border-border focus:border-blue-400 focus:outline-none transition-colors" />
+              className="w-full px-3 py-2.5 rounded-xl bg-background text-foreground placeholder-muted border border-border focus:border-mauve/40 focus:outline-none transition-colors" />
           </div>
 
           <div>
             <label className="block text-xs font-medium text-muted mb-1">Type</label>
             <div className="flex rounded-xl overflow-hidden border border-border">
               <button type="button" onClick={() => setType('movie')}
-                className={`flex-1 py-2 text-sm font-medium transition-colors ${type === 'movie' ? 'bg-blue-100 text-blue-600' : 'bg-surface-hover text-muted'}`}>
+                className={`flex-1 py-2 text-sm font-medium transition-colors ${type === 'movie' ? 'bg-mauve/15 text-mauve' : 'bg-surface-hover text-muted'}`}>
                 🎬 Movie
               </button>
               <button type="button" onClick={() => setType('show')}
-                className={`flex-1 py-2 text-sm font-medium transition-colors ${type === 'show' ? 'bg-blue-100 text-blue-600' : 'bg-surface-hover text-muted'}`}>
+                className={`flex-1 py-2 text-sm font-medium transition-colors ${type === 'show' ? 'bg-mauve/15 text-mauve' : 'bg-surface-hover text-muted'}`}>
                 📺 Show
               </button>
             </div>
@@ -173,11 +173,11 @@ export default function AddMovieModal({
                 onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f?.type.startsWith('image/')) uploadFile(f); }}
                 onClick={() => fileRef.current?.click()}
                 className={`h-24 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors ${
-                  dragOver ? 'border-blue-400 bg-blue-50/30' : 'border-border hover:border-blue-300'
+                  dragOver ? 'border-mauve/40 bg-blue-50/30' : 'border-border hover:border-mauve/30'
                 }`}
               >
                 {uploading ? (
-                  <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-mauve/40 border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <><span className="text-muted text-lg mb-1">📷</span><span className="text-xs text-muted">Drop image or click to upload</span></>
                 )}
@@ -187,7 +187,7 @@ export default function AddMovieModal({
               onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadFile(f); }} />
             {!posterUrl && (
               <input type="url" value={posterUrl} onChange={(e) => setPosterUrl(e.target.value)}
-                placeholder="Or paste image URL..." className="w-full mt-2 px-3 py-2 rounded-lg bg-background text-foreground placeholder-muted border border-border focus:border-blue-400 focus:outline-none text-sm transition-colors" />
+                placeholder="Or paste image URL..." className="w-full mt-2 px-3 py-2 rounded-lg bg-background text-foreground placeholder-muted border border-border focus:border-mauve/40 focus:outline-none text-sm transition-colors" />
             )}
           </div>
 
@@ -196,7 +196,7 @@ export default function AddMovieModal({
             <div className="flex gap-2">
               <input type="month" value={dateWatched.slice(0, 7)} onChange={(e) => setDateWatched(e.target.value)}
                 placeholder="Month"
-                className="flex-1 px-3 py-2.5 rounded-xl bg-background text-foreground border border-border focus:border-blue-400 focus:outline-none transition-colors" />
+                className="flex-1 px-3 py-2.5 rounded-xl bg-background text-foreground border border-border focus:border-mauve/40 focus:outline-none transition-colors" />
               <input type="number" min={1} max={31} placeholder="Day"
                 value={dateWatched.length > 7 ? parseInt(dateWatched.slice(8)) || '' : ''}
                 onChange={(e) => {
@@ -205,7 +205,7 @@ export default function AddMovieModal({
                   const day = e.target.value;
                   setDateWatched(day ? `${month}-${day.padStart(2, '0')}` : month);
                 }}
-                className="w-20 px-3 py-2.5 rounded-xl bg-background text-foreground border border-border focus:border-blue-400 focus:outline-none transition-colors text-center" />
+                className="w-20 px-3 py-2.5 rounded-xl bg-background text-foreground border border-border focus:border-mauve/40 focus:outline-none transition-colors text-center" />
             </div>
             <p className="text-[10px] text-muted mt-1">Day is optional — leave blank if you only remember the month</p>
           </div>
@@ -214,7 +214,7 @@ export default function AddMovieModal({
             <label className="block text-xs font-medium text-muted mb-1">Notes</label>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)}
               placeholder="Thoughts, favorite scenes, would rewatch..." rows={3}
-              className="w-full px-3 py-2.5 rounded-xl bg-background text-foreground placeholder-muted border border-border focus:border-blue-400 focus:outline-none transition-colors resize-none" />
+              className="w-full px-3 py-2.5 rounded-xl bg-background text-foreground placeholder-muted border border-border focus:border-mauve/40 focus:outline-none transition-colors resize-none" />
           </div>
 
           {/* Only show toggle when NOT forced (i.e. editing or generic context) */}
@@ -230,7 +230,7 @@ export default function AddMovieModal({
 
           <button type="submit" disabled={!title.trim()}
             className={`w-full py-3 rounded-xl font-medium transition-colors ${
-              title.trim() ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-surface-hover text-muted'
+              title.trim() ? 'bg-mauve text-white hover:bg-mauve/90' : 'bg-surface-hover text-muted'
             }`}>
             {editMovie ? 'Save Changes' : 'Add to Collection'}
           </button>

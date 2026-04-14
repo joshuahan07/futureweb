@@ -54,7 +54,7 @@ export default function WatchlistItem({ item, onMarkWatched, onUpdate }: Watchli
   }
 
   return (
-    <div className="px-4 py-3 rounded-xl bg-surface border border-border hover:border-border hover:shadow-sm transition-all duration-200">
+    <div className="px-4 py-3 rounded-xl glass-card hover:border-border hover:shadow-sm transition-all duration-200">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="text-sm font-medium text-foreground/80 truncate">

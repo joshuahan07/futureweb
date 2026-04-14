@@ -28,7 +28,7 @@ interface GiftCategoryProps {
 
 const statusColors: Record<string, string> = {
   Want: 'bg-amber-100 text-amber-700 border-amber-200',
-  Ordered: 'bg-blue-100 text-blue-700 border-blue-200',
+  Ordered: 'bg-blue-100 text-blue-700 border-mauve/20',
   Have: 'bg-emerald-100 text-emerald-700 border-emerald-200',
 };
 
@@ -47,7 +47,7 @@ function ItemRow({ item, onStatusChange, onNotesChange, onDelete }: {
 
   return (
     <div className={`group flex items-start gap-3 p-3 rounded-xl transition-all ${
-      item.status === 'Have' ? 'bg-emerald-50/50' : 'bg-surface-hover/50 hover:bg-surface-hover'
+      item.status === 'Have' ? 'bg-sage/5' : 'bg-glass hover:bg-surface-hover'
     }`}>
       {item.image_url && (
         <img src={item.image_url} alt={item.item_name} className="w-12 h-12 rounded-lg object-cover shrink-0" />
@@ -66,14 +66,14 @@ function ItemRow({ item, onStatusChange, onNotesChange, onDelete }: {
             {item.found_by === 'joshua' ? 'J' : 'S'}
           </span>
           {item.link && (
-            <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-500 text-xs">🔗</a>
+            <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-mauve/80 hover:text-mauve text-xs">🔗</a>
           )}
         </div>
         {editingNotes ? (
           <input type="text" value={notesInput} onChange={(e) => setNotesInput(e.target.value)}
             onBlur={() => { onNotesChange(item.id, notesInput); setEditingNotes(false); }}
             onKeyDown={(e) => { if (e.key === 'Enter') { onNotesChange(item.id, notesInput); setEditingNotes(false); } }}
-            className="mt-1 w-full text-xs px-2 py-1 rounded-lg border border-blue-200 bg-background text-foreground focus:outline-none focus:border-blue-400"
+            className="mt-1 w-full text-xs px-2 py-1 rounded-lg border border-mauve/20 bg-background text-foreground focus:outline-none focus:border-mauve/40"
             autoFocus placeholder="Add a note..." />
         ) : (
           <button onClick={() => { setNotesInput(item.notes); setEditingNotes(true); }}
@@ -147,7 +147,7 @@ export default function GiftCategory({
         className="w-full flex items-center justify-between p-4 hover:bg-surface-hover/50 transition-colors">
         <div className="flex items-center gap-3">
           <span className="text-base font-semibold text-foreground">{category}</span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-500 font-medium">{items.length}</span>
+          <span className="text-xs px-2 py-0.5 rounded-full bg-mauve/10 text-mauve font-medium">{items.length}</span>
           {items.some((i) => i.status === 'Have') && (
             <span className="text-xs text-emerald-500">✓ {items.filter((i) => i.status === 'Have').length} owned</span>
           )}
@@ -169,21 +169,21 @@ export default function GiftCategory({
           )}
 
           {adding ? (
-            <div className="space-y-2 p-3 rounded-xl border border-dashed border-blue-200 bg-blue-50/20">
+            <div className="space-y-2 p-3 rounded-xl border border-dashed border-mauve/20 bg-blue-50/20">
               <div className="flex gap-2">
                 <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)}
                   placeholder="Item name" autoFocus onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
-                  className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300" />
+                  className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30" />
                 <input type="url" value={newLink} onChange={(e) => setNewLink(e.target.value)}
                   placeholder="Link (optional)" onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
-                  className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300" />
+                  className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30" />
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted">For:</span>
                 {(['joshua', 'sophie', 'both'] as const).map((p) => (
                   <button key={p} onClick={() => setNewForPerson(p)}
                     className={`px-2.5 py-1 rounded-full text-[10px] font-medium transition-colors capitalize ${
-                      newForPerson === p ? 'bg-blue-100 text-blue-600' : 'bg-surface-hover text-muted'
+                      newForPerson === p ? 'bg-mauve/15 text-mauve' : 'bg-surface-hover text-muted'
                     }`}>{p}</button>
                 ))}
               </div>
@@ -195,7 +195,7 @@ export default function GiftCategory({
                   </div>
                 ) : (
                   <button onClick={() => fileRef.current?.click()}
-                    className="px-3 py-1.5 rounded-lg border border-dashed border-border text-xs text-muted hover:border-blue-300 hover:text-blue-500 transition-colors">
+                    className="px-3 py-1.5 rounded-lg border border-dashed border-border text-xs text-muted hover:border-mauve/30 hover:text-mauve transition-colors">
                     {uploading ? '...' : '📷 Photo'}
                   </button>
                 )}
@@ -205,7 +205,7 @@ export default function GiftCategory({
               <div className="flex gap-2">
                 <button onClick={handleAddItem}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    newName.trim() ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-surface-hover text-muted'
+                    newName.trim() ? 'bg-mauve text-white hover:bg-mauve/90' : 'bg-surface-hover text-muted'
                   }`}>Add</button>
                 <button onClick={() => { setAdding(false); setNewImageUrl(null); }}
                   className="px-3 py-2 rounded-lg bg-surface-hover text-muted text-sm hover:text-foreground">Cancel</button>
@@ -213,7 +213,7 @@ export default function GiftCategory({
             </div>
           ) : (
             <button onClick={() => setAdding(true)}
-              className="w-full py-2 rounded-xl border-2 border-dashed border-blue-100 text-blue-300 text-sm font-medium hover:border-blue-200 hover:text-blue-400 transition-colors">
+              className="w-full py-2 rounded-xl border-2 border-dashed border-mauve/15 text-blue-300 text-sm font-medium hover:border-mauve/20 hover:text-mauve/80 transition-colors">
               + Add item
             </button>
           )}

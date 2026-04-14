@@ -53,7 +53,7 @@ export default function BudgetTracker({ items, onUpdate, onAdd, onDelete }: Budg
             </td>
             <td
               className={`text-right px-4 py-3 font-semibold ${
-                totals.difference >= 0 ? 'text-green-600' : 'text-red-500'
+                totals.difference >= 0 ? 'text-sage' : 'text-red-500'
               }`}
             >
               {totals.difference >= 0 ? '+' : ''}${totals.difference.toLocaleString()}
@@ -119,7 +119,7 @@ function BudgetRow({
       <td
         className={`text-right px-4 py-2.5 font-medium ${
           difference > 0
-            ? 'text-green-600'
+            ? 'text-sage'
             : difference < 0
             ? 'text-red-500'
             : 'text-muted'

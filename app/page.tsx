@@ -215,7 +215,7 @@ function Dashboard() {
                 <li key={i} className="flex items-center justify-between text-sm">
                   <span className="text-foreground/80">{m.title}</span>
                   <span className="text-xs text-muted flex gap-2">
-                    {m.rating_joshua != null && <span className="text-blue-400">J: {m.rating_joshua}/10</span>}
+                    {m.rating_joshua != null && <span className="text-mauve/80">J: {m.rating_joshua}/10</span>}
                     {m.rating_sophie != null && <span className="text-rose">S: {m.rating_sophie}/10</span>}
                   </span>
                 </li>

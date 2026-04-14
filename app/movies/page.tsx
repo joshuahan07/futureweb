@@ -265,19 +265,19 @@ export default function MoviesPage() {
         <div className="space-y-6 animate-fade-in">
           {/* Stats bar */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="rounded-2xl p-4 bg-surface border border-border">
+            <div className="rounded-2xl p-4 glass-card">
               <div className="text-2xl font-bold text-foreground">{totalWatched}</div>
               <div className="text-xs text-muted">Watched Together</div>
             </div>
-            <div className="rounded-2xl p-4 bg-surface border border-border">
+            <div className="rounded-2xl p-4 glass-card">
               <div className="text-2xl font-bold text-foreground">{movieCount}</div>
               <div className="text-xs text-muted">Movies</div>
             </div>
-            <div className="rounded-2xl p-4 bg-surface border border-border">
+            <div className="rounded-2xl p-4 glass-card">
               <div className="text-2xl font-bold text-foreground">{showCount}</div>
               <div className="text-xs text-muted">Shows</div>
             </div>
-            <div className="rounded-2xl p-4 bg-surface border border-border">
+            <div className="rounded-2xl p-4 glass-card">
               <div className="text-sm font-semibold text-rose">
                 {mostRecent
                   ? new Date(mostRecent.date_watched!).toLocaleDateString(
@@ -298,8 +298,8 @@ export default function MoviesPage() {
                 onClick={() => setFilter(f.key)}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
                   filter === f.key
-                    ? 'bg-blue-100 text-blue-600 border border-blue-200'
-                    : 'bg-surface-hover text-muted border border-transparent hover:text-foreground'
+                    ? 'bg-mauve/15 text-mauve border border-mauve/20'
+                    : 'glass text-muted hover:text-foreground'
                 }`}
               >
                 {f.label}
@@ -312,8 +312,8 @@ export default function MoviesPage() {
                 onClick={() => setSort(s.key)}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
                   sort === s.key
-                    ? 'bg-blue-50 text-blue-500 border border-blue-200'
-                    : 'bg-surface-hover text-muted border border-transparent hover:text-foreground'
+                    ? 'bg-mauve/10 text-mauve border border-mauve/20'
+                    : 'glass text-muted hover:text-foreground'
                 }`}
               >
                 {s.label}
@@ -324,7 +324,7 @@ export default function MoviesPage() {
                 setEditingMovie(null);
                 setIsModalOpen(true);
               }}
-              className="ml-auto px-4 py-1.5 rounded-full bg-blue-500 text-white text-xs font-medium hover:bg-blue-600 transition-colors shadow-sm"
+              className="ml-auto px-4 py-1.5 rounded-full bg-mauve text-white text-xs font-medium hover:bg-mauve/90 transition-colors shadow-sm"
             >
               + Add
             </button>
@@ -333,7 +333,7 @@ export default function MoviesPage() {
           {/* Content — Our Movies tab only shows watched */}
           {loading ? (
             <div className="flex justify-center py-20">
-              <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-mauve/40 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : displayMovies.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -364,7 +364,7 @@ export default function MoviesPage() {
           <div className="flex items-center justify-end">
             <button
               onClick={() => setShowAddWatchlist(true)}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-blue-50 text-blue-600 text-xs font-medium hover:bg-blue-100 transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-mauve/10 text-mauve text-xs font-medium hover:bg-mauve/15 transition-colors"
             >
               <span className="text-sm">+</span> Add to Watchlist
             </button>
@@ -433,8 +433,8 @@ export default function MoviesPage() {
       {/* Add Watchlist Modal */}
       {showAddWatchlist && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowAddWatchlist(false)} />
-          <div className="relative bg-surface rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 animate-fade-in border border-border">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-xl" onClick={() => setShowAddWatchlist(false)} />
+          <div className="relative glass-strong rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 animate-fade-in border border-border">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-heading text-foreground">Add to Watchlist</h3>
               <button onClick={() => setShowAddWatchlist(false)} className="w-8 h-8 rounded-full flex items-center justify-center text-muted hover:bg-surface-hover transition-colors">✕</button>
@@ -478,7 +478,7 @@ export default function MoviesPage() {
               </button>
               <button
                 onClick={handleAddWatchlistItem}
-                className="px-5 py-2 text-sm font-medium bg-blue-500 text-white rounded-full hover:opacity-90 transition-opacity"
+                className="px-5 py-2 text-sm font-medium bg-mauve text-white rounded-full hover:opacity-90 transition-opacity"
               >
                 Add
               </button>

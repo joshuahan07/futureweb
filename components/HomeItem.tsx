@@ -18,9 +18,9 @@ interface HomeItemProps {
 }
 
 const statusConfig = {
-  want: { label: 'Want', bg: 'bg-blue-50', text: 'text-blue-600', ring: 'ring-blue-200' },
+  want: { label: 'Want', bg: 'bg-blue-50', text: 'text-mauve', ring: 'ring-blue-200' },
   ordered: { label: 'Ordered', bg: 'bg-amber-50', text: 'text-amber-600', ring: 'ring-amber-200' },
-  have: { label: 'Have', bg: 'bg-green-50', text: 'text-green-600', ring: 'ring-green-200' },
+  have: { label: 'Have', bg: 'bg-green-50', text: 'text-sage', ring: 'ring-green-200' },
 };
 
 const categoryColors: Record<string, string> = {
@@ -45,7 +45,7 @@ export default function HomeItem({ item, onUpdate, onDelete }: HomeItemProps) {
   };
 
   return (
-    <div className="group flex items-center gap-3 px-4 py-3 rounded-xl bg-surface border border-border hover:border-border hover:shadow-sm transition-all duration-200">
+    <div className="group flex items-center gap-3 px-4 py-3 rounded-xl glass-card hover:border-border hover:shadow-sm transition-all duration-200">
       {/* Name and details */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">

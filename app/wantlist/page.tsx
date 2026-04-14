@@ -97,15 +97,15 @@ function AddModal({ onClose, onAdd, currentUser }: {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
-      <div className="bg-surface rounded-2xl shadow-xl w-full max-w-md p-6 animate-fade-in border border-border max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
+      <div className="glass-strong rounded-2xl shadow-xl w-full max-w-md p-6 animate-fade-in border border-border max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
           <h3 className="font-heading text-xl text-foreground">Add to My Wishlist</h3>
           <button type="button" onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-muted hover:bg-surface-hover transition-colors">✕</button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input type="text" value={item} onChange={(e) => setItem(e.target.value)} required autoFocus
-            placeholder="Item name" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200" />
+            placeholder="Item name" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30 focus:ring-1 focus:ring-mauve/20" />
           {/* Image upload */}
           {imageUrl ? (
             <div className="relative rounded-xl overflow-hidden h-32">
@@ -120,11 +120,11 @@ function AddModal({ onClose, onAdd, currentUser }: {
               onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f?.type.startsWith('image/')) uploadFile(f); }}
               onClick={() => fileRef.current?.click()}
               className={`h-24 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors ${
-                dragOver ? 'border-blue-400 bg-blue-50/50' : 'border-border hover:border-blue-300 hover:bg-surface-hover'
+                dragOver ? 'border-mauve/40 bg-blue-50/50' : 'border-border hover:border-mauve/30 hover:bg-surface-hover'
               }`}
             >
               {uploading ? (
-                <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-mauve/40 border-t-transparent rounded-full animate-spin" />
               ) : (
                 <><ImageIcon className="w-5 h-5 text-muted mb-1" /><span className="text-xs text-muted">Drop image or click to upload</span></>
               )}
@@ -135,18 +135,18 @@ function AddModal({ onClose, onAdd, currentUser }: {
           {!imageUrl && (
             <input type="url" placeholder="Or paste image URL..."
               onChange={(e) => { if (e.target.value.trim()) setImageUrl(e.target.value.trim()); }}
-              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300 placeholder-muted" />
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30 placeholder-muted" />
           )}
           <div className="grid grid-cols-2 gap-3">
             <input type="number" value={priceLow} onChange={(e) => setPriceLow(e.target.value)}
-              placeholder="Price from" className="px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200" />
+              placeholder="Price from" className="px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30 focus:ring-1 focus:ring-mauve/20" />
             <input type="number" value={priceHigh} onChange={(e) => setPriceHigh(e.target.value)}
-              placeholder="Price to" className="px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200" />
+              placeholder="Price to" className="px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30 focus:ring-1 focus:ring-mauve/20" />
           </div>
           <input type="url" value={link} onChange={(e) => setLink(e.target.value)}
-            placeholder="Link (optional)" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200" />
+            placeholder="Link (optional)" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30 focus:ring-1 focus:ring-mauve/20" />
           <select value={category} onChange={(e) => setCategory(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300">
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30">
             {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
           <div>
@@ -160,9 +160,9 @@ function AddModal({ onClose, onAdd, currentUser }: {
             </div>
           </div>
           <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3}
-            placeholder="Notes (optional)" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 resize-none" />
+            placeholder="Notes (optional)" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30 focus:ring-1 focus:ring-mauve/20 resize-none" />
           <button type="submit" disabled={!item.trim()}
-            className={`w-full py-2.5 rounded-xl text-sm font-medium transition-colors ${item.trim() ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-surface-hover text-muted'}`}>
+            className={`w-full py-2.5 rounded-xl text-sm font-medium transition-colors ${item.trim() ? 'bg-mauve text-white hover:bg-mauve/90' : 'bg-surface-hover text-muted'}`}>
             Add to Wishlist
           </button>
         </form>
@@ -185,7 +185,7 @@ function WishlistCard({ item, currentUser, isOwnList, onClaim, onDelete }: {
 
   return (
     <div className={`group bg-surface rounded-xl p-4 border transition-all ${
-      isClaimedByMe ? 'border-green-200 bg-green-50/30' : 'border-border hover:border-blue-200'
+      isClaimedByMe ? 'border-green-200 bg-sage/10' : 'border-border hover:border-mauve/20'
     }`}>
       <div className="flex gap-4">
         {/* Image */}
@@ -204,7 +204,7 @@ function WishlistCard({ item, currentUser, isOwnList, onClaim, onDelete }: {
               <div className="flex items-center gap-3 mt-1">
                 <PriorityHearts value={item.priority || 1} />
                 {item.category && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-hover text-muted font-medium">{item.category}</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-xl glass text-muted font-medium">{item.category}</span>
                 )}
               </div>
               <PriceDisplay low={item.price_low || item.price_estimate} high={item.price_high} />
@@ -213,7 +213,7 @@ function WishlistCard({ item, currentUser, isOwnList, onClaim, onDelete }: {
             <div className="flex items-center gap-1 shrink-0">
               {item.link && (
                 <a href={item.link} target="_blank" rel="noopener noreferrer"
-                  className="p-2 text-muted hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors">
+                  className="p-2 text-muted hover:text-mauve hover:bg-mauve/10 rounded-lg transition-colors">
                   <ExternalLink className="w-4 h-4" />
                 </a>
               )}
@@ -230,8 +230,8 @@ function WishlistCard({ item, currentUser, isOwnList, onClaim, onDelete }: {
           {/* Claim section */}
           {isOwnList && item.claimed_by && (
             <div className="mt-3 flex items-center gap-2 text-sm">
-              <Check className="w-4 h-4 text-green-500" />
-              <span className="text-green-600">Someone&apos;s getting this for you!</span>
+              <Check className="w-4 h-4 text-sage" />
+              <span className="text-sage">Someone&apos;s getting this for you!</span>
             </div>
           )}
 
@@ -246,8 +246,8 @@ function WishlistCard({ item, currentUser, isOwnList, onClaim, onDelete }: {
                 <button onClick={onClaim}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     isClaimedByMe
-                      ? 'bg-green-100 text-green-600 hover:bg-green-200'
-                      : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                      ? 'bg-sage/15 text-sage hover:bg-sage/25'
+                      : 'bg-mauve/10 text-mauve hover:bg-mauve/15'
                   }`}>
                   {isClaimedByMe ? (
                     <><Check className="w-4 h-4" /> You&apos;re getting this!</>
@@ -321,7 +321,7 @@ export default function WantlistPage() {
 
   if (!loaded) return (
     <div className="flex items-center justify-center py-20">
-      <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-2 border-mauve/40 border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
@@ -350,7 +350,7 @@ export default function WantlistPage() {
         </h2>
         {view === 'my' && (
           <button onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors shadow-sm">
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-mauve text-white text-sm font-medium hover:bg-mauve/90 active:scale-95 transition-all shadow-lg shadow-mauve/25">
             <Plus className="w-4 h-4" /> Add Item
           </button>
         )}
@@ -364,12 +364,12 @@ export default function WantlistPage() {
             {(['all', 'unclaimed', 'claimed'] as FilterBy[]).map((f) => (
               <button key={f} onClick={() => setFilterBy(f)}
                 className={`px-3 py-1 rounded-full text-sm capitalize transition-colors ${
-                  filterBy === f ? 'bg-blue-100 text-blue-600' : 'text-muted hover:bg-surface-hover'
+                  filterBy === f ? 'bg-mauve/15 text-mauve' : 'text-muted hover:bg-surface-hover'
                 }`}>{f}</button>
             ))}
           </div>
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}
-            className="text-sm border border-border rounded-lg px-3 py-1.5 text-muted bg-background outline-none focus:border-blue-300">
+            className="text-sm border border-border rounded-lg px-3 py-1.5 text-muted bg-background outline-none focus:border-mauve/30">
             <option value="priority">Priority</option>
             <option value="price">Price: Low to High</option>
             <option value="newest">Newest</option>

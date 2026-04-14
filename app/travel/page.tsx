@@ -219,7 +219,7 @@ export default function TravelPage() {
     <Layout>
     <div className="min-h-screen rounded-xl -mx-4 -mt-6 px-4 pt-6">
       {/* Header */}
-      <div className="bg-surface/80 backdrop-blur border-b border-border px-6 py-4">
+      <div className="glass-strong border-b border-border px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Travel Journal</h1>
@@ -301,8 +301,8 @@ export default function TravelPage() {
 
       {/* Edit location modal */}
       {editingLocation && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
-          <div className="bg-surface rounded-2xl shadow-xl w-full max-w-md p-6 animate-fade-in border border-border">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
+          <div className="glass-strong rounded-2xl shadow-xl w-full max-w-md p-6 animate-fade-in border border-border">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-heading text-lg text-foreground">Edit Location</h3>
               <button onClick={() => setEditingLocation(null)} className="w-8 h-8 rounded-full flex items-center justify-center text-muted hover:bg-surface-hover transition-colors">✕</button>
@@ -311,25 +311,25 @@ export default function TravelPage() {
               <div>
                 <label className="text-xs font-medium text-muted mb-1 block">Name</label>
                 <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300" autoFocus />
+                  className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30" autoFocus />
               </div>
               <div>
                 <label className="text-xs font-medium text-muted mb-1 block">Country</label>
                 <input type="text" value={editCountry} onChange={(e) => setEditCountry(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300" />
+                  className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-muted mb-1 block">Region</label>
                   <select value={editRegion} onChange={(e) => setEditRegion(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300">
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30">
                     {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="text-xs font-medium text-muted mb-1 block">Status</label>
                   <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300">
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30">
                     <option value="future">Future</option>
                     <option value="visited">Visited</option>
                   </select>
@@ -339,7 +339,7 @@ export default function TravelPage() {
                 <button onClick={() => setEditingLocation(null)}
                   className="flex-1 py-2.5 rounded-lg border border-border text-muted text-sm hover:bg-surface-hover transition-colors">Cancel</button>
                 <button onClick={handleSaveEdit}
-                  className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${editName.trim() ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-surface-hover text-muted'}`}>
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${editName.trim() ? 'bg-mauve text-white hover:bg-mauve/90' : 'bg-surface-hover text-muted'}`}>
                   Save
                 </button>
               </div>

@@ -246,7 +246,7 @@ export default function BooksPage() {
                     onClick={() => setBookFilter(f.key)}
                     className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                       bookFilter === f.key
-                        ? 'bg-rose-100 text-rose-600'
+                        ? 'bg-rose/15 text-rose'
                         : 'bg-surface-hover/50 text-muted hover:bg-surface-hover hover:text-foreground/70'
                     }`}
                   >
@@ -401,8 +401,8 @@ export default function BooksPage() {
         {/* Add Book Modal */}
         {showAddBook && (
           <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-            <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowAddBook(false)} />
-            <div className="relative bg-surface rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 animate-fade-in">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-xl" onClick={() => setShowAddBook(false)} />
+            <div className="relative glass-strong rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 animate-fade-in">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-heading text-foreground">Add a Book</h3>
                 <button onClick={() => setShowAddBook(false)} className="w-8 h-8 rounded-full flex items-center justify-center text-muted hover:bg-surface-hover transition-colors">✕</button>
@@ -501,8 +501,8 @@ export default function BooksPage() {
         {/* Add Duet Modal */}
         {showAddDuet && (
           <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-            <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowAddDuet(false)} />
-            <div className="relative bg-surface rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 animate-fade-in">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-xl" onClick={() => setShowAddDuet(false)} />
+            <div className="relative glass-strong rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 animate-fade-in">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-heading text-foreground">Add a Song / Piece</h3>
                 <button onClick={() => setShowAddDuet(false)} className="w-8 h-8 rounded-full flex items-center justify-center text-muted hover:bg-surface-hover transition-colors">✕</button>

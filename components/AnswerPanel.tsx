@@ -71,7 +71,7 @@ export default function AnswerPanel({ questionId, person, currentUser, existingA
   return (
     <div className={`flex-1 rounded-xl p-4 min-w-0 transition-all duration-200 border ${
       isJoshua
-        ? 'bg-blue-50/50 border-blue-100'
+        ? 'bg-blue-50/50 border-mauve/15'
         : 'bg-rose-50/50 border-rose-100'
     }`}>
       <div className="flex items-center gap-2 mb-3">
@@ -82,7 +82,7 @@ export default function AnswerPanel({ questionId, person, currentUser, existingA
         </div>
         <span className="text-sm font-medium text-foreground">{label}</span>
         {saved && (
-          <span className="text-xs text-green-500 ml-auto font-medium flex items-center gap-1 animate-saved-pop">
+          <span className="text-xs text-sage ml-auto font-medium flex items-center gap-1 animate-saved-pop">
             <Check className="w-3 h-3" /> Saved
           </span>
         )}
@@ -101,7 +101,7 @@ export default function AnswerPanel({ questionId, person, currentUser, existingA
           }}
           className={`w-full min-h-[100px] p-3 rounded-lg border bg-surface/70 text-foreground text-sm leading-relaxed resize-y outline-none transition-colors ${
             isJoshua
-              ? 'border-blue-200 focus:ring-2 focus:ring-blue-200'
+              ? 'border-mauve/20 focus:ring-2 focus:ring-mauve/20'
               : 'border-rose-200 focus:ring-2 focus:ring-rose-200'
           }`}
           placeholder="Type your answer..."

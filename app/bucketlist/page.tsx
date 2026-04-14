@@ -216,41 +216,41 @@ export default function BucketListPage() {
         </div>
 
         {/* Progress bar */}
-        <div className="mb-4 p-4 rounded-2xl bg-surface border border-border shadow-sm">
+        <div className="mb-4 p-4 rounded-2xl glass-card shadow-sm">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-semibold text-foreground">
               {completedCount} of {totalCount} completed
             </span>
-            <span className="text-sm font-bold text-blue-500">
+            <span className="text-sm font-bold text-mauve">
               {totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%
             </span>
           </div>
           <div className="h-3 rounded-full bg-surface-hover overflow-hidden">
-            <div className="h-full rounded-full transition-all duration-700 ease-out bg-gradient-to-r from-blue-400 to-green-400"
+            <div className="h-full rounded-full transition-all duration-700 ease-out bg-gradient-to-r from-mauve to-sage"
               style={{ width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%` }} />
           </div>
         </div>
 
         {/* Add new — moved under progress */}
-        <div className="flex gap-2 p-3 rounded-2xl bg-surface border border-dashed border-blue-200 mb-6">
+        <div className="flex gap-2 p-3 rounded-2xl bg-surface border border-dashed border-mauve/20 mb-6">
           <input type="text" value={newEmoji} onChange={(e) => setNewEmoji(e.target.value)}
-            className="w-12 text-center text-xl bg-transparent border border-border rounded-xl focus:outline-none focus:border-blue-300" placeholder="✨" />
+            className="w-12 text-center text-xl bg-transparent border border-border rounded-xl focus:outline-none focus:border-mauve/30" placeholder="✨" />
           <input type="text" value={newText} onChange={(e) => setNewText(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAdd()} placeholder="Add a new dream..."
-            className="flex-1 px-3 py-2 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300 placeholder-muted" />
+            className="flex-1 px-3 py-2 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30 placeholder-muted" />
           <select value={newCategory} onChange={(e) => setNewCategory(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-border text-xs text-muted focus:outline-none focus:border-blue-300 bg-background">
+            className="px-3 py-2 rounded-xl border border-border text-xs text-muted focus:outline-none focus:border-mauve/30 bg-background">
             {allCategories.filter((c) => c !== 'All').map((c) => <option key={c} value={c}>{c}</option>)}
             <option value="__custom__">+ New...</option>
           </select>
           {newCategory === '__custom__' && (
             <input type="text" value={customNewCat} onChange={(e) => setCustomNewCat(e.target.value)}
-              className="w-24 px-2 py-2 rounded-xl border border-border text-xs bg-background text-foreground focus:outline-none focus:border-blue-300"
+              className="w-24 px-2 py-2 rounded-xl border border-border text-xs bg-background text-foreground focus:outline-none focus:border-mauve/30"
               placeholder="Category..." />
           )}
           <button onClick={handleAdd}
             className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-              newText.trim() ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-surface-hover text-muted'
+              newText.trim() ? 'bg-mauve text-white hover:bg-mauve/90' : 'bg-surface-hover text-muted'
             }`}>
             Add
           </button>
@@ -261,14 +261,14 @@ export default function BucketListPage() {
           {(['all', 'completed', 'remaining'] as BucketFilter[]).map((f) => (
             <button key={f} onClick={() => setFilter(f)}
               className={`px-3.5 py-1.5 rounded-full text-xs font-medium capitalize transition-all ${
-                filter === f ? 'bg-blue-100 text-blue-600 border border-blue-200' : 'bg-surface-hover text-muted border border-transparent hover:text-foreground'
+                filter === f ? 'bg-mauve/15 text-mauve border border-mauve/20' : 'glass text-muted hover:text-foreground'
               }`}>{f}</button>
           ))}
           <div className="w-px h-6 bg-border mx-1 self-center" />
           {allCategories.map((c) => (
             <button key={c} onClick={() => setCategory(c)}
               className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-                category === c ? 'bg-blue-50 text-blue-500 border border-blue-200' : 'bg-surface-hover text-muted border border-transparent hover:text-foreground'
+                category === c ? 'bg-mauve/10 text-mauve border border-mauve/20' : 'glass text-muted hover:text-foreground'
               }`}>{c}</button>
           ))}
         </div>
@@ -298,21 +298,21 @@ export default function BucketListPage() {
 
         {/* Category edit modal */}
         {editingItemCategory && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
-            <div className="bg-surface rounded-2xl shadow-xl w-full max-w-sm p-5 animate-fade-in border border-border">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
+            <div className="glass-strong rounded-2xl shadow-xl w-full max-w-sm p-5 animate-fade-in border border-border">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-heading text-lg text-foreground">Move to Category</h3>
                 <button onClick={() => setEditingItemCategory(null)} className="w-8 h-8 rounded-full flex items-center justify-center text-muted hover:bg-surface-hover transition-colors">✕</button>
               </div>
               <select value={editCatValue} onChange={(e) => { setEditCatValue(e.target.value); setEditCatCustom(''); }}
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300 mb-2">
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30 mb-2">
                 {allCategories.filter((c) => c !== 'All').map((c) => <option key={c} value={c}>{c}</option>)}
                 <option value="__custom__">+ New Category...</option>
               </select>
               {editCatValue === '__custom__' && (
                 <input type="text" value={editCatCustom} placeholder="New category name..."
                   onChange={(e) => setEditCatCustom(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300 mb-2" autoFocus />
+                  className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30 mb-2" autoFocus />
               )}
               <div className="flex gap-2 mt-3">
                 <button onClick={() => setEditingItemCategory(null)} className="flex-1 py-2 rounded-lg border border-border text-muted text-sm hover:bg-surface-hover">Cancel</button>
@@ -321,7 +321,7 @@ export default function BucketListPage() {
                   if (finalCat && editingItemCategory) handleUpdateCategory(editingItemCategory, finalCat);
                   setEditingItemCategory(null);
                   setEditCatCustom('');
-                }} className="flex-1 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600">Save</button>
+                }} className="flex-1 py-2 rounded-lg bg-mauve text-white text-sm font-medium hover:bg-mauve/90">Save</button>
               </div>
             </div>
           </div>

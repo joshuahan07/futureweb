@@ -151,7 +151,7 @@ export default function QAPage() {
     return (
       <Layout>
         <div className="flex items-center justify-center py-32">
-          <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-mauve/40 border-t-transparent rounded-full animate-spin" />
         </div>
       </Layout>
     )
@@ -170,22 +170,22 @@ export default function QAPage() {
             <p className="text-sm text-muted mt-1">Questions to explore together</p>
           </div>
           <button onClick={() => setShowAddQuestion(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors shadow-sm">
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-mauve text-white text-sm font-medium hover:bg-mauve/90 active:scale-95 transition-all shadow-lg shadow-mauve/25">
             <Plus className="w-4 h-4" /> Add Question
           </button>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-surface rounded-2xl p-4 border border-border text-center">
+          <div className="glass-card rounded-2xl p-4 text-center">
             <div className="text-2xl font-bold text-foreground">{totalQuestions}</div>
             <div className="text-[10px] text-muted uppercase tracking-wider">Questions</div>
           </div>
-          <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100 text-center">
-            <div className="text-2xl font-bold text-blue-600">{answeredByJoshua}</div>
-            <div className="text-[10px] text-blue-400 uppercase tracking-wider">Joshua answered</div>
+          <div className="bg-blue-50 rounded-2xl p-4 border border-mauve/15 text-center">
+            <div className="text-2xl font-bold text-mauve">{answeredByJoshua}</div>
+            <div className="text-[10px] text-mauve/80 uppercase tracking-wider">Joshua answered</div>
           </div>
-          <div className="bg-rose-50 rounded-2xl p-4 border border-rose-100 text-center">
+          <div className="glass-card rounded-2xl p-4 text-center">
             <div className="text-2xl font-bold text-rose-500">{answeredBySophie}</div>
             <div className="text-[10px] text-rose-400 uppercase tracking-wider">Sophie answered</div>
           </div>
@@ -197,8 +197,8 @@ export default function QAPage() {
             <button key={cat} onClick={() => setActiveCategory(cat)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                 activeCategory === cat
-                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm'
-                  : 'bg-surface-hover text-muted hover:text-foreground'
+                  ? 'bg-gradient-to-r from-mauve to-mauve/90 text-white shadow-sm'
+                  : 'glass text-muted hover:text-foreground'
               }`}>
               {cat}
             </button>
@@ -221,7 +221,7 @@ export default function QAPage() {
                   <h2 className="text-sm font-semibold uppercase tracking-wider text-foreground/60 group-hover:text-foreground transition-colors">
                     {category}
                   </h2>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-hover text-muted font-medium">
+                  <span className="text-[10px] px-2 py-0.5 rounded-xl glass text-muted font-medium">
                     {answered}/{qs.length} answered
                   </span>
                   <div className="flex-1 h-px bg-border ml-2" />
@@ -234,9 +234,9 @@ export default function QAPage() {
                       const sophieAnswer = answers.find((a) => a.question_id === q.id && a.answered_by === 'sophie') || null
 
                       return (
-                        <div key={q.id} className="rounded-2xl bg-surface border border-border overflow-hidden hover:shadow-sm transition-shadow">
+                        <div key={q.id} className="rounded-2xl glass-card overflow-hidden hover:shadow-sm transition-shadow">
                           {/* Question header */}
-                          <div className="px-5 py-4 bg-gradient-to-r from-blue-50/50 to-rose-50/50 border-b border-border">
+                          <div className="px-5 py-4 bg-gradient-to-r from-mauve/5 to-rose/5 border-b border-border">
                             <p className="text-center font-medium italic text-foreground/80 text-sm leading-relaxed">
                               &ldquo;{q.question}&rdquo;
                             </p>
@@ -272,20 +272,20 @@ export default function QAPage() {
 
       {/* Add question modal */}
       {showAddQuestion && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
           <form onSubmit={handleAddQuestion}
-            className="bg-surface rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 animate-fade-in border border-border">
+            className="glass-strong rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 animate-fade-in border border-border">
             <h2 className="font-heading text-xl text-foreground">Add a Question</h2>
             <div>
               <label className="block text-xs font-medium text-muted mb-1">Question</label>
               <textarea value={newQuestion} onChange={(e) => setNewQuestion(e.target.value)}
-                className="w-full border border-border rounded-lg px-3 py-2 bg-background text-foreground text-sm focus:ring-2 focus:ring-blue-200 outline-none resize-none"
+                className="w-full border border-border rounded-lg px-3 py-2 bg-background text-foreground text-sm focus:ring-2 focus:ring-mauve/20 outline-none resize-none"
                 rows={3} placeholder="Type your question..." required />
             </div>
             <div>
               <label className="block text-xs font-medium text-muted mb-1">Category</label>
               <select value={newCategory} onChange={(e) => setNewCategory(e.target.value)}
-                className="w-full border border-border rounded-lg px-3 py-2 bg-background text-foreground text-sm focus:ring-2 focus:ring-blue-200 outline-none">
+                className="w-full border border-border rounded-lg px-3 py-2 bg-background text-foreground text-sm focus:ring-2 focus:ring-mauve/20 outline-none">
                 {allCategories.filter((c) => c !== 'All').map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
@@ -293,7 +293,7 @@ export default function QAPage() {
               </select>
               {newCategory === '__custom__' && (
                 <input type="text" value={customCategory} onChange={(e) => setCustomCategory(e.target.value)}
-                  className="w-full border border-border rounded-lg px-3 py-2 bg-background text-foreground text-sm focus:ring-2 focus:ring-blue-200 outline-none mt-2"
+                  className="w-full border border-border rounded-lg px-3 py-2 bg-background text-foreground text-sm focus:ring-2 focus:ring-mauve/20 outline-none mt-2"
                   placeholder="Enter category name..." autoFocus />
               )}
             </div>
@@ -304,7 +304,7 @@ export default function QAPage() {
               </button>
               <button type="submit" disabled={saving}
                 className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  newQuestion.trim() ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-surface-hover text-muted'
+                  newQuestion.trim() ? 'bg-mauve text-white hover:bg-mauve/90' : 'bg-surface-hover text-muted'
                 } disabled:opacity-50`}>
                 {saving ? 'Adding...' : 'Add Question'}
               </button>

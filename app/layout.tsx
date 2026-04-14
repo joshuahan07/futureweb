@@ -5,7 +5,7 @@ import { ThemeProvider } from '@/components/ThemeContext';
 import DbHealthCheck from '@/components/DbHealthCheck';
 
 export const metadata: Metadata = {
-  title: 'J & S',
+  title: 'LoveNest — J & S',
   description: 'Our private collaborative space',
 };
 

@@ -48,7 +48,7 @@ export default function DropZone({ onUpload, section }: DropZoneProps) {
           : uploadState === 'uploading'
           ? 'border-amber-300 bg-amber-50/30'
           : uploadState === 'done'
-          ? 'border-green-300 bg-green-50/30'
+          ? 'border-green-300 bg-sage/10'
           : 'border-border bg-surface/60 hover:border-amber-300 hover:bg-amber-50/30'
       }`}
     >
@@ -101,7 +101,7 @@ export default function DropZone({ onUpload, section }: DropZoneProps) {
               Uploading to {section}...
             </p>
           ) : uploadState === 'done' ? (
-            <p className="text-sm text-green-600 font-medium">
+            <p className="text-sm text-sage font-medium">
               Uploaded successfully!
             </p>
           ) : isDragActive ? (

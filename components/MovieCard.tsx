@@ -56,7 +56,7 @@ function RatingBar({ value, label, color, onRate }: { value: number | null; labe
           <button key={n} onClick={() => onRate?.(n)} disabled={!onRate}
             className={`w-5 h-5 rounded text-[9px] font-bold transition-colors ${
               value && n <= value
-                ? label === 'J' ? 'bg-blue-500 text-white' : 'bg-rose-400 text-white'
+                ? label === 'J' ? 'bg-mauve text-white' : 'bg-rose-400 text-white'
                 : 'bg-border text-foreground/30'
             } ${onRate ? 'hover:bg-blue-400 hover:text-white cursor-pointer' : 'cursor-default'}`}>
             {n}
@@ -70,7 +70,7 @@ function RatingBar({ value, label, color, onRate }: { value: number | null; labe
 
 export default function MovieCard({ movie, onEdit, onDelete, onRate, currentUser }: MovieCardProps) {
   return (
-    <div className="group relative rounded-2xl overflow-hidden bg-surface border border-border transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
+    <div className="group relative rounded-2xl overflow-hidden glass-card transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
       {/* Poster / Gradient placeholder */}
       <div className="relative h-48 overflow-hidden">
         {movie.poster_url ? (

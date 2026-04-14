@@ -48,7 +48,7 @@ export default function BucketItem({
     <div
       className={`relative group flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 ${
         item.completed
-          ? 'bg-emerald-50 border border-emerald-200'
+          ? 'bg-sage/10 border border-sage/20'
           : 'bg-surface border border-rose-100 hover:border-rose-200 hover:shadow-md'
       }`}
     >
@@ -115,7 +115,7 @@ export default function BucketItem({
       {/* Category chip — clickable to edit */}
       <button
         onClick={() => onEditCategory?.(item.id)}
-        className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-50 text-blue-500 border border-blue-100 hover:bg-blue-100 transition-colors"
+        className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-mauve/10 text-mauve border border-mauve/15 hover:bg-mauve/15 transition-colors"
         title="Click to change category"
       >
         {item.category}

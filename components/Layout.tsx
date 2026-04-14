@@ -54,7 +54,7 @@ function UserAvatar({ name, color, isOnline, pfpUrl, onClick }: {
         )}
       </div>
       {isOnline && (
-        <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-background animate-pulse" />
+        <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-sage rounded-full border-2 border-background animate-pulse" />
       )}
     </button>
   );

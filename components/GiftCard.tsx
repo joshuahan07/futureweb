@@ -44,7 +44,7 @@ export default function GiftCard({ item, currentUser, isOwnList }: Props) {
   const catColor = categoryColors[item.category || 'Other'] || categoryColors.Other
 
   return (
-    <div className="relative group rounded-2xl bg-surface border border-border shadow-sm hover:shadow-lg hover:scale-[1.02] hover:border-rose-200 transition-all duration-300 overflow-hidden animate-stagger-in">
+    <div className="relative group rounded-2xl glass-card shadow-sm hover:shadow-lg hover:scale-[1.02] hover:border-rose-200 transition-all duration-300 overflow-hidden animate-stagger-in">
       {/* Ribbon decoration */}
       <div className="absolute top-0 right-0 w-16 h-16 overflow-hidden">
         <div className="absolute top-2 right-[-20px] w-[80px] h-[20px] bg-gradient-to-r from-rose-400 to-pink-400 rotate-45 shadow-sm" />

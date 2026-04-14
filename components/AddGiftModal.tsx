@@ -63,10 +63,10 @@ export default function AddGiftModal({ open, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-xl">
       <form
         onSubmit={handleSubmit}
-        className="bg-surface rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 space-y-4 max-h-[90vh] overflow-y-auto"
+        className="glass-strong rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 space-y-4 max-h-[90vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-foreground">Add to Your Wishlist</h2>

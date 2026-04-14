@@ -77,9 +77,9 @@ const categoryIcons: Record<string, string> = {
 }
 
 const statusBadge: Record<string, { label: string; color: string }> = {
-  future: { label: 'Future', color: 'bg-blue-50 text-blue-600' },
-  future_both: { label: 'Future', color: 'bg-blue-50 text-blue-600' },
-  visited: { label: 'Visited', color: 'bg-green-50 text-green-600' },
+  future: { label: 'Future', color: 'bg-mauve/10 text-mauve' },
+  future_both: { label: 'Future', color: 'bg-mauve/10 text-mauve' },
+  visited: { label: 'Visited', color: 'bg-green-50 text-sage' },
 }
 
 export default function LocationCard({
@@ -93,8 +93,8 @@ export default function LocationCard({
     <div
       className={`group rounded-xl border-2 transition-all duration-200 cursor-pointer ${
         isSelected
-          ? 'border-blue-300 bg-blue-50/50 shadow-lg scale-[1.01]'
-          : 'border-border bg-surface hover:border-blue-200 hover:shadow-md hover:scale-[1.01]'
+          ? 'border-mauve/30 bg-blue-50/50 shadow-lg scale-[1.01]'
+          : 'border-border bg-surface hover:border-mauve/20 hover:shadow-md hover:scale-[1.01]'
       }`}
     >
       <div className="flex items-center gap-3 p-3" onClick={onSelect}>
@@ -115,7 +115,7 @@ export default function LocationCard({
           {/* Edit & Delete — show on hover */}
           <button
             onClick={(e) => { e.stopPropagation(); onEditLocation(location); }}
-            className="opacity-0 group-hover:opacity-100 w-6 h-6 rounded-full flex items-center justify-center text-muted hover:text-blue-500 hover:bg-blue-50 transition-all"
+            className="opacity-0 group-hover:opacity-100 w-6 h-6 rounded-full flex items-center justify-center text-muted hover:text-mauve hover:bg-mauve/10 transition-all"
             title="Edit location"
           >
             <Pencil className="w-3.5 h-3.5" />
@@ -135,7 +135,7 @@ export default function LocationCard({
           {pins.map((pin, idx) => (
             <div
               key={pin.id}
-              className="group/pin flex items-center gap-2 text-sm p-2 rounded-lg bg-surface border border-border-light hover:bg-surface-hover transition-colors duration-150 animate-stagger-in"
+              className="group/pin flex items-center gap-2 text-sm p-2 rounded-lg glass-card-light hover:bg-surface-hover transition-colors duration-150 animate-stagger-in"
               style={{ animationDelay: `${idx * 0.05}s` }}
             >
               <span>{categoryIcons[pin.category] || categoryIcons.other}</span>
@@ -146,7 +146,7 @@ export default function LocationCard({
               {pin.lat != null && pin.lng != null && (
                 <button
                   onClick={(e) => { e.stopPropagation(); onPanToPin(pin.lat!, pin.lng!); }}
-                  className="text-xs text-blue-500 hover:text-blue-600 font-medium whitespace-nowrap transition-all px-1"
+                  className="text-xs text-mauve hover:text-mauve font-medium whitespace-nowrap transition-all px-1"
                 >
                   <MapPin className="w-3.5 h-3.5" />
                 </button>
@@ -161,7 +161,7 @@ export default function LocationCard({
           ))}
           <button
             onClick={(e) => { e.stopPropagation(); onAddPin(); }}
-            className="w-full py-2 text-sm text-blue-500 hover:text-blue-600 font-medium border border-dashed border-blue-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 active:scale-[0.98] transition-all duration-200"
+            className="w-full py-2 text-sm text-mauve hover:text-mauve font-medium border border-dashed border-mauve/20 rounded-lg hover:bg-mauve/10 hover:border-mauve/30 active:scale-[0.98] transition-all duration-200"
           >
             + Add Pin
           </button>

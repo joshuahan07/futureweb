@@ -31,8 +31,8 @@ const statusConfig: Record<
   },
   want_to_learn: {
     label: 'Want to Learn',
-    bg: 'bg-blue-50 border-blue-200',
-    text: 'text-blue-600',
+    bg: 'bg-blue-50 border-mauve/20',
+    text: 'text-mauve',
     next: 'done',
   },
 };
@@ -41,7 +41,7 @@ export default function DuetSong({ song, onStatusChange }: DuetSongProps) {
   const config = statusConfig[song.status];
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-surface border border-border hover:border-border hover:shadow-sm transition-all duration-200 group">
+    <div className="flex items-center justify-between px-4 py-3 rounded-xl glass-card hover:border-border hover:shadow-sm transition-all duration-200 group">
       <div className="flex items-center gap-3 min-w-0">
         {/* Music note icon */}
         <span className="text-rose-300 text-base shrink-0 opacity-70 group-hover:opacity-100 transition-opacity">

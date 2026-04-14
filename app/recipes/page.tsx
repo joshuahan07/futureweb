@@ -29,7 +29,7 @@ const SEED_DISHES: Omit<DishItem, 'id' | 'created_at'>[] = [
 
 const DEFAULT_CUISINES = ['Chinese', 'Japanese', 'Korean', 'Italian', 'Thai', 'Other'];
 const DIFFICULTIES: { key: DishItem['difficulty']; label: string; color: string }[] = [
-  { key: 'easy', label: 'Easy', color: 'bg-green-50 text-green-600' },
+  { key: 'easy', label: 'Easy', color: 'bg-green-50 text-sage' },
   { key: 'medium', label: 'Medium', color: 'bg-amber-50 text-amber-600' },
   { key: 'hard', label: 'Hard', color: 'bg-red-50 text-red-600' },
 ];
@@ -82,11 +82,11 @@ function ImageDropZone({ imageUrl, onImageChange }: {
           onDrop={handleDrop}
           onClick={() => fileRef.current?.click()}
           className={`h-28 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors ${
-            dragOver ? 'border-blue-400 bg-blue-50/50' : 'border-border hover:border-blue-300 hover:bg-surface-hover'
+            dragOver ? 'border-mauve/40 bg-blue-50/50' : 'border-border hover:border-mauve/30 hover:bg-surface-hover'
           }`}
         >
           {uploading ? (
-            <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-mauve/40 border-t-transparent rounded-full animate-spin" />
           ) : (
             <>
               <svg className="w-6 h-6 text-muted mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -124,8 +124,8 @@ function RecipeModal({ onClose, onSave, existingCuisines, editDish }: {
   const finalCuisine = cuisine === '__custom__' ? customCuisine.trim() : cuisine;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
-      <div className="bg-surface rounded-2xl shadow-xl w-full max-w-lg p-6 animate-fade-in border border-border max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
+      <div className="glass-strong rounded-2xl shadow-xl w-full max-w-lg p-6 animate-fade-in border border-border max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
           <h3 className="font-heading text-xl text-foreground">{editDish ? 'Edit Recipe' : 'Add Recipe'}</h3>
           <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-muted hover:bg-surface-hover transition-colors">
@@ -139,7 +139,7 @@ function RecipeModal({ onClose, onSave, existingCuisines, editDish }: {
           <div>
             <label className="text-xs font-medium text-muted mb-1 block">Dish Name *</label>
             <input type="text" value={name} onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200"
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30 focus:ring-1 focus:ring-mauve/20"
               placeholder="What are we making?" autoFocus />
           </div>
 
@@ -148,14 +148,14 @@ function RecipeModal({ onClose, onSave, existingCuisines, editDish }: {
           <div>
             <label className="text-xs font-medium text-muted mb-1 block">Ingredients</label>
             <textarea value={ingredients} onChange={(e) => setIngredients(e.target.value)} rows={3}
-              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 resize-none"
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30 focus:ring-1 focus:ring-mauve/20 resize-none"
               placeholder="Comma-separated: eggs, flour, butter..." />
           </div>
 
           <div>
             <label className="text-xs font-medium text-muted mb-1 block">Video / Recipe Link</label>
             <input type="url" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200"
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30 focus:ring-1 focus:ring-mauve/20"
               placeholder="YouTube or recipe URL..." />
           </div>
 
@@ -174,18 +174,18 @@ function RecipeModal({ onClose, onSave, existingCuisines, editDish }: {
             <div>
               <label className="text-xs font-medium text-muted mb-1 block">Servings</label>
               <input type="number" value={servings} onChange={(e) => setServings(e.target.value)} min={1}
-                className="w-full px-3 py-1.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300" />
+                className="w-full px-3 py-1.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30" />
             </div>
             <div>
               <label className="text-xs font-medium text-muted mb-1 block">Cuisine</label>
               <select value={cuisine} onChange={(e) => setCuisine(e.target.value)}
-                className="w-full px-2 py-1.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300">
+                className="w-full px-2 py-1.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30">
                 {allCuisines.map((c) => <option key={c} value={c}>{c}</option>)}
                 <option value="__custom__">+ New Cuisine...</option>
               </select>
               {cuisine === '__custom__' && (
                 <input type="text" value={customCuisine} onChange={(e) => setCustomCuisine(e.target.value)}
-                  className="w-full mt-1 px-2 py-1.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300"
+                  className="w-full mt-1 px-2 py-1.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30"
                   placeholder="Enter cuisine..." autoFocus />
               )}
             </div>
@@ -203,7 +203,7 @@ function RecipeModal({ onClose, onSave, existingCuisines, editDish }: {
             }}
             disabled={!name.trim()}
             className={`w-full py-2.5 rounded-xl text-sm font-medium transition-colors ${
-              name.trim() ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-surface-hover text-muted cursor-not-allowed'
+              name.trim() ? 'bg-mauve text-white hover:bg-mauve/90' : 'bg-surface-hover text-muted cursor-not-allowed'
             }`}
           >
             {editDish ? 'Save Changes' : 'Add Recipe'}
@@ -226,23 +226,23 @@ function EditCuisineModal({ dish, allCuisines, onSave, onClose }: {
   const [custom, setCustom] = useState('');
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
-      <div className="bg-surface rounded-2xl shadow-xl w-full max-w-sm p-5 animate-fade-in border border-border">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
+      <div className="glass-strong rounded-2xl shadow-xl w-full max-w-sm p-5 animate-fade-in border border-border">
         <h3 className="font-heading text-lg text-foreground mb-4">Move &ldquo;{dish.name}&rdquo;</h3>
         <select value={cuisine} onChange={(e) => setCuisine(e.target.value)}
-          className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300 mb-2">
+          className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30 mb-2">
           {[...new Set([...DEFAULT_CUISINES, ...allCuisines])].map((c) => <option key={c} value={c}>{c}</option>)}
           <option value="__custom__">+ New Cuisine...</option>
         </select>
         {cuisine === '__custom__' && (
           <input type="text" value={custom} onChange={(e) => setCustom(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-blue-300 mb-2"
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:border-mauve/30 mb-2"
             placeholder="New cuisine name..." autoFocus />
         )}
         <div className="flex gap-2 mt-3">
           <button onClick={onClose} className="flex-1 py-2 rounded-lg border border-border text-muted text-sm hover:bg-surface-hover transition-colors">Cancel</button>
           <button onClick={() => { onSave(dish.id, cuisine === '__custom__' ? custom.trim() : cuisine); onClose(); }}
-            className="flex-1 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors">Save</button>
+            className="flex-1 py-2 rounded-lg bg-mauve text-white text-sm font-medium hover:bg-mauve/90 transition-colors">Save</button>
         </div>
       </div>
     </div>
@@ -263,7 +263,7 @@ function RecipeCard({ dish, onToggle, onDelete, onEditCuisine, onEdit }: {
 
   return (
     <div className={`rounded-2xl overflow-hidden border transition-all duration-200 ${
-      dish.made_it ? 'bg-green-50/30 border-green-200/50' : 'bg-surface border-border hover:border-blue-200'
+      dish.made_it ? 'bg-sage/10 border-sage/20' : 'bg-surface border-border hover:border-mauve/20'
     }`}>
       {dish.image_url && (
         <div className="h-40 overflow-hidden">
@@ -273,11 +273,11 @@ function RecipeCard({ dish, onToggle, onDelete, onEditCuisine, onEdit }: {
       <div className="px-4 py-3">
         <div className="flex items-center justify-between">
           <button onClick={() => setExpanded(!expanded)} className="flex items-center gap-2 flex-1 text-left">
-            <span className={`text-sm font-medium ${dish.made_it ? 'text-green-600 line-through' : 'text-foreground'}`}>
+            <span className={`text-sm font-medium ${dish.made_it ? 'text-sage line-through' : 'text-foreground'}`}>
               {dish.name}
             </span>
             {dish.made_it && (
-              <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4 text-sage shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             )}
@@ -285,7 +285,7 @@ function RecipeCard({ dish, onToggle, onDelete, onEditCuisine, onEdit }: {
           <div className="flex items-center gap-2">
             {diffLabel && <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${diffLabel.color}`}>{diffLabel.label}</span>}
             {dish.cuisine && (
-              <button onClick={onEditCuisine} className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-surface-hover text-muted hover:bg-blue-50 hover:text-blue-500 transition-colors" title="Change cuisine">
+              <button onClick={onEditCuisine} className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-surface-hover text-muted hover:bg-mauve/10 hover:text-mauve transition-colors" title="Change cuisine">
                 {dish.cuisine}
               </button>
             )}
@@ -297,7 +297,7 @@ function RecipeCard({ dish, onToggle, onDelete, onEditCuisine, onEdit }: {
             <span>Made {new Date(dish.made_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
           )}
           {dish.video_url && (
-            <a href={dish.video_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline flex items-center gap-0.5">
+            <a href={dish.video_url} target="_blank" rel="noopener noreferrer" className="text-mauve hover:underline flex items-center gap-0.5">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
               Video
             </a>
@@ -312,15 +312,15 @@ function RecipeCard({ dish, onToggle, onDelete, onEditCuisine, onEdit }: {
         <div className="flex items-center gap-2 mt-3">
           <button onClick={onToggle}
             className={`text-xs px-3 py-1.5 rounded-full font-medium transition-all hover:scale-105 active:scale-95 ${
-              dish.made_it ? 'bg-green-100 text-green-600 hover:bg-green-200' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+              dish.made_it ? 'bg-sage/15 text-sage hover:bg-sage/25' : 'bg-mauve/10 text-mauve hover:bg-mauve/15'
             }`}>
             {dish.made_it ? 'Made it!' : 'Made it?'}
           </button>
           <button onClick={() => setExpanded(!expanded)}
-            className="text-[10px] px-2 py-1 rounded-full bg-surface-hover text-muted hover:text-foreground transition-colors">
+            className="text-[10px] px-2 py-1 rounded-xl glass text-muted hover:text-foreground transition-colors">
             {expanded ? 'Less' : 'More'}
           </button>
-          <button onClick={onEdit} className="text-[10px] px-2 py-1 rounded-full bg-surface-hover text-muted hover:text-blue-500 transition-colors">Edit</button>
+          <button onClick={onEdit} className="text-[10px] px-2 py-1 rounded-xl glass text-muted hover:text-mauve transition-colors">Edit</button>
           <button onClick={onDelete} className="ml-auto text-muted hover:text-red-400 text-xs transition-colors">Delete</button>
         </div>
       </div>
@@ -390,7 +390,7 @@ export default function RecipesPage() {
     .filter((d) => { if (filterStatus === 'todo') return !d.made_it; if (filterStatus === 'done') return d.made_it; return true; });
 
   if (!loaded) {
-    return <Layout><div className="flex items-center justify-center py-32"><div className="w-8 h-8 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" /></div></Layout>;
+    return <Layout><div className="flex items-center justify-center py-32"><div className="w-8 h-8 rounded-full border-2 border-mauve/40 border-t-transparent animate-spin" /></div></Layout>;
   }
 
   return (
@@ -402,21 +402,21 @@ export default function RecipesPage() {
             <p className="text-sm text-muted mt-1">Dishes to make together &mdash; {madeCount} of {dishes.length} made</p>
           </div>
           <button onClick={() => setShowAdd(true)}
-            className="px-4 py-2 rounded-xl bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors shadow-sm">
+            className="px-4 py-2 rounded-xl bg-mauve text-white text-sm font-medium hover:bg-mauve/90 active:scale-95 transition-all shadow-lg shadow-mauve/25">
             + Add Recipe
           </button>
         </div>
 
         {/* Progress */}
-        <div className="bg-surface rounded-2xl p-4 border border-border">
+        <div className="glass-card rounded-2xl p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-foreground">{madeCount} / {dishes.length}</span>
-            <span className="text-sm font-bold text-blue-500">
+            <span className="text-sm font-bold text-mauve">
               {dishes.length > 0 ? Math.round((madeCount / dishes.length) * 100) : 0}%
             </span>
           </div>
           <div className="h-2.5 rounded-full bg-surface-hover overflow-hidden">
-            <div className="h-full rounded-full bg-gradient-to-r from-blue-400 to-green-400 transition-all duration-700"
+            <div className="h-full rounded-full bg-gradient-to-r from-mauve to-sage transition-all duration-700"
               style={{ width: `${dishes.length > 0 ? (madeCount / dishes.length) * 100 : 0}%` }} />
           </div>
         </div>
@@ -426,7 +426,7 @@ export default function RecipesPage() {
           {(['all', 'todo', 'done'] as const).map((s) => (
             <button key={s} onClick={() => setFilterStatus(s)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize transition-all ${
-                filterStatus === s ? 'bg-blue-100 text-blue-600 border border-blue-200' : 'bg-surface-hover text-muted border border-transparent'
+                filterStatus === s ? 'bg-mauve/15 text-mauve border border-mauve/20' : 'bg-surface-hover text-muted'
               }`}>
               {s === 'all' ? 'All' : s === 'todo' ? 'To Make' : 'Made'}
             </button>
@@ -436,12 +436,12 @@ export default function RecipesPage() {
               <div className="w-px h-5 bg-border mx-1" />
               <button onClick={() => setFilterCuisine('all')}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  filterCuisine === 'all' ? 'bg-blue-50 text-blue-500 border border-blue-200' : 'bg-surface-hover text-muted border border-transparent'
+                  filterCuisine === 'all' ? 'bg-mauve/10 text-mauve border border-mauve/20' : 'bg-surface-hover text-muted'
                 }`}>All Cuisines</button>
               {cuisines.map((c) => (
                 <button key={c} onClick={() => setFilterCuisine(c)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                    filterCuisine === c ? 'bg-blue-50 text-blue-500 border border-blue-200' : 'bg-surface-hover text-muted border border-transparent'
+                    filterCuisine === c ? 'bg-mauve/10 text-mauve border border-mauve/20' : 'bg-surface-hover text-muted'
                   }`}>{c}</button>
               ))}
             </>
