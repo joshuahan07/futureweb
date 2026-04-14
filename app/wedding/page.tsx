@@ -332,7 +332,7 @@ function PeopleChecklist({ items, onUpdate, onAdd, onDelete }: {
               {g.priority && <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
             </button>
             <span className={`text-sm flex-1 ${g.priority ? 'line-through text-muted' : 'text-foreground'}`}>{g.title}</span>
-            <button onClick={() => { if (confirm(`Remove "${g.title}"?`)) onDelete(g.id); }}
+            <button onClick={() => onDelete(g.id)}
               className="opacity-0 group-hover/guest:opacity-100 text-muted hover:text-red-400 text-xs transition-all">✕</button>
           </div>
         ))}
@@ -726,25 +726,43 @@ export default function WeddingPage() {
   }, [fetchBudget]);
 
   // Top-level pill order persisted in localStorage. Default: structure + Budget before Other.
-  const DEFAULT_PILL_ORDER = [...TOP_LEVEL_CATS, 'Budget', 'Other'];
+  const DEFAULT_PILL_ORDER = [...TOP_LEVEL_CATS, 'Budget'];
   const [pillOrder, setPillOrder] = useState<string[]>(DEFAULT_PILL_ORDER);
 
-  // Load pill order from Supabase (shared across devices)
+  // Load pill order from Supabase (shared across devices). Trust saved list verbatim —
+  // merging defaults back in would undo user deletes on refresh.
   useEffect(() => {
     supabase.from('wedding_notes').select('content').eq('user_name', '_pill_order').single().then(({ data }) => {
       if (data?.content) {
         try {
           const saved = JSON.parse(data.content);
           if (Array.isArray(saved) && saved.length > 0) {
-            const merged = [...saved];
-            DEFAULT_PILL_ORDER.forEach((c) => { if (!merged.includes(c)) merged.push(c); });
-            setPillOrder(merged);
+            const cleaned = saved.filter((c: string) => c !== 'Other');
+            setPillOrder(cleaned);
+            if (cleaned.length !== saved.length) {
+              supabase.from('wedding_notes').upsert({ user_name: '_pill_order', content: JSON.stringify(cleaned) }, { onConflict: 'user_name' });
+            }
           }
         } catch {}
       }
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // One-time purge: delete any wedding items bucketed as 'Other' or with unrecognized categories.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (localStorage.getItem('js-wedding-other-purged-v1') === '1') return;
+    if (elements.length === 0) return;
+    const orphanIds = elements
+      .filter((e) => e.category === 'Other' || e.category.startsWith('Other (') || parseCategory(e.category).parent === 'Other')
+      .map((e) => e.id);
+    (async () => {
+      if (orphanIds.length > 0) await supabase.from('wedding_elements').delete().in('id', orphanIds);
+      localStorage.setItem('js-wedding-other-purged-v1', '1');
+      if (orphanIds.length > 0) fetchElements();
+    })();
+  }, [elements, fetchElements]);
 
   const savePillOrder = async (next: string[]) => {
     setPillOrder(next);
@@ -792,6 +810,16 @@ export default function WeddingPage() {
     if (catName === 'Budget') { alert('Budget cannot be deleted.'); return; }
     await supabase.from('wedding_elements').delete().eq('category', catName);
     await supabase.from('wedding_elements').delete().like('category', `${catName} (%`);
+    // 'Other' is a catch-all bucket — also delete any items with unrecognized categories
+    // (anything parseCategory resolves to 'Other').
+    if (catName === 'Other') {
+      const orphanIds = elements
+        .filter((e) => parseCategory(e.category).parent === 'Other')
+        .map((e) => e.id);
+      if (orphanIds.length > 0) {
+        await supabase.from('wedding_elements').delete().in('id', orphanIds);
+      }
+    }
     savePillOrder(pillOrder.filter((c) => c !== catName));
     fetchElements();
   };
@@ -820,7 +848,7 @@ export default function WeddingPage() {
   const orderedParents = useMemo(() => {
     const parents = Object.keys(nestedGroups);
     const ordered = pillOrder.filter((p) => parents.includes(p) && p !== 'Budget');
-    const extras = parents.filter((p) => !pillOrder.includes(p));
+    const extras = parents.filter((p) => !pillOrder.includes(p) && p !== 'Other');
     return [...ordered, ...extras];
   }, [nestedGroups, pillOrder]);
 
