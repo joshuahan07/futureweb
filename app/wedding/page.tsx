@@ -320,11 +320,11 @@ function ElementCard({ el, images, allCategories, onEdit, onDelete, onAddImages,
       {el.priority && <span className="absolute top-3 right-10 text-mauve/80 text-sm">✦</span>}
 
       {/* Hover actions */}
-      <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+      <div className="absolute top-3 right-3 flex gap-1 z-10">
         <button onClick={onMoveUp} title="Move up" className="w-6 h-6 rounded-full bg-surface-hover flex items-center justify-center text-foreground/70 hover:bg-mauve/100/20 text-[10px]">↑</button>
         <button onClick={onMoveDown} title="Move down" className="w-6 h-6 rounded-full bg-surface-hover flex items-center justify-center text-foreground/70 hover:bg-mauve/100/20 text-[10px]">↓</button>
         <button onClick={onEdit} className="w-6 h-6 rounded-full bg-surface-hover flex items-center justify-center text-foreground/70 hover:bg-mauve/100/20 text-xs">✎</button>
-        <button onClick={onDelete} className="w-6 h-6 rounded-full bg-surface-hover flex items-center justify-center text-red-400 hover:bg-red-50 text-xs">✕</button>
+        <button onClick={() => { if (confirm(`Delete "${el.title}"?`)) onDelete(); }} className="w-6 h-6 rounded-full bg-surface-hover flex items-center justify-center text-red-400 hover:bg-red-50 text-xs">✕</button>
       </div>
 
       {/* Top image — if first image exists, show it large */}
@@ -376,7 +376,7 @@ function ElementCard({ el, images, allCategories, onEdit, onDelete, onAddImages,
       {/* Add photo button */}
       <div className="flex items-center gap-2 mt-2">
         <button onClick={() => addFileRef.current?.click()}
-          className="text-[10px] text-muted hover:text-mauve/80 transition-colors opacity-0 group-hover:opacity-100">
+          className="text-[10px] text-muted hover:text-mauve/80 transition-colors">
           + Add photo
         </button>
       </div>
@@ -394,7 +394,7 @@ function ElementCard({ el, images, allCategories, onEdit, onDelete, onAddImages,
                 <div key={img.id} className="relative group/img rounded-xl overflow-hidden">
                   <img src={img.url} alt="" className="w-full rounded-xl object-cover" />
                   {img.caption && <p className="text-[10px] text-muted mt-1 px-1">{img.caption}</p>}
-                  <button onClick={() => onDeleteImage(img.id)}
+                  <button onClick={() => { if (confirm('Delete this image?')) onDeleteImage(img.id); }}
                     className="absolute top-1.5 right-1.5 w-5 h-5 bg-black/50 rounded-full flex items-center justify-center text-white text-[10px] opacity-0 group-hover/img:opacity-100 transition-opacity hover:bg-red-500">✕</button>
                 </div>
               ))}
