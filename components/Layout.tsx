@@ -64,6 +64,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   const [cropOffset, setCropOffset] = useState({ x: 0, y: 0 });
   const [cropImgSize, setCropImgSize] = useState({ w: 0, h: 0 });
   const [cropZoom, setCropZoom] = useState(1);
+  const cropZoomRef = useRef(1);
   const [cropDragging, setCropDragging] = useState(false);
   const CIRCLE = 240;
 
@@ -87,7 +88,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     img.onload = () => {
       setCropImgSize({ w: img.width, h: img.height });
       setCropOffset({ x: 0, y: 0 });
-      setCropZoom(1);
+      setCropZoom(1); cropZoomRef.current = 1;
       setCropFile(url);
     };
     img.src = url;
@@ -272,15 +273,22 @@ export default function Layout({ children }: { children: ReactNode }) {
                   const startOff = { x: cx, y: cy };
                   e.currentTarget.setPointerCapture(e.pointerId);
                   const onMove = (ev: PointerEvent) => {
-                    const nx = startOff.x + (ev.clientX - startX);
-                    const ny = startOff.y + (ev.clientY - startY);
+                    // Recalculate max based on current zoom (zoom may change during drag via scroll)
+                    const a = cropImgSize.w / (cropImgSize.h || 1);
+                    const z = cropZoomRef.current;
+                    const sw = a >= 1 ? CIRCLE * z * a : CIRCLE * z;
+                    const sh = a >= 1 ? CIRCLE * z : CIRCLE * z / a;
+                    const mx = Math.max(0, (sw - CIRCLE) / 2);
+                    const my = Math.max(0, (sh - CIRCLE) / 2);
+                    const nx = Math.min(mx, Math.max(-mx, startOff.x + (ev.clientX - startX)));
+                    const ny = Math.min(my, Math.max(-my, startOff.y + (ev.clientY - startY)));
                     setCropOffset({ x: nx, y: ny });
                   };
                   const onUp = () => { setCropDragging(false); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
                   document.addEventListener('pointermove', onMove);
                   document.addEventListener('pointerup', onUp);
                 }}
-                onWheel={(e) => { e.preventDefault(); setCropZoom(z => Math.min(3, Math.max(1, z - e.deltaY * 0.002))); }}
+                onWheel={(e) => { e.preventDefault(); setCropZoom(z => { const nz = Math.min(3, Math.max(1, z - e.deltaY * 0.002)); cropZoomRef.current = nz; return nz; }); }}
               >
                 {/* Image in circle */}
                 <div style={{ position: 'absolute', width: CIRCLE, height: CIRCLE, borderRadius: '50%', overflow: 'hidden' }}>
@@ -324,7 +332,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                   <div className="absolute left-0 right-0 h-[3px] rounded-full bg-white/10" />
                   <div className="absolute left-0 h-[3px] rounded-full" style={{ width: `${((cropZoom - 1) / 2) * 100}%`, background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)' }} />
                   <input type="range" min="1" max="3" step="0.01" value={cropZoom}
-                    onChange={(e) => setCropZoom(parseFloat(e.target.value))}
+                    onChange={(e) => { const nz = parseFloat(e.target.value); setCropZoom(nz); cropZoomRef.current = nz; }}
                     className="relative w-full h-9 appearance-none bg-transparent cursor-pointer z-10 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer" />
                 </div>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#737373" strokeWidth="2" strokeLinecap="round">
