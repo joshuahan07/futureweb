@@ -4,76 +4,126 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useUser } from '@/components/UserContext';
 import Layout from '@/components/Layout';
+import AnimatedBackground from '@/components/AnimatedBackground';
 import { supabase } from '@/lib/supabase';
 import { useRealtimeSync } from '@/lib/realtime';
 import { formatDistanceToNow } from 'date-fns';
-import { Heart } from 'lucide-react';
+import { Heart, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // ── Identity Picker ──────────────────────────────────────────
 
+const users = [
+  { id: 'joshua' as const, name: 'Joshua', color: '#3B82F6', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Joshua&backgroundColor=b6e3f4' },
+  { id: 'sophie' as const, name: 'Sophie', color: '#EC4899', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie&backgroundColor=ffdfbf' },
+];
+
 function IdentityPicker({ onPick }: { onPick: (user: 'joshua' | 'sophie') => void }) {
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const joshuaPfp = typeof window !== 'undefined' ? localStorage.getItem('js-pfp-joshua') : null;
   const sophiePfp = typeof window !== 'undefined' ? localStorage.getItem('js-pfp-sophie') : null;
 
+  const handleSelect = (user: 'joshua' | 'sophie') => {
+    setSelectedUser(user);
+    setIsTransitioning(true);
+    setTimeout(() => onPick(user), 800);
+  };
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background">
-      <FloatingBackground />
-      <div className="text-center px-6 animate-scale-in relative z-10">
-        <div className="inline-flex items-center gap-2 mb-4">
-          <Heart className="w-6 h-6 text-rose animate-heartbeat" fill="currentColor" />
-        </div>
-        <h1 className="font-heading text-5xl sm:text-6xl font-bold text-foreground mb-2 tracking-tight">
-          LoveNest
-        </h1>
-        <p className="font-script text-2xl text-rose mb-2">Joshua & Sophie</p>
-        <p className="text-muted mb-12">Who&apos;s here?</p>
-        <div className="flex flex-col sm:flex-row gap-5 justify-center">
-          {([
-            { name: 'joshua' as const, color: '#3B82F6', gradient: 'from-blue-500 to-indigo-500', pfp: joshuaPfp },
-            { name: 'sophie' as const, color: '#EC4899', gradient: 'from-pink-500 to-rose-500', pfp: sophiePfp },
-          ]).map(({ name, color, gradient, pfp }) => (
-            <button key={name} onClick={() => onPick(name)}
-              className="group relative w-48 glass-card rounded-3xl p-6 hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 active:scale-95">
-              <div className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
-              <div className="relative flex flex-col items-center gap-4">
-                <div className="w-20 h-20 rounded-2xl overflow-hidden flex items-center justify-center text-3xl shadow-lg"
-                  style={{ background: pfp ? undefined : `linear-gradient(135deg, ${color}40, ${color}20)` }}>
-                  {pfp ? <img src={pfp} alt={name} className="w-full h-full object-cover" /> : (name === 'joshua' ? '🧑' : '👩')}
-                </div>
-                <span className="font-heading text-lg font-semibold capitalize text-foreground">{name}</span>
-                <div className={`h-1 w-12 rounded-full bg-gradient-to-r ${gradient} opacity-50 group-hover:opacity-100 group-hover:w-16 transition-all duration-300`} />
-              </div>
-            </button>
-          ))}
-        </div>
+    <div className="fixed inset-0 flex items-center justify-center z-[100]">
+      <AnimatedBackground />
+
+      {/* Pulsing bg orbs */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute w-[600px] h-[600px] rounded-full animate-pulse-soft"
+          style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%)', filter: 'blur(60px)', left: '10%', top: '20%' }} />
+        <div className="absolute w-[500px] h-[500px] rounded-full animate-pulse-soft"
+          style={{ background: 'radial-gradient(circle, rgba(236,72,153,0.12) 0%, transparent 70%)', filter: 'blur(60px)', right: '10%', bottom: '20%', animationDelay: '2s' }} />
       </div>
-    </div>
-  );
-}
 
-// ── Floating Background ──────────────────────────────────────
+      <div className="relative z-10 text-center px-6">
+        {/* Badge */}
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6">
+            <Sparkles className="w-4 h-4 text-yellow-400" />
+            <span className="text-sm text-white/60">Welcome back to LoveNest</span>
+          </div>
+        </motion.div>
 
-function FloatingBackground() {
-  const particles = useMemo(
-    () => Array.from({ length: 14 }, (_, i) => ({
-      id: i,
-      left: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 15}s`,
-      duration: `${15 + Math.random() * 20}s`,
-      size: 10 + Math.random() * 14,
-      type: i % 3 === 0 ? 'star' : 'heart',
-    })),
-    []
-  );
+        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
+          className="text-5xl md:text-6xl font-bold text-white mb-4">
+          Who are you?
+        </motion.h1>
 
-  return (
-    <div className="floating-bg fixed inset-0 pointer-events-none overflow-hidden z-0">
-      {particles.map((p) => (
-        <span key={p.id} className={p.type}
-          style={{ left: p.left, animationDelay: p.delay, animationDuration: p.duration, fontSize: p.size, color: p.type === 'heart' ? '#F4A5B025' : '#C9A0B418' }}>
-          {p.type === 'heart' ? '♥' : '✦'}
-        </span>
-      ))}
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+          className="text-white/40 text-lg mb-12">
+          Select your profile to continue
+        </motion.p>
+
+        {/* User cards */}
+        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+          {users.map((user, index) => {
+            const pfp = user.id === 'joshua' ? joshuaPfp : sophiePfp;
+            return (
+              <motion.button key={user.id} onClick={() => handleSelect(user.id)}
+                className="relative group"
+                initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 + index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+
+                {/* Color burst on select */}
+                <AnimatePresence>
+                  {selectedUser === user.id && isTransitioning && (
+                    <motion.div className="absolute inset-0 rounded-3xl z-20"
+                      style={{ backgroundColor: user.color }}
+                      initial={{ scale: 1, opacity: 1 }}
+                      animate={{ scale: 50, opacity: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.8, ease: 'easeInOut' }} />
+                  )}
+                </AnimatePresence>
+
+                <div className={`relative w-64 h-80 rounded-3xl overflow-hidden transition-all duration-500 ${selectedUser === user.id ? 'ring-4 ring-white/50' : ''}`}
+                  style={{
+                    background: `linear-gradient(135deg, ${user.color}20 0%, ${user.color}05 100%)`,
+                    border: `1px solid ${user.color}40`,
+                    boxShadow: `0 0 40px ${user.color}20`,
+                  }}>
+
+                  {/* Hover glow */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                    style={{ background: `radial-gradient(circle at 50% 30%, ${user.color}30 0%, transparent 60%)` }} />
+
+                  {/* Avatar */}
+                  <div className="absolute top-12 left-1/2 -translate-x-1/2">
+                    <div className="w-28 h-28 rounded-full overflow-hidden border-4"
+                      style={{ borderColor: `${user.color}50` }}>
+                      <img src={pfp || user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                    </div>
+                  </div>
+
+                  {/* Name */}
+                  <div className="absolute bottom-12 left-0 right-0 text-center">
+                    <h2 className="text-3xl font-bold text-white">{user.name}</h2>
+                    <p className="text-white/40 text-sm mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click to enter</p>
+                  </div>
+
+                  {/* Decorative dot */}
+                  <div className="absolute top-4 right-4">
+                    <div className="w-3 h-3 rounded-full animate-pulse-glow" style={{ backgroundColor: user.color }} />
+                  </div>
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
+
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
+          className="mt-16 text-white/20 text-sm">
+          Joshua & Sophie&apos;s Private Space
+        </motion.p>
+      </div>
     </div>
   );
 }
@@ -276,7 +326,6 @@ export default function HomePage() {
 
   return (
     <Layout>
-      <FloatingBackground />
       <Dashboard />
     </Layout>
   );
