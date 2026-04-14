@@ -63,13 +63,42 @@ export default function Layout({ children }: { children: ReactNode }) {
   const handleUploadPfp = async (file: File) => {
     if (!currentUser) return;
     setUploading(true);
-    const ext = file.name.split('.').pop();
-    const path = `pfp/${currentUser}.${ext}`;
-    await supabase.storage.from('media').upload(path, file, { upsert: true });
-    const { data } = supabase.storage.from('media').getPublicUrl(path);
-    localStorage.setItem(`js-pfp-${currentUser}`, data.publicUrl + '?t=' + Date.now());
-    setUploading(false);
-    window.location.reload();
+    try {
+      // Convert to JPEG via canvas (handles HEIC, WebP, etc)
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = url;
+      });
+      const canvas = document.createElement('canvas');
+      const size = Math.min(img.width, img.height, 512);
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d')!;
+      // Center crop
+      const sx = (img.width - size) / 2;
+      const sy = (img.height - size) / 2;
+      ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+
+      const blob = await new Promise<Blob>((resolve) =>
+        canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.85)
+      );
+
+      const path = `pfp/${currentUser}.jpg`;
+      // Delete old files first
+      await supabase.storage.from('media').remove([`pfp/${currentUser}.jpg`, `pfp/${currentUser}.HEIC`, `pfp/${currentUser}.png`, `pfp/${currentUser}.webp`]);
+      const { error } = await supabase.storage.from('media').upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
+      if (error) { console.error('PFP upload error:', error.message); setUploading(false); return; }
+      const { data } = supabase.storage.from('media').getPublicUrl(path);
+      localStorage.setItem(`js-pfp-${currentUser}`, data.publicUrl + '?t=' + Date.now());
+      window.location.reload();
+    } catch (e) {
+      console.error('PFP processing error:', e);
+      setUploading(false);
+    }
   };
 
   return (

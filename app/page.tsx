@@ -22,7 +22,7 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
   useEffect(() => { const t = setTimeout(onDone, 2000); return () => clearTimeout(t); }, [onDone]);
 
   return (
-    <div className="fixed inset-0 bg-[#0F0F13] flex items-center justify-center z-[200]">
+    <div className="fixed inset-0 bg-background flex items-center justify-center z-[200]">
       <div className="relative z-10 flex flex-col items-center">
         <motion.div className="relative mb-8" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5 }}>
           <motion.div className="w-24 h-24 rounded-full flex items-center justify-center"
@@ -42,7 +42,7 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
         <motion.h1 className="text-3xl font-bold mb-2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           <span className="gradient-text">LoveNest</span>
         </motion.h1>
-        <motion.p className="text-white/40 text-sm mb-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
+        <motion.p className="text-foreground/40 text-sm mb-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
           Joshua & Sophie&apos;s Space
         </motion.p>
         <motion.div className="relative w-12 h-12" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
@@ -77,22 +77,22 @@ function IdentityPicker({ onPick }: { onPick: (user: 'joshua' | 'sophie') => voi
   if (loading) return <LoadingScreen onDone={() => setLoading(false)} />;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-[100] bg-[#0F0F13]">
+    <div className="fixed inset-0 flex items-center justify-center z-[100] bg-background">
       <AnimatedBackground />
 
       <div className="relative z-10 text-center px-6">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="mb-4">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6">
             <Sparkles className="w-4 h-4 text-yellow-400" />
-            <span className="text-sm text-white/60">Welcome back to LoveNest</span>
+            <span className="text-sm text-foreground/60">Welcome back to LoveNest</span>
           </div>
         </motion.div>
 
         <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-5xl md:text-6xl font-bold text-white mb-4">Who are you?</motion.h1>
+          className="text-5xl md:text-6xl font-bold text-foreground mb-4">Who are you?</motion.h1>
 
         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-          className="text-white/40 text-lg mb-12">Select your profile to continue</motion.p>
+          className="text-foreground/40 text-lg mb-12">Select your profile to continue</motion.p>
 
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
           {users.map((user, index) => {
@@ -121,8 +121,8 @@ function IdentityPicker({ onPick }: { onPick: (user: 'joshua' | 'sophie') => voi
                     </div>
                   </div>
                   <div className="absolute bottom-10 left-0 right-0 text-center">
-                    <h2 className="text-2xl font-bold text-white">{user.name}</h2>
-                    <p className="text-white/30 text-xs mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click to enter</p>
+                    <h2 className="text-2xl font-bold text-foreground">{user.name}</h2>
+                    <p className="text-foreground/30 text-xs mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click to enter</p>
                   </div>
                   <div className="absolute top-4 right-4">
                     <div className="w-3 h-3 rounded-full animate-pulse-glow" style={{ backgroundColor: user.color }} />
@@ -134,7 +134,7 @@ function IdentityPicker({ onPick }: { onPick: (user: 'joshua' | 'sophie') => voi
         </div>
 
         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
-          className="mt-16 text-white/20 text-sm">Joshua & Sophie&apos;s Private Space</motion.p>
+          className="mt-16 text-foreground/20 text-sm">Joshua & Sophie&apos;s Private Space</motion.p>
       </div>
     </div>
   );
