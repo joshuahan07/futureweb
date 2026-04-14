@@ -58,8 +58,15 @@ function AnswerBox({ questionId, person, currentUser, existingAnswer }: {
   const [text, setText] = useState(existingAnswer?.answer || '');
   const answerId = useRef(existingAnswer?.id || null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isTyping = useRef(false);
 
-  useEffect(() => { setText(existingAnswer?.answer || ''); answerId.current = existingAnswer?.id || null; }, [existingAnswer]);
+  useEffect(() => {
+    // Only update from DB if we're NOT actively typing (prevents overwriting mid-type)
+    if (isOwner && isTyping.current) return;
+    const newVal = existingAnswer?.answer || '';
+    if (newVal !== text) setText(newVal);
+    answerId.current = existingAnswer?.id || null;
+  }, [existingAnswer]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const save = useCallback(async (value: string) => {
     if (!currentUser) return;
@@ -73,8 +80,13 @@ function AnswerBox({ questionId, person, currentUser, existingAnswer }: {
 
   const handleChange = (value: string) => {
     setText(value);
+    isTyping.current = true;
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => save(value), 500);
+    saveTimer.current = setTimeout(async () => {
+      await save(value);
+      // Keep typing flag for a bit longer to prevent immediate overwrite from realtime
+      setTimeout(() => { isTyping.current = false; }, 1000);
+    }, 500);
   };
 
   const isJoshua = person === 'joshua';
