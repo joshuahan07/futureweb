@@ -108,21 +108,28 @@ export default function Layout({ children }: { children: ReactNode }) {
       canvas.height = outSize;
       const ctx = canvas.getContext('2d')!;
 
-      // Calculate crop region based on drag offset + zoom
-      const baseScale = Math.max(outSize / img.width, outSize / img.height);
-      const scale = baseScale * cropZoom;
-      const scaledW = img.width * scale;
-      const scaledH = img.height * scale;
-      const renderScale = outSize / CIRCLE;
-      const drawX = (outSize - scaledW) / 2 + cropOffset.x * renderScale;
-      const drawY = (outSize - scaledH) / 2 + cropOffset.y * renderScale;
+      // Use EXACT same math as preview, scaled to output size
+      const aspect = img.width / img.height;
+      const previewScaledW = aspect >= 1 ? CIRCLE * cropZoom * aspect : CIRCLE * cropZoom;
+      const previewScaledH = aspect >= 1 ? CIRCLE * cropZoom : CIRCLE * cropZoom / aspect;
+      // Clamp offset same as preview
+      const maxX = Math.max(0, (previewScaledW - CIRCLE) / 2);
+      const maxY = Math.max(0, (previewScaledH - CIRCLE) / 2);
+      const cx = Math.min(maxX, Math.max(-maxX, cropOffset.x));
+      const cy = Math.min(maxY, Math.max(-maxY, cropOffset.y));
+      // Scale everything from CIRCLE space to outSize space
+      const s = outSize / CIRCLE;
+      const drawW = previewScaledW * s;
+      const drawH = previewScaledH * s;
+      const drawX = (outSize - drawW) / 2 + cx * s;
+      const drawY = (outSize - drawH) / 2 + cy * s;
 
       // Clip to circle shape
       ctx.beginPath();
       ctx.arc(outSize / 2, outSize / 2, outSize / 2, 0, Math.PI * 2);
       ctx.closePath();
       ctx.clip();
-      ctx.drawImage(img, drawX, drawY, scaledW, scaledH);
+      ctx.drawImage(img, drawX, drawY, drawW, drawH);
 
       URL.revokeObjectURL(cropFile);
       setCropFile(null);
