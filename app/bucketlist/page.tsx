@@ -205,13 +205,6 @@ export default function BucketListPage() {
   return (
     <div className="min-h-screen">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-        {/* Header */}
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50/40 px-6 py-8 sm:py-10 mb-8">
-          <div className="absolute top-4 right-6 opacity-10 text-6xl select-none pointer-events-none">✨</div>
-          <div className="absolute bottom-3 left-6 opacity-10 text-3xl select-none pointer-events-none">🌱</div>
-          <h1 className="font-heading italic text-3xl sm:text-4xl text-emerald-700 tracking-tight relative">Our Bucket List</h1>
-          <p className="text-sm text-emerald-700/70 mt-1 relative">Dreams to chase together</p>
-        </div>
 
         {/* Progress bar */}
         <div className="mb-4 p-5 rounded-2xl glass-card shadow-sm relative overflow-hidden" style={{ borderLeft: '3px solid #10b981' }}>

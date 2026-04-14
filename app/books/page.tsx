@@ -210,14 +210,6 @@ export default function BooksPage() {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-sky-50 via-blue-50 to-sky-100/40 px-6 py-8 sm:py-10">
-          <div className="absolute top-4 right-6 opacity-10 text-6xl select-none pointer-events-none">📚</div>
-          <div className="absolute bottom-3 left-6 opacity-10 text-3xl select-none pointer-events-none">🎵</div>
-          <h1 className="font-heading italic text-3xl sm:text-4xl text-sky-700 tracking-tight relative">Books & Media</h1>
-          <p className="text-sm text-sky-700/70 mt-1 relative">Our shared reading, watching, and music list</p>
-        </div>
-
         {/* Sub-tabs */}
         <div className="flex gap-1 p-1 bg-surface-hover rounded-full w-fit">
           {tabs.map((tab) => (

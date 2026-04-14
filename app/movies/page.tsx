@@ -231,14 +231,6 @@ export default function MoviesPage() {
   return (
     <Layout>
     <div className="space-y-6">
-      {/* Header */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100/40 px-6 py-8 sm:py-10">
-        <div className="absolute top-4 right-6 opacity-10 text-6xl select-none pointer-events-none">🎬</div>
-        <div className="absolute bottom-3 left-6 opacity-10 text-3xl select-none pointer-events-none">🍿</div>
-        <h1 className="font-heading italic text-3xl sm:text-4xl text-rose tracking-tight relative">Movies & Shows</h1>
-        <p className="text-sm text-rose/70 mt-1 relative">Everything we&apos;ve watched (and want to watch) together</p>
-      </div>
-
       {/* Sub-tabs */}
       <div className="flex gap-1 p-1 bg-surface-hover rounded-full w-fit">
         {([

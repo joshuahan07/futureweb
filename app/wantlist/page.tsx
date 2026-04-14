@@ -322,13 +322,6 @@ export default function WantlistPage() {
 
   return (
     <div className="space-y-6">
-      {/* Page hero */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-pink-50 via-rose-50 to-fuchsia-50/40 px-6 py-8 sm:py-10">
-        <div className="absolute top-4 right-6 opacity-10 text-6xl select-none pointer-events-none">🎀</div>
-        <div className="absolute bottom-3 left-6 opacity-10 text-3xl select-none pointer-events-none">💝</div>
-        <h1 className="font-heading italic text-3xl sm:text-4xl text-rose-700 tracking-tight relative">Wishlist</h1>
-        <p className="text-sm text-rose-700/70 mt-1 relative">Things you each want — so the other knows what to get</p>
-      </div>
 
       {/* Side-by-side wishlists */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

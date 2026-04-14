@@ -396,19 +396,11 @@ export default function RecipesPage() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50/40 px-6 py-8 sm:py-10">
-          <div className="absolute top-4 right-6 opacity-10 text-6xl select-none pointer-events-none">🍳</div>
-          <div className="absolute bottom-3 left-6 opacity-10 text-3xl select-none pointer-events-none">🥘</div>
-          <div className="relative flex items-center justify-between flex-wrap gap-3">
-            <div>
-              <h1 className="font-heading italic text-3xl sm:text-4xl text-orange-700 tracking-tight">Recipes</h1>
-              <p className="text-sm text-orange-700/70 mt-1">Dishes to make together &mdash; {madeCount} of {dishes.length} made</p>
-            </div>
-            <button onClick={() => setShowAdd(true)}
-              className="px-4 py-2 rounded-xl bg-mauve text-white text-sm font-medium hover:bg-mauve/90 active:scale-95 transition-all shadow-lg shadow-mauve/25">
-              + Add Recipe
-            </button>
-          </div>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <button onClick={() => setShowAdd(true)}
+            className="px-4 py-2 rounded-xl bg-mauve text-white text-sm font-medium hover:bg-mauve/90 active:scale-95 transition-all shadow-lg shadow-mauve/25 ml-auto">
+            + Add Recipe
+          </button>
         </div>
 
         {/* Progress */}

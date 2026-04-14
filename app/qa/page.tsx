@@ -188,33 +188,20 @@ export default function QAPage() {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-          className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-purple-50 via-fuchsia-50 to-pink-50/40 px-6 py-8 sm:py-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="absolute top-4 right-6 opacity-10 text-6xl select-none pointer-events-none">💭</div>
-          <div className="absolute bottom-3 left-6 opacity-10 text-3xl select-none pointer-events-none">✨</div>
-          <div className="relative">
-            <h1 className="font-heading italic text-3xl sm:text-4xl text-purple-700 tracking-tight flex items-center gap-3">
-              <MessageCircleQuestion className="w-8 h-8 text-purple-500" />
-              Q&A Journal
-            </h1>
-            <p className="text-sm text-purple-700/70 mt-1">Deep conversations and shared understanding</p>
+        {/* Stats + Add */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="glass-card px-4 py-2 flex items-center gap-4">
+            <div className="text-center"><p className="text-lg font-bold text-foreground">{questions.length}</p><p className="text-xs text-foreground/40">Questions</p></div>
+            <div className="w-px h-8 bg-foreground/10" />
+            <div className="text-center"><p className="text-lg font-bold text-blue-400">{answeredByJoshua}</p><p className="text-xs text-foreground/40">Joshua</p></div>
+            <div className="w-px h-8 bg-foreground/10" />
+            <div className="text-center"><p className="text-lg font-bold text-pink-400">{answeredBySophie}</p><p className="text-xs text-foreground/40">Sophie</p></div>
           </div>
-          <div className="flex items-center gap-3">
-            {/* Stats pill */}
-            <div className="glass-card px-4 py-2 flex items-center gap-4">
-              <div className="text-center"><p className="text-lg font-bold text-foreground">{questions.length}</p><p className="text-xs text-foreground/40">Questions</p></div>
-              <div className="w-px h-8 bg-foreground/10" />
-              <div className="text-center"><p className="text-lg font-bold text-blue-400">{answeredByJoshua}</p><p className="text-xs text-foreground/40">Joshua</p></div>
-              <div className="w-px h-8 bg-foreground/10" />
-              <div className="text-center"><p className="text-lg font-bold text-pink-400">{answeredBySophie}</p><p className="text-xs text-foreground/40">Sophie</p></div>
-            </div>
-            <motion.button onClick={() => setShowAddQuestion(true)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-violet-500 text-white font-medium">
-              <Plus className="w-4 h-4" /> Add
-            </motion.button>
-          </div>
-        </motion.div>
+          <motion.button onClick={() => setShowAddQuestion(true)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-violet-500 text-white font-medium">
+            <Plus className="w-4 h-4" /> Add
+          </motion.button>
+        </div>
 
         {/* Category Filter */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex flex-wrap gap-2">

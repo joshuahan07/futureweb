@@ -218,22 +218,11 @@ export default function TravelPage() {
   return (
     <Layout>
     <div className="min-h-screen rounded-xl -mx-4 -mt-6 px-4 pt-6">
-      {/* Header */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50/40 px-6 py-6 sm:py-8">
-        <div className="absolute top-4 right-6 opacity-10 text-6xl select-none pointer-events-none">✈️</div>
-        <div className="absolute bottom-3 left-6 opacity-10 text-3xl select-none pointer-events-none">🌍</div>
-        <div className="max-w-7xl mx-auto flex items-center justify-between relative">
-          <div>
-            <h1 className="font-heading italic text-3xl sm:text-4xl text-emerald-700 tracking-tight">Travel Journal</h1>
-            <p className="text-sm text-emerald-700/70 mt-1">Places we want to explore together</p>
-          </div>
-          <button
-            onClick={() => setShowAddLocation(true)}
-            className="px-4 py-2 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2"
-          >
-            + Add Location
-          </button>
-        </div>
+      <div className="flex justify-end px-4 py-2">
+        <button onClick={() => setShowAddLocation(true)}
+          className="px-4 py-2 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 active:scale-[0.98] transition-all shadow-sm">
+          + Add Location
+        </button>
       </div>
 
       {/* Main layout */}
