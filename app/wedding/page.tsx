@@ -1094,11 +1094,12 @@ export default function WeddingPage() {
                 const done = allItems.filter((i) => i.status === 'done').length;
                 const subOrder = getSubsFor(parent);
                 const activeSub = subFilter[parent] ?? null;
+                // Include all configured subtabs even if empty (so People shows up)
                 const allSubKeys = [
                   '',
-                  ...subOrder.filter((s) => subs[s]),
+                  ...subOrder,
                   ...Object.keys(subs).filter((k) => k !== '' && !subOrder.includes(k)),
-                ].filter((k) => subs[k]);
+                ].filter((k, i, arr) => arr.indexOf(k) === i); // dedupe
                 const subKeys = activeSub ? allSubKeys.filter((k) => k === activeSub) : allSubKeys;
                 const hasAnySubs = true;
                 return (
@@ -1174,7 +1175,7 @@ export default function WeddingPage() {
                     )}
 
                     {subKeys.map((subKey) => {
-                      const items = subs[subKey];
+                      const items = subs[subKey] || [];
                       const key = `${parent}::${subKey}`;
                       const collapsed = collapsedSubtabs[key];
                       const hasSubLabel = subKey !== '';
