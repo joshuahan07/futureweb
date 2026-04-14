@@ -85,7 +85,20 @@ export default function AddMovieModal({
       date_has_day: dateWatched ? dateWatched.length > 7 : undefined,
       rating: rating || 0,
       notes: notes.trim(), poster_url: posterUrl.trim() || null,
-      poster_position: posterNatural.w ? JSON.stringify({ zoom: posterZoom, ox: posterOffset.x, oy: posterOffset.y, pw: PW, ph: PH }) : undefined,
+      poster_position: posterNatural.w ? (() => {
+        // Save as ratios so the card can recreate the exact same view at any size
+        const imgAspect = posterNatural.w / posterNatural.h;
+        const previewAspect = PW / PH;
+        let sw: number, sh: number;
+        if (imgAspect > previewAspect) { sh = PH * posterZoom; sw = sh * imgAspect; }
+        else { sw = PW * posterZoom; sh = sw / imgAspect; }
+        const maxX = Math.max(0, (sw - PW) / 2);
+        const maxY = Math.max(0, (sh - PH) / 2);
+        const ox = Math.min(maxX, Math.max(-maxX, posterOffset.x));
+        const oy = Math.min(maxY, Math.max(-maxY, posterOffset.y));
+        // Store as percentage of frame: how big the image is relative to frame, and offset as percentage
+        return JSON.stringify({ wPct: (sw / PW) * 100, hPct: (sh / PH) * 100, oxPct: (ox / PW) * 100, oyPct: (oy / PH) * 100 });
+      })() : undefined,
       added_by: editMovie?.added_by || currentUser,
       watched: forceWatched ?? watched,
     });

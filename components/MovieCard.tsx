@@ -113,30 +113,24 @@ export default function MovieCard({ movie, onEdit, onDelete, onRate, currentUser
       {/* Vertical poster */}
       <div className="relative aspect-[2/3] overflow-hidden">
         {movie.poster_url ? (() => {
-          // Check for saved crop position
-          let cropStyle: React.CSSProperties | null = null;
           try {
             if (movie.poster_position) {
               const p = JSON.parse(movie.poster_position);
-              if (p.zoom && p.pw && p.ph) {
-                // Reconstruct the crop view at the card's actual size
-                // The card is aspect-[2/3], we need to scale from preview to card
-                cropStyle = {
-                  position: 'absolute' as const, pointerEvents: 'none' as const,
-                  width: `${p.zoom * 100}%`, height: `${p.zoom * 100}%`,
-                  left: `calc(50% + ${(p.ox / p.pw) * 100}%)`,
-                  top: `calc(50% + ${(p.oy / p.ph) * 100}%)`,
-                  transform: 'translate(-50%, -50%)',
-                  objectFit: 'cover' as const,
-                };
+              if (p.wPct && p.hPct) {
+                return (
+                  <img src={movie.poster_url} alt={movie.title}
+                    className="absolute pointer-events-none"
+                    style={{
+                      width: `${p.wPct}%`, height: `${p.hPct}%`,
+                      left: `calc(50% + ${p.oxPct}% - ${p.wPct / 2}%)`,
+                      top: `calc(50% + ${p.oyPct}% - ${p.hPct / 2}%)`,
+                      objectFit: 'cover',
+                    }} />
+                );
               }
             }
-          } catch { /* ignore parse errors */ }
-          return cropStyle ? (
-            <img src={movie.poster_url} alt={movie.title} style={cropStyle} />
-          ) : (
-            <img src={movie.poster_url} alt={movie.title} className="w-full h-full object-cover" />
-          );
+          } catch { /* ignore */ }
+          return <img src={movie.poster_url} alt={movie.title} className="w-full h-full object-cover" />;
         })() : (
           <div className={`w-full h-full bg-gradient-to-br ${getGradient(movie.title)} flex items-center justify-center`}>
             <span className="text-5xl font-bold text-white/80">{movie.title.charAt(0).toUpperCase()}</span>
