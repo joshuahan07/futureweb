@@ -24,9 +24,15 @@ export default function AddMovieModal({
   const [posterUrl, setPosterUrl] = useState('');
   const [watched, setWatched] = useState(false);
   const [posterPosition, setPosterPosition] = useState('center');
+  const [posterZoom, setPosterZoom] = useState(1);
+  const [posterOffset, setPosterOffset] = useState({ x: 0, y: 0 });
+  const [posterNatural, setPosterNatural] = useState({ w: 0, h: 0 });
+  const [posterDragging, setPosterDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const PREVIEW_W = 200;
+  const PREVIEW_H = 300; // 2:3 aspect
 
   useEffect(() => {
     if (editMovie) {
@@ -37,12 +43,22 @@ export default function AddMovieModal({
       setNotes(editMovie.notes);
       setPosterUrl(editMovie.poster_url || '');
       setPosterPosition(editMovie.poster_position || 'center');
+      setPosterZoom(1); setPosterOffset({ x: 0, y: 0 });
       setWatched(editMovie.watched);
     } else {
       setTitle(''); setType('movie'); setDateWatched(''); setRating(0);
-      setNotes(''); setPosterUrl(''); setPosterPosition('center'); setWatched(false);
+      setNotes(''); setPosterUrl(''); setPosterPosition('center');
+      setPosterZoom(1); setPosterOffset({ x: 0, y: 0 }); setWatched(false);
     }
   }, [editMovie, isOpen]);
+
+  // Load natural image dimensions when poster changes
+  useEffect(() => {
+    if (!posterUrl) { setPosterNatural({ w: 0, h: 0 }); return; }
+    const img = new Image();
+    img.onload = () => setPosterNatural({ w: img.naturalWidth, h: img.naturalHeight });
+    img.src = posterUrl;
+  }, [posterUrl]);
 
   if (!isOpen) return null;
 
@@ -67,7 +83,8 @@ export default function AddMovieModal({
       date_watched: dateWatched ? (dateWatched.length <= 7 ? dateWatched + '-01' : dateWatched) : null,
       date_has_day: dateWatched ? dateWatched.length > 7 : undefined,
       rating: rating || 0,
-      notes: notes.trim(), poster_url: posterUrl.trim() || null, poster_position: posterPosition,
+      notes: notes.trim(), poster_url: posterUrl.trim() || null,
+      poster_position: posterNatural.w ? JSON.stringify({ zoom: posterZoom, offsetX: posterOffset.x, offsetY: posterOffset.y }) : posterPosition,
       added_by: editMovie?.added_by || currentUser,
       watched: forceWatched ?? watched,
     });
@@ -107,66 +124,79 @@ export default function AddMovieModal({
             </div>
           </div>
 
-          {/* Image upload + URL */}
+          {/* Image upload + crop */}
           <div>
             <label className="block text-xs font-medium text-muted mb-1">Poster Image</label>
-            {posterUrl ? (
-              <div>
-                <div className="relative rounded-xl overflow-hidden h-36 cursor-grab active:cursor-grabbing select-none"
-                  onMouseDown={(e) => {
-                    const container = e.currentTarget;
-                    const startY = e.clientY;
-                    // Parse current Y% from posterPosition (e.g. "50%" or "center")
-                    let currentY = 50;
-                    const match = posterPosition.match(/(\d+)%/);
-                    if (match) currentY = parseInt(match[1]);
-                    else if (posterPosition === 'top') currentY = 0;
-                    else if (posterPosition === 'bottom') currentY = 100;
+            {posterUrl && posterNatural.w > 0 ? (() => {
+              const aspect = posterNatural.w / posterNatural.h;
+              const scaledW = aspect >= (PREVIEW_W / PREVIEW_H)
+                ? PREVIEW_H * posterZoom * aspect : PREVIEW_W * posterZoom;
+              const scaledH = aspect >= (PREVIEW_W / PREVIEW_H)
+                ? PREVIEW_H * posterZoom : PREVIEW_W * posterZoom / aspect;
+              const maxX = Math.max(0, (scaledW - PREVIEW_W) / 2);
+              const maxY = Math.max(0, (scaledH - PREVIEW_H) / 2);
+              const cx = Math.min(maxX, Math.max(-maxX, posterOffset.x));
+              const cy = Math.min(maxY, Math.max(-maxY, posterOffset.y));
 
-                    const onMove = (ev: MouseEvent) => {
-                      const dy = ev.clientY - startY;
-                      const pct = Math.max(0, Math.min(100, currentY - (dy / container.clientHeight) * 100));
-                      setPosterPosition(`50% ${Math.round(pct)}%`);
-                    };
-                    const onUp = () => {
-                      document.removeEventListener('mousemove', onMove);
-                      document.removeEventListener('mouseup', onUp);
-                    };
-                    document.addEventListener('mousemove', onMove);
-                    document.addEventListener('mouseup', onUp);
-                  }}
-                  onTouchStart={(e) => {
-                    const container = e.currentTarget;
-                    const startY = e.touches[0].clientY;
-                    let currentY = 50;
-                    const match = posterPosition.match(/(\d+)%/);
-                    if (match) currentY = parseInt(match[1]);
-                    else if (posterPosition === 'top') currentY = 0;
-                    else if (posterPosition === 'bottom') currentY = 100;
-
-                    const onMove = (ev: TouchEvent) => {
-                      const dy = ev.touches[0].clientY - startY;
-                      const pct = Math.max(0, Math.min(100, currentY - (dy / container.clientHeight) * 100));
-                      setPosterPosition(`50% ${Math.round(pct)}%`);
-                    };
-                    const onEnd = () => {
-                      document.removeEventListener('touchmove', onMove);
-                      document.removeEventListener('touchend', onEnd);
-                    };
-                    document.addEventListener('touchmove', onMove);
-                    document.addEventListener('touchend', onEnd);
-                  }}
-                >
-                  <img src={posterUrl} alt="" className="w-full h-full object-cover pointer-events-none" style={{ objectPosition: posterPosition }} />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20">
-                    <span className="text-white text-xs font-medium bg-black/50 px-2 py-1 rounded-full">Drag to reposition</span>
+              return (
+                <div>
+                  {/* Preview container — 2:3 aspect like the actual card */}
+                  <div className="relative mx-auto overflow-hidden rounded-xl select-none"
+                    style={{ width: PREVIEW_W, height: PREVIEW_H, cursor: posterDragging ? 'grabbing' : 'grab', touchAction: 'none' }}
+                    onPointerDown={(e) => {
+                      e.preventDefault();
+                      setPosterDragging(true);
+                      const sx = e.clientX, sy = e.clientY;
+                      const so = { x: cx, y: cy };
+                      e.currentTarget.setPointerCapture(e.pointerId);
+                      const onMove = (ev: PointerEvent) => setPosterOffset({ x: so.x + (ev.clientX - sx), y: so.y + (ev.clientY - sy) });
+                      const onUp = () => { setPosterDragging(false); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
+                      document.addEventListener('pointermove', onMove);
+                      document.addEventListener('pointerup', onUp);
+                    }}
+                    onWheel={(e) => { e.preventDefault(); setPosterZoom(z => Math.min(3, Math.max(1, z - e.deltaY * 0.002))); }}
+                  >
+                    <img src={posterUrl} alt="" draggable={false}
+                      className="absolute pointer-events-none"
+                      style={{
+                        left: `calc(50% - ${scaledW / 2}px + ${cx}px)`,
+                        top: `calc(50% - ${scaledH / 2}px + ${cy}px)`,
+                        width: scaledW, height: scaledH, objectFit: 'cover',
+                        transition: posterDragging ? 'none' : 'all 0.15s',
+                      }} />
+                    {/* Overlay hint */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20 pointer-events-none">
+                      <span className="text-white text-xs font-medium bg-black/50 px-2 py-1 rounded-full">Drag & scroll to adjust</span>
+                    </div>
+                    {/* Grid while dragging */}
+                    {posterDragging && (
+                      <svg width={PREVIEW_W} height={PREVIEW_H} className="absolute inset-0 pointer-events-none opacity-30">
+                        <line x1={PREVIEW_W/3} y1={0} x2={PREVIEW_W/3} y2={PREVIEW_H} stroke="white" strokeWidth="0.5" />
+                        <line x1={PREVIEW_W*2/3} y1={0} x2={PREVIEW_W*2/3} y2={PREVIEW_H} stroke="white" strokeWidth="0.5" />
+                        <line y1={PREVIEW_H/3} x1={0} y2={PREVIEW_H/3} x2={PREVIEW_W} stroke="white" strokeWidth="0.5" />
+                        <line y1={PREVIEW_H*2/3} x1={0} y2={PREVIEW_H*2/3} x2={PREVIEW_W} stroke="white" strokeWidth="0.5" />
+                      </svg>
+                    )}
+                    {/* Remove button */}
+                    <button type="button" onClick={(e) => { e.stopPropagation(); setPosterUrl(''); setPosterZoom(1); setPosterOffset({ x: 0, y: 0 }); }}
+                      className="absolute top-2 right-2 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white text-xs hover:bg-black/80 z-10">✕</button>
                   </div>
-                  <button type="button" onClick={(e) => { e.stopPropagation(); setPosterUrl(''); }}
-                    className="absolute top-2 right-2 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center text-white text-xs hover:bg-black/70 z-10">✕</button>
+
+                  {/* Zoom slider */}
+                  <div className="flex items-center gap-2 mt-2 mx-auto" style={{ maxWidth: PREVIEW_W }}>
+                    <span className="text-[10px] text-muted">−</span>
+                    <div className="flex-1 relative h-6 flex items-center">
+                      <div className="absolute left-0 right-0 h-[2px] rounded-full bg-foreground/10" />
+                      <div className="absolute left-0 h-[2px] rounded-full bg-mauve" style={{ width: `${((posterZoom - 1) / 2) * 100}%` }} />
+                      <input type="range" min="1" max="3" step="0.01" value={posterZoom}
+                        onChange={(e) => setPosterZoom(parseFloat(e.target.value))}
+                        className="relative w-full h-6 appearance-none bg-transparent cursor-pointer z-10 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-foreground [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer" />
+                    </div>
+                    <span className="text-[10px] text-muted">+</span>
+                  </div>
                 </div>
-                <p className="text-[10px] text-muted mt-1">Drag image up or down to adjust crop position</p>
-              </div>
-            ) : (
+              );
+            })() : (
               <div
                 onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                 onDragLeave={() => setDragOver(false)}

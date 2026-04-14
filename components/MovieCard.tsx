@@ -112,11 +112,29 @@ export default function MovieCard({ movie, onEdit, onDelete, onRate, currentUser
     <div className="group relative rounded-2xl overflow-hidden glass-card transition-all duration-300 hover:shadow-lg hover:scale-[1.02] w-full">
       {/* Vertical poster */}
       <div className="relative aspect-[2/3] overflow-hidden">
-        {movie.poster_url ? (
-          <img src={movie.poster_url} alt={movie.title}
-            className="w-full h-full object-cover"
-            style={{ objectPosition: movie.poster_position || 'center' }} />
-        ) : (
+        {movie.poster_url ? (() => {
+          // Parse position — could be JSON {zoom, offsetX, offsetY} or legacy string
+          let posStyle: React.CSSProperties = { objectPosition: 'center' };
+          const pos = movie.poster_position;
+          if (pos) {
+            try {
+              const p = JSON.parse(pos);
+              if (p.zoom) {
+                posStyle = {
+                  position: 'absolute', width: `${p.zoom * 100}%`, height: `${p.zoom * 100}%`,
+                  left: `calc(50% + ${p.offsetX || 0}px)`, top: `calc(50% + ${p.offsetY || 0}px)`,
+                  transform: 'translate(-50%, -50%)', objectFit: 'cover',
+                };
+              }
+            } catch { posStyle = { objectPosition: pos }; }
+          }
+          const isAbsolute = posStyle.position === 'absolute';
+          return (
+            <img src={movie.poster_url} alt={movie.title}
+              className={isAbsolute ? 'pointer-events-none' : 'w-full h-full object-cover'}
+              style={posStyle} />
+          );
+        })() : (
           <div className={`w-full h-full bg-gradient-to-br ${getGradient(movie.title)} flex items-center justify-center`}>
             <span className="text-5xl font-bold text-white/80">{movie.title.charAt(0).toUpperCase()}</span>
           </div>
