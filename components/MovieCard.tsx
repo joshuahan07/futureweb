@@ -135,20 +135,17 @@ export default function MovieCard({ movie, onEdit, onDelete, onRate, currentUser
             className="w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white text-xs hover:bg-red-500/70 transition-colors">✕</button>
         </div>
 
-        {/* Bottom gradient overlay for text readability */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/70 to-transparent" />
-
-        {/* Title overlay at bottom of poster */}
-        <div className="absolute bottom-0 left-0 right-0 p-3">
-          <h3 className="font-semibold text-sm leading-tight text-white drop-shadow-lg">{movie.title}</h3>
-          {movie.date_watched && (
-            <p className="text-[10px] text-white/70 mt-0.5">{formatDate(movie.date_watched, movie.date_has_day)}</p>
-          )}
-        </div>
       </div>
 
-      {/* Rating section */}
+      {/* Info + Rating section */}
       <div className="p-3 space-y-1.5">
+        {/* Title left, date right */}
+        <div className="flex items-start justify-between gap-1">
+          <h3 className="font-semibold text-sm leading-tight text-foreground line-clamp-2">{movie.title}</h3>
+          {movie.date_watched && (
+            <span className="text-[10px] text-muted whitespace-nowrap shrink-0 mt-0.5">{formatDate(movie.date_watched, movie.date_has_day)}</span>
+          )}
+        </div>
         <StarRating value={joshuaStars} label="J" color="#3B82F6"
           onRate={currentUser === 'joshua' && onRate ? (s) => onRate(movie.id, 'joshua', toRating10(s)) : undefined} />
         <StarRating value={sophieStars} label="S" color="#EC4899"
