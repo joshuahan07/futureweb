@@ -157,8 +157,13 @@ export default function AddMovieModal({
               }
               const maxX = Math.max(0, (sw - PW) / 2);
               const maxY = Math.max(0, (sh - PH) / 2);
+              // Clamp and store back so state always matches display
               const ox = Math.min(maxX, Math.max(-maxX, posterOffset.x));
               const oy = Math.min(maxY, Math.max(-maxY, posterOffset.y));
+              if (ox !== posterOffset.x || oy !== posterOffset.y) {
+                // Schedule a state sync (can't set state during render directly)
+                setTimeout(() => setPosterOffset({ x: ox, y: oy }), 0);
+              }
 
               return (
                 <div className="flex flex-col items-center gap-2">
@@ -168,7 +173,9 @@ export default function AddMovieModal({
                     onPointerDown={(e) => {
                       e.preventDefault();
                       setPosterDragging(true);
-                      const sx = e.clientX, sy = e.clientY, so = { x: ox, y: oy };
+                      const sx = e.clientX, sy = e.clientY;
+                      // Use current clamped values as start
+                      const startX = ox, startY = oy;
                       e.currentTarget.setPointerCapture(e.pointerId);
                       const onMove = (ev: PointerEvent) => {
                         const a = posterNatural.w / posterNatural.h;
@@ -179,8 +186,8 @@ export default function AddMovieModal({
                         const mmx = Math.max(0, (ssw - PW) / 2);
                         const mmy = Math.max(0, (ssh - PH) / 2);
                         setPosterOffset({
-                          x: Math.min(mmx, Math.max(-mmx, so.x + (ev.clientX - sx))),
-                          y: Math.min(mmy, Math.max(-mmy, so.y + (ev.clientY - sy))),
+                          x: Math.min(mmx, Math.max(-mmx, startX + (ev.clientX - sx))),
+                          y: Math.min(mmy, Math.max(-mmy, startY + (ev.clientY - sy))),
                         });
                       };
                       const onUp = () => { setPosterDragging(false); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };

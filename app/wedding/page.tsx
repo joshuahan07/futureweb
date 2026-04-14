@@ -782,7 +782,7 @@ export default function WeddingPage() {
 
               {/* Filter pills — Budget first, then top-level categories */}
               <div className="flex flex-wrap gap-1.5 mb-4">
-                {['All', 'Budget', ...TOP_LEVEL_CATS].map((c) => (
+                {['All', 'Budget', ...TOP_LEVEL_CATS, 'Other'].map((c) => (
                   <button key={c} onClick={() => setFilterCat(c)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                       filterCat === c ? 'bg-mauve text-white' : 'bg-surface-hover text-foreground/70 hover:bg-mauve/100/20'
@@ -790,7 +790,7 @@ export default function WeddingPage() {
                 ))}
                 <button onClick={() => setShowVisionCatMgr(!showVisionCatMgr)}
                   className="px-3 py-1.5 rounded-full text-xs font-medium bg-surface-hover text-mauve/80 hover:bg-mauve/100/20 transition-all">
-                  ⚙ Categories
+                  ✎ Edit Categories
                 </button>
               </div>
 
