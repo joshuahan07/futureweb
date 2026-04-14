@@ -310,13 +310,10 @@ function PeopleChecklist({ items, onUpdate, onAdd, onDelete }: {
   const [newJoshua, setNewJoshua] = useState('');
   const [newSophie, setNewSophie] = useState('');
 
-  // Split by description field: "joshua" or "sophie"
   const joshuaSide = items.filter((i) => i.description === 'joshua');
   const sophieSide = items.filter((i) => i.description === 'sophie');
 
-  const GuestColumn = ({ side, guests, newName, setNewName }: {
-    side: 'joshua' | 'sophie'; guests: WeddingElement[]; newName: string; setNewName: (v: string) => void;
-  }) => (
+  const renderColumn = (side: 'joshua' | 'sophie', guests: WeddingElement[], newName: string, setNewName: (v: string) => void) => (
     <div className="flex-1">
       <div className="flex items-center gap-2 mb-3">
         <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${side === 'joshua' ? 'bg-blue-500' : 'bg-pink-500'}`}>
@@ -340,7 +337,6 @@ function PeopleChecklist({ items, onUpdate, onAdd, onDelete }: {
           </div>
         ))}
       </div>
-      {/* Add new */}
       <div className="flex gap-2 mt-3">
         <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && newName.trim()) { onAdd(newName.trim(), side); setNewName(''); } }}
@@ -356,8 +352,8 @@ function PeopleChecklist({ items, onUpdate, onAdd, onDelete }: {
 
   return (
     <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-6">
-      <GuestColumn side="joshua" guests={joshuaSide} newName={newJoshua} setNewName={setNewJoshua} />
-      <GuestColumn side="sophie" guests={sophieSide} newName={newSophie} setNewName={setNewSophie} />
+      {renderColumn('joshua', joshuaSide, newJoshua, setNewJoshua)}
+      {renderColumn('sophie', sophieSide, newSophie, setNewSophie)}
     </div>
   );
 }
@@ -1213,13 +1209,14 @@ export default function WeddingPage() {
                                 {subKey.toLowerCase() === 'people' ? (
                                   <PeopleChecklist items={items} onUpdate={async (id, updates) => {
                                     await supabase.from('wedding_elements').update(updates).eq('id', id);
-                                    fetchElements();
+                                    // Don't fetchElements here — realtime will sync, avoids unmounting the input
+                                    setTimeout(fetchElements, 1000);
                                   }} onAdd={async (title, desc) => {
                                     await supabase.from('wedding_elements').insert({ title, description: desc, category: `${parent} (${subKey})`, status: 'dream', priority: false, created_by: currentUser });
-                                    fetchElements();
+                                    setTimeout(fetchElements, 1000);
                                   }} onDelete={async (id) => {
                                     await supabase.from('wedding_elements').delete().eq('id', id);
-                                    fetchElements();
+                                    setTimeout(fetchElements, 500);
                                   }} />
                                 ) : (
                                 <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${hasSubLabel ? 'p-4' : ''}`}>
