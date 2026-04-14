@@ -27,6 +27,14 @@ export default function AddMovieModal({
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  // Poster crop state
+  const [posterNatural, setPosterNatural] = useState({ w: 0, h: 0 });
+  const [posterZoom, setPosterZoom] = useState(1);
+  const [posterOffset, setPosterOffset] = useState({ x: 0, y: 0 });
+  const [posterDragging, setPosterDragging] = useState(false);
+  const posterZoomRef = useRef(1);
+  const PW = 180; // preview width
+  const PH = 270; // preview height (2:3)
 
   useEffect(() => {
     if (editMovie) {
@@ -37,11 +45,21 @@ export default function AddMovieModal({
       setNotes(editMovie.notes);
       setPosterUrl(editMovie.poster_url || '');
       setWatched(editMovie.watched);
+      setPosterZoom(1); posterZoomRef.current = 1; setPosterOffset({ x: 0, y: 0 });
     } else {
       setTitle(''); setType('movie'); setDateWatched(''); setRating(0);
       setNotes(''); setPosterUrl(''); setWatched(false);
+      setPosterZoom(1); posterZoomRef.current = 1; setPosterOffset({ x: 0, y: 0 });
     }
   }, [editMovie, isOpen]);
+
+  // Load poster natural dimensions
+  useEffect(() => {
+    if (!posterUrl) { setPosterNatural({ w: 0, h: 0 }); return; }
+    const img = new Image();
+    img.onload = () => { setPosterNatural({ w: img.naturalWidth, h: img.naturalHeight }); setPosterZoom(1); posterZoomRef.current = 1; setPosterOffset({ x: 0, y: 0 }); };
+    img.src = posterUrl;
+  }, [posterUrl]);
 
   if (!isOpen) return null;
 
@@ -67,6 +85,7 @@ export default function AddMovieModal({
       date_has_day: dateWatched ? dateWatched.length > 7 : undefined,
       rating: rating || 0,
       notes: notes.trim(), poster_url: posterUrl.trim() || null,
+      poster_position: posterNatural.w ? JSON.stringify({ zoom: posterZoom, ox: posterOffset.x, oy: posterOffset.y, pw: PW, ph: PH }) : undefined,
       added_by: editMovie?.added_by || currentUser,
       watched: forceWatched ?? watched,
     });
@@ -105,16 +124,96 @@ export default function AddMovieModal({
             </div>
           </div>
 
-          {/* Image upload */}
+          {/* Image upload + crop */}
           <div>
             <label className="block text-xs font-medium text-muted mb-1">Poster Image</label>
-            {posterUrl ? (
-              <div className="relative rounded-xl overflow-hidden aspect-[2/3] max-w-[180px] mx-auto">
-                <img src={posterUrl} alt="" className="w-full h-full object-cover" />
-                <button type="button" onClick={() => setPosterUrl('')}
-                  className="absolute top-2 right-2 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white text-xs hover:bg-black/80">✕</button>
-              </div>
-            ) : (
+            {posterUrl && posterNatural.w > 0 ? (() => {
+              // Calculate scaled image to cover the 2:3 preview
+              const imgAspect = posterNatural.w / posterNatural.h;
+              const previewAspect = PW / PH;
+              const z = posterZoom;
+              let sw: number, sh: number;
+              if (imgAspect > previewAspect) {
+                // Image is wider than preview — fit height, overflow width
+                sh = PH * z;
+                sw = sh * imgAspect;
+              } else {
+                // Image is taller — fit width, overflow height
+                sw = PW * z;
+                sh = sw / imgAspect;
+              }
+              const maxX = Math.max(0, (sw - PW) / 2);
+              const maxY = Math.max(0, (sh - PH) / 2);
+              const ox = Math.min(maxX, Math.max(-maxX, posterOffset.x));
+              const oy = Math.min(maxY, Math.max(-maxY, posterOffset.y));
+
+              return (
+                <div className="flex flex-col items-center gap-2">
+                  {/* Crop preview — exact card aspect ratio */}
+                  <div className="relative rounded-xl overflow-hidden select-none"
+                    style={{ width: PW, height: PH, cursor: posterDragging ? 'grabbing' : 'grab', touchAction: 'none' }}
+                    onPointerDown={(e) => {
+                      e.preventDefault();
+                      setPosterDragging(true);
+                      const sx = e.clientX, sy = e.clientY, so = { x: ox, y: oy };
+                      e.currentTarget.setPointerCapture(e.pointerId);
+                      const onMove = (ev: PointerEvent) => {
+                        const a = posterNatural.w / posterNatural.h;
+                        const pa = PW / PH;
+                        const zz = posterZoomRef.current;
+                        let ssw: number, ssh: number;
+                        if (a > pa) { ssh = PH * zz; ssw = ssh * a; } else { ssw = PW * zz; ssh = ssw / a; }
+                        const mmx = Math.max(0, (ssw - PW) / 2);
+                        const mmy = Math.max(0, (ssh - PH) / 2);
+                        setPosterOffset({
+                          x: Math.min(mmx, Math.max(-mmx, so.x + (ev.clientX - sx))),
+                          y: Math.min(mmy, Math.max(-mmy, so.y + (ev.clientY - sy))),
+                        });
+                      };
+                      const onUp = () => { setPosterDragging(false); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
+                      document.addEventListener('pointermove', onMove);
+                      document.addEventListener('pointerup', onUp);
+                    }}
+                    onWheel={(e) => { e.preventDefault(); const nz = Math.min(3, Math.max(1, posterZoom - e.deltaY * 0.002)); setPosterZoom(nz); posterZoomRef.current = nz; }}
+                  >
+                    <img src={posterUrl} alt="" draggable={false}
+                      className="absolute pointer-events-none"
+                      style={{
+                        left: `calc(50% - ${sw/2}px + ${ox}px)`, top: `calc(50% - ${sh/2}px + ${oy}px)`,
+                        width: sw, height: sh, objectFit: 'cover',
+                        transition: posterDragging ? 'none' : 'all 0.15s',
+                      }} />
+                    {!posterDragging && (
+                      <div className="absolute inset-0 flex items-end justify-center pb-2 opacity-0 hover:opacity-100 transition-opacity">
+                        <span className="text-white text-[10px] bg-black/50 px-2 py-1 rounded-full">Drag to move · Scroll to zoom</span>
+                      </div>
+                    )}
+                    {posterDragging && (
+                      <svg width={PW} height={PH} className="absolute inset-0 pointer-events-none opacity-25">
+                        <line x1={PW/3} y1={0} x2={PW/3} y2={PH} stroke="white" strokeWidth="0.5" />
+                        <line x1={PW*2/3} y1={0} x2={PW*2/3} y2={PH} stroke="white" strokeWidth="0.5" />
+                        <line y1={PH/3} x1={0} y2={PH/3} x2={PW} stroke="white" strokeWidth="0.5" />
+                        <line y1={PH*2/3} x1={0} y2={PH*2/3} x2={PW} stroke="white" strokeWidth="0.5" />
+                      </svg>
+                    )}
+                    <button type="button" onClick={(e) => { e.stopPropagation(); setPosterUrl(''); }}
+                      className="absolute top-2 right-2 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white text-xs hover:bg-black/80 z-10">✕</button>
+                  </div>
+                  {/* Zoom slider */}
+                  <div className="flex items-center gap-2" style={{ width: PW }}>
+                    <span className="text-[10px] text-muted">−</span>
+                    <div className="flex-1 relative h-5 flex items-center">
+                      <div className="absolute left-0 right-0 h-[2px] rounded-full bg-foreground/10" />
+                      <div className="absolute left-0 h-[2px] rounded-full bg-mauve" style={{ width: `${((posterZoom - 1) / 2) * 100}%` }} />
+                      <input type="range" min="1" max="3" step="0.01" value={posterZoom}
+                        onChange={(e) => { const nz = parseFloat(e.target.value); setPosterZoom(nz); posterZoomRef.current = nz; }}
+                        className="relative w-full h-5 appearance-none bg-transparent cursor-pointer z-10 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-foreground [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer" />
+                    </div>
+                    <span className="text-[10px] text-muted">+</span>
+                  </div>
+                </div>
+              );
+            })() : (
               <div
                 onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                 onDragLeave={() => setDragOver(false)}
