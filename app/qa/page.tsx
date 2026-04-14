@@ -58,15 +58,20 @@ function AnswerBox({ questionId, person, currentUser, existingAnswer }: {
   const [text, setText] = useState(existingAnswer?.answer || '');
   const answerId = useRef(existingAnswer?.id || null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isTyping = useRef(false);
+  const localTextRef = useRef(existingAnswer?.answer || '');
+  const hasFocus = useRef(false);
 
   useEffect(() => {
-    // Only update from DB if we're NOT actively typing (prevents overwriting mid-type)
-    if (isOwner && isTyping.current) return;
+    // NEVER overwrite if this user owns the field and it's focused
+    if (isOwner && hasFocus.current) return;
     const newVal = existingAnswer?.answer || '';
-    if (newVal !== text) setText(newVal);
+    // Only update if DB value is actually different from what we have locally
+    if (newVal !== localTextRef.current) {
+      setText(newVal);
+      localTextRef.current = newVal;
+    }
     answerId.current = existingAnswer?.id || null;
-  }, [existingAnswer]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [existingAnswer, isOwner]);
 
   const save = useCallback(async (value: string) => {
     if (!currentUser) return;
@@ -80,13 +85,9 @@ function AnswerBox({ questionId, person, currentUser, existingAnswer }: {
 
   const handleChange = (value: string) => {
     setText(value);
-    isTyping.current = true;
+    localTextRef.current = value;
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(async () => {
-      await save(value);
-      // Keep typing flag for a bit longer to prevent immediate overwrite from realtime
-      setTimeout(() => { isTyping.current = false; }, 1000);
-    }, 500);
+    saveTimer.current = setTimeout(() => save(value), 800);
   };
 
   const isJoshua = person === 'joshua';
@@ -105,6 +106,8 @@ function AnswerBox({ questionId, person, currentUser, existingAnswer }: {
       </div>
       {isOwner ? (
         <textarea value={text} onChange={(e) => handleChange(e.target.value)}
+          onFocus={() => { hasFocus.current = true; }}
+          onBlur={() => { hasFocus.current = false; }}
           placeholder="Write your answer..."
           className={`w-full min-h-[120px] p-4 rounded-xl border resize-none text-foreground placeholder:text-foreground/30 focus:outline-none ${
             isJoshua ? 'bg-blue-500/5 border-blue-500/20 focus:border-blue-500/40' : 'bg-pink-500/5 border-pink-500/20 focus:border-pink-500/40'
