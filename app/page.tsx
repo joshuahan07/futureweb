@@ -173,10 +173,33 @@ function QuickCard({ href, icon, title, subtitle, color }: {
 
 interface RecentItem {
   table: string;
-  title: string;
+  icon: string;
+  label: string;     // e.g. "added a movie"
+  detail: string;    // the actual title/name
+  href: string;
   updated_at: string;
   created_by: string | null;
 }
+
+// Per-table config: title column, label verb, icon, destination, creator column override.
+const ACTIVITY_TABLES: { name: string; titleCol: string; icon: string; label: string; href: string; byCol?: string }[] = [
+  { name: 'movies', titleCol: 'title', icon: '🎬', label: 'added a movie', href: '/movies', byCol: 'added_by' },
+  { name: 'bucket_list', titleCol: 'text', icon: '✨', label: 'added to bucket list', href: '/lists' },
+  { name: 'alphabet_dating', titleCol: 'activities', icon: '💌', label: 'updated alphabet date', href: '/lists' },
+  { name: 'matching_items', titleCol: 'item_name', icon: '🎁', label: 'added a matching gift', href: '/gifts', byCol: 'found_by' },
+  { name: 'wantlist', titleCol: 'item', icon: '🎀', label: 'added to wishlist', href: '/wantlist', byCol: 'added_by' },
+  { name: 'books', titleCol: 'title', icon: '📚', label: 'added a book', href: '/books', byCol: 'added_by' },
+  { name: 'watchlist', titleCol: 'title', icon: '📺', label: 'added to watchlist', href: '/books', byCol: 'added_by' },
+  { name: 'duets', titleCol: 'title', icon: '🎵', label: 'added a duet', href: '/books', byCol: 'added_by' },
+  { name: 'home_items', titleCol: 'name', icon: '🏠', label: 'added a home item', href: '/home' },
+  { name: 'dishes', titleCol: 'name', icon: '🍳', label: 'added a recipe', href: '/recipes' },
+  { name: 'wedding_elements', titleCol: 'title', icon: '💒', label: 'updated wedding', href: '/wedding' },
+  { name: 'wedding_budget', titleCol: 'label', icon: '💰', label: 'updated wedding budget', href: '/wedding' },
+  { name: 'qa_questions', titleCol: 'question', icon: '❓', label: 'asked a question', href: '/qa' },
+  { name: 'qa_answers', titleCol: 'answer', icon: '💬', label: 'answered a question', href: '/qa', byCol: 'answered_by' },
+  { name: 'travel_locations', titleCol: 'name', icon: '🌍', label: 'added a travel location', href: '/travel' },
+  { name: 'travel_pins', titleCol: 'name', icon: '📍', label: 'added a travel pin', href: '/travel' },
+];
 
 function Dashboard() {
   const { currentUser } = useUser();
@@ -206,23 +229,48 @@ function Dashboard() {
       recipes: (recipesRes.data ?? []).filter((r: { made_it: boolean }) => r.made_it).length,
     });
 
-    const tables = ['movies', 'bucket_list', 'books', 'dishes'] as const;
     const results = await Promise.all(
-      tables.map((t) =>
-        supabase.from(t).select('updated_at, created_by').order('updated_at', { ascending: false }).limit(3)
-          .then((r) => (r.data ?? []).map((row) => ({
-            table: t, title: t.replace(/_/g, ' '), updated_at: row.updated_at, created_by: row.created_by,
-          })))
-      )
+      ACTIVITY_TABLES.map(async (cfg) => {
+        const byCol = cfg.byCol ?? 'created_by';
+        const cols = ['updated_at', cfg.titleCol, 'created_by', byCol].filter((v, i, a) => a.indexOf(v) === i).join(', ');
+        const { data, error } = await supabase.from(cfg.name).select(cols).order('updated_at', { ascending: false }).limit(5);
+        if (error || !data) return [];
+        return (data as unknown as Record<string, string | null>[]).map((row) => ({
+          table: cfg.name,
+          icon: cfg.icon,
+          label: cfg.label,
+          detail: (row[cfg.titleCol] as string) || '',
+          href: cfg.href,
+          updated_at: row.updated_at as string,
+          created_by: (row[byCol] as string | null) ?? (row.created_by as string | null),
+        }));
+      })
     );
     setRecentActivity(
-      results.flat().sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()).slice(0, 6)
+      results.flat()
+        .filter((r) => r.updated_at && r.detail)
+        .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+        .slice(0, 10)
     );
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useRealtimeSync('movies', fetchData);
   useRealtimeSync('bucket_list', fetchData);
+  useRealtimeSync('alphabet_dating', fetchData);
+  useRealtimeSync('matching_items', fetchData);
+  useRealtimeSync('wantlist', fetchData);
+  useRealtimeSync('books', fetchData);
+  useRealtimeSync('watchlist', fetchData);
+  useRealtimeSync('duets', fetchData);
+  useRealtimeSync('home_items', fetchData);
+  useRealtimeSync('dishes', fetchData);
+  useRealtimeSync('wedding_elements', fetchData);
+  useRealtimeSync('wedding_budget', fetchData);
+  useRealtimeSync('qa_questions', fetchData);
+  useRealtimeSync('qa_answers', fetchData);
+  useRealtimeSync('travel_locations', fetchData);
+  useRealtimeSync('travel_pins', fetchData);
 
   return (
     <div className="relative z-10 space-y-8">
@@ -312,12 +360,21 @@ function Dashboard() {
         ) : (
           <ul className="space-y-2">
             {recentActivity.map((a, i) => (
-              <li key={i} className="flex items-center justify-between text-sm">
-                <span className="text-foreground/80 capitalize">{a.title}</span>
-                <span className="text-muted text-xs">
-                  {a.created_by && <span className="mr-2 capitalize">{a.created_by}</span>}
-                  {formatDistanceToNow(new Date(a.updated_at), { addSuffix: true })}
-                </span>
+              <li key={`${a.table}-${i}`}>
+                <Link href={a.href} className="flex items-start gap-3 text-sm hover:bg-surface-hover/50 rounded-lg px-2 py-1.5 -mx-2 transition-colors">
+                  <span className="text-base leading-5 shrink-0">{a.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-foreground/80 truncate">
+                      {a.created_by && <span className="capitalize font-medium">{a.created_by}</span>}
+                      {a.created_by && ' '}
+                      <span className="text-muted">{a.label}:</span>{' '}
+                      <span className="text-foreground">{a.detail}</span>
+                    </p>
+                  </div>
+                  <span className="text-muted text-[11px] shrink-0 mt-0.5">
+                    {formatDistanceToNow(new Date(a.updated_at), { addSuffix: true })}
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>

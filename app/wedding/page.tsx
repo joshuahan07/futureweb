@@ -81,6 +81,20 @@ const PARENT_COLORS: Record<string, string> = {
   'Other': 'bg-surface-hover/50 text-muted border-border',
 };
 
+// Accent colors for category cards (hex for inline styles — gives colored left stripe + progress bar)
+const PARENT_ACCENT: Record<string, string> = {
+  'Preparations': '#8b5cf6',
+  'Vision': '#d97706',
+  'Invites': '#a68bc2',
+  'Venue': '#14b8a6',
+  'Memories': '#10b981',
+  'Catering': '#f43f5e',
+  'Aesthetics': '#84cc16',
+  'Budget': '#6366f1',
+  'Other': '#94a3b8',
+};
+const accentFor = (parent: string) => PARENT_ACCENT[parent] || PARENT_ACCENT['Other'];
+
 const CAT_COLORS = new Proxy({} as Record<string, string>, {
   get: (_t, key: string) => PARENT_COLORS[parseCategory(key).parent] || PARENT_COLORS['Other'],
 });
@@ -1030,8 +1044,15 @@ export default function WeddingPage() {
 
               {/* Budget — rendered in its pill-order position (below, after parent groups) */}
               {(filterCat === 'All' || filterCat === 'Budget') && (
-                <div className="mb-10" data-budget-block style={{ order: 999 }}>
-                  <h3 className="font-heading italic text-lg text-foreground/70 mb-4">Budget</h3>
+                <div className="mb-10 rounded-3xl bg-surface/40 border border-border/40 overflow-hidden shadow-sm" data-budget-block
+                     style={{ order: 999, borderLeft: `4px solid ${accentFor('Budget')}` }}>
+                  <div className="px-5 pt-5 pb-4 border-b border-border/30" style={{ background: `linear-gradient(90deg, ${accentFor('Budget')}10 0%, transparent 100%)` }}>
+                    <div className="flex items-center gap-3">
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: accentFor('Budget') }} />
+                      <h3 className="font-heading italic text-xl" style={{ color: accentFor('Budget') }}>Budget</h3>
+                    </div>
+                  </div>
+                  <div className="p-5">
                   <DonutChart items={budget} />
                   <div className="overflow-x-auto rounded-2xl border border-border/60 bg-surface/80">
                     <table className="w-full text-sm">
@@ -1108,6 +1129,7 @@ export default function WeddingPage() {
                       </button>
                     </div>
                   </div>
+                  </div>
                 </div>
               )}
 
@@ -1126,15 +1148,22 @@ export default function WeddingPage() {
                 ].filter((k, i, arr) => arr.indexOf(k) === i); // dedupe
                 const subKeys = activeSub ? allSubKeys.filter((k) => k === activeSub) : allSubKeys;
                 const hasAnySubs = true;
+                const accent = accentFor(parent);
                 return (
-                  <div key={parent} className="mb-8">
-                    <div className="flex items-center gap-3 mb-3">
-                      <h3 className="font-heading italic text-lg text-foreground/70">{parent}</h3>
-                      <span className="text-[10px] text-muted font-medium">{done}/{allItems.length} done</span>
-                      <div className="flex-1 h-1 rounded-full bg-surface-hover overflow-hidden">
-                        <div className="h-full rounded-full bg-blue-500/50 transition-all" style={{ width: `${allItems.length > 0 ? (done / allItems.length) * 100 : 0}%` }} />
+                  <div key={parent} className="mb-10 rounded-3xl bg-surface/40 border border-border/40 overflow-hidden shadow-sm"
+                       style={{ borderLeft: `4px solid ${accent}` }}>
+                    <div className="px-5 pt-5 pb-4 border-b border-border/30" style={{ background: `linear-gradient(90deg, ${accent}10 0%, transparent 100%)` }}>
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: accent }} />
+                        <h3 className="font-heading italic text-xl text-foreground" style={{ color: accent }}>{parent}</h3>
+                        <span className="text-[11px] text-muted font-medium ml-auto">{done}/{allItems.length} done</span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-surface-hover overflow-hidden">
+                        <div className="h-full rounded-full transition-all" style={{ width: `${allItems.length > 0 ? (done / allItems.length) * 100 : 0}%`, backgroundColor: accent }} />
                       </div>
                     </div>
+                    <div className="p-5">
+                    {/* [inner content] */}
 
                     {/* Subtab pill row — per-parent filter + manager */}
                     {hasAnySubs && (
@@ -1206,25 +1235,26 @@ export default function WeddingPage() {
                       const rkey = `${parent}::${subKey}`;
                       const isRenaming = renamingSub === rkey;
                       return (
-                        <div key={key} className={hasSubLabel ? 'mb-4 rounded-2xl border border-border/40 bg-surface/40 overflow-hidden' : 'mb-4'}>
+                        <div key={key} className={hasSubLabel ? 'mb-3 rounded-xl border border-border/60 bg-background overflow-hidden shadow-sm' : 'mb-3'}
+                             style={hasSubLabel ? { borderLeft: `3px solid ${accent}80` } : undefined}>
                           {hasSubLabel && (
-                            <div className="w-full px-4 py-2.5 flex items-center justify-between gap-2 hover:bg-foreground/[0.02] transition-colors">
-                              <button onClick={() => { setRenamingSub(rkey); setRenameSubVal(subKey); }}
-                                title="Rename subtab" className="text-muted hover:text-mauve/80 text-xs">✎</button>
-                              <div className="flex-1 flex items-center gap-2">
+                            <div className="w-full px-3.5 py-2.5 flex items-center justify-between gap-2 hover:bg-foreground/[0.02] transition-colors cursor-pointer"
+                                 onClick={() => toggleSubtab(key)}
+                                 style={{ background: collapsed ? 'transparent' : `${accent}08` }}>
+                              <button onClick={(e) => { e.stopPropagation(); setRenamingSub(rkey); setRenameSubVal(subKey); }}
+                                title="Rename subtab" className="text-muted hover:text-mauve/80 text-xs shrink-0">✎</button>
+                              <div className="flex-1 flex items-center gap-2 min-w-0" onClick={(e) => e.stopPropagation()}>
                                 {isRenaming ? (
                                   <input type="text" value={renameSubVal} onChange={(e) => setRenameSubVal(e.target.value)} autoFocus
                                     onKeyDown={(e) => { if (e.key === 'Enter') handleRenameSubtab(parent, subKey, renameSubVal); if (e.key === 'Escape') setRenamingSub(null); }}
                                     onBlur={() => handleRenameSubtab(parent, subKey, renameSubVal)}
                                     className="px-2 py-0.5 rounded border border-border bg-surface text-xs text-foreground focus:outline-none" />
                                 ) : (
-                                  <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border ${PARENT_COLORS[parent] || PARENT_COLORS['Other']}`}>{subKey}</span>
+                                  <span className="text-sm font-medium" style={{ color: accent }}>{subKey}</span>
                                 )}
-                                <span className="text-[10px] text-muted">{items.length}</span>
+                                <span className="text-[10px] text-muted px-1.5 py-0.5 rounded-full bg-surface-hover">{items.length}</span>
                               </div>
-                              <button onClick={() => toggleSubtab(key)} className="shrink-0">
-                                <ChevronDown className={`w-4 h-4 text-foreground/40 transition-transform ${collapsed ? '' : 'rotate-180'}`} />
-                              </button>
+                              <ChevronDown className={`w-4 h-4 transition-transform shrink-0 ${collapsed ? '' : 'rotate-180'}`} style={{ color: accent }} />
                             </div>
                           )}
                           <AnimatePresence initial={false}>
@@ -1268,6 +1298,7 @@ export default function WeddingPage() {
                         </div>
                       );
                     })}
+                    </div>
                   </div>
                 );
               })}
