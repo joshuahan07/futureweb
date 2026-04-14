@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Movie } from './MovieCard';
+import ModalOverlay from './ModalOverlay';
 
 interface AddMovieModalProps {
   isOpen: boolean;
@@ -73,9 +74,8 @@ export default function AddMovieModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-xl" onClick={onClose} />
-      <div className="relative w-full max-w-lg glass-strong rounded-2xl p-6 max-h-[85vh] overflow-y-auto animate-fade-in mt-4">
+    <ModalOverlay onClose={onClose}>
+      <div className="glass-strong rounded-2xl p-6 animate-fade-in">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-xl font-heading text-foreground">
             {editMovie ? 'Edit' : 'Add'} Movie or Show
@@ -184,6 +184,6 @@ export default function AddMovieModal({
           </button>
         </form>
       </div>
-    </div>
+    </ModalOverlay>
   );
 }

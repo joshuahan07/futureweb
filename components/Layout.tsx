@@ -153,7 +153,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <AnimatedBackground />
 
       {/* ═══ TOP NAV ═══ */}
-      <nav className="sticky top-0 z-50 border-b border-glass-border bg-background/80 backdrop-blur-xl">
+      <nav className="app-nav sticky top-0 z-50 border-b border-glass-border bg-background/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
             {/* Logo */}
@@ -197,7 +197,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       </nav>
 
       {/* ═══ TAB BAR ═══ */}
-      <div className="sticky top-14 z-40 border-b border-glass-border bg-background/70 backdrop-blur-xl">
+      <div className="app-tabs sticky top-14 z-40 border-b border-glass-border bg-background/70 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-2 sm:px-4">
           <div className="flex items-center justify-center gap-1 overflow-x-auto py-2 scrollbar-hide">
             {tabs.map((tab) => {
@@ -252,7 +252,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         const cy = Math.min(maxY, Math.max(-maxY, cropOffset.y));
 
         return (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-xl p-4">
+          <div data-modal className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-xl p-4">
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
               className="rounded-3xl p-6 w-full max-w-sm flex flex-col items-center gap-6"
               style={{ background: '#0a0a0a' }}>

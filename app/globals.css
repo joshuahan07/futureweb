@@ -285,3 +285,12 @@ h1, h2, h3 {
 button, a, input, textarea, select {
   transition: all 0.2s ease;
 }
+
+/* Hide nav when modal is open */
+body:has([data-modal]) nav.app-nav,
+body:has([data-modal]) div.app-tabs {
+  display: none !important;
+}
+body:has([data-modal]) {
+  overflow: hidden;
+}

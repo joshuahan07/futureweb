@@ -111,7 +111,7 @@ export default function AlphabetGrid({
 
       {/* Date modal */}
       {selectedLetter && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+        <div data-modal className="fixed inset-0 z-[100] flex items-center justify-center">
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-xl"
             onClick={() => setSelectedLetter(null)}

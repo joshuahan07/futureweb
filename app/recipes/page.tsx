@@ -124,7 +124,7 @@ function RecipeModal({ onClose, onSave, existingCuisines, editDish }: {
   const finalCuisine = cuisine === '__custom__' ? customCuisine.trim() : cuisine;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
+    <div data-modal className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
       <div className="glass-strong rounded-2xl shadow-xl w-full max-w-lg p-6 animate-fade-in border border-border max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
           <h3 className="font-heading text-xl text-foreground">{editDish ? 'Edit Recipe' : 'Add Recipe'}</h3>
@@ -226,7 +226,7 @@ function EditCuisineModal({ dish, allCuisines, onSave, onClose }: {
   const [custom, setCustom] = useState('');
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
+    <div data-modal className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
       <div className="glass-strong rounded-2xl shadow-xl w-full max-w-sm p-5 animate-fade-in border border-border">
         <h3 className="font-heading text-lg text-foreground mb-4">Move &ldquo;{dish.name}&rdquo;</h3>
         <select value={cuisine} onChange={(e) => setCuisine(e.target.value)}

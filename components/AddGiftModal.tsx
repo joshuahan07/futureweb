@@ -63,7 +63,7 @@ export default function AddGiftModal({ open, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-xl">
+    <div data-modal className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-xl">
       <form
         onSubmit={handleSubmit}
         className="glass-strong rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 space-y-4 max-h-[90vh] overflow-y-auto"

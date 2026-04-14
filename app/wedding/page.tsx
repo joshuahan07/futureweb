@@ -184,7 +184,7 @@ function ElementModal({ element, onClose, onSave, categories }: {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
+    <div data-modal className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
       <div className="glass-strong rounded-2xl shadow-xl w-full max-w-lg p-6 animate-fade-in border border-border max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
           <h3 className="font-heading italic text-xl text-foreground/70">{element ? 'Edit Element' : 'Add Element'}</h3>
