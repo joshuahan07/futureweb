@@ -7,38 +7,41 @@ import Layout from '@/components/Layout';
 import { supabase } from '@/lib/supabase';
 import { useRealtimeSync } from '@/lib/realtime';
 import { formatDistanceToNow } from 'date-fns';
+import { Heart } from 'lucide-react';
 
 // ── Identity Picker ──────────────────────────────────────────
 
 function IdentityPicker({ onPick }: { onPick: (user: 'joshua' | 'sophie') => void }) {
+  const joshuaPfp = typeof window !== 'undefined' ? localStorage.getItem('js-pfp-joshua') : null;
+  const sophiePfp = typeof window !== 'undefined' ? localStorage.getItem('js-pfp-sophie') : null;
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background">
       <FloatingBackground />
-      <div className="text-center px-6 animate-fade-in relative z-10">
-        <h1 className="font-heading text-5xl sm:text-6xl text-foreground mb-3 tracking-tight">
-          J & S
+      <div className="text-center px-6 animate-scale-in relative z-10">
+        <div className="inline-flex items-center gap-2 mb-4">
+          <Heart className="w-6 h-6 text-rose animate-heartbeat" fill="currentColor" />
+        </div>
+        <h1 className="font-heading text-5xl sm:text-6xl font-bold text-foreground mb-2 tracking-tight">
+          LoveNest
         </h1>
-        <p className="text-muted mb-12 text-lg">Who are you?</p>
-        <div className="flex flex-col sm:flex-row gap-6 justify-center">
-          {(['joshua', 'sophie'] as const).map((name) => (
-            <button
-              key={name}
-              onClick={() => onPick(name)}
-              className="group relative w-52 h-64 rounded-2xl border border-border bg-surface shadow-sm
-                         hover:shadow-xl hover:-translate-y-2 transition-all duration-300 overflow-hidden"
-            >
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                style={{
-                  background: name === 'joshua'
-                    ? 'linear-gradient(135deg, #7BA5D418, #A8C5A018)'
-                    : 'linear-gradient(135deg, #F4A5B018, #C9A0B418)',
-                }} />
-              <div className="relative flex flex-col items-center justify-center h-full gap-4">
-                <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl"
-                  style={{ backgroundColor: name === 'joshua' ? '#7BA5D418' : '#F4A5B018' }}>
-                  {name === 'joshua' ? '🧑' : '👩'}
+        <p className="font-script text-2xl text-rose mb-2">Joshua & Sophie</p>
+        <p className="text-muted mb-12">Who&apos;s here?</p>
+        <div className="flex flex-col sm:flex-row gap-5 justify-center">
+          {([
+            { name: 'joshua' as const, color: '#3B82F6', gradient: 'from-blue-500 to-indigo-500', pfp: joshuaPfp },
+            { name: 'sophie' as const, color: '#EC4899', gradient: 'from-pink-500 to-rose-500', pfp: sophiePfp },
+          ]).map(({ name, color, gradient, pfp }) => (
+            <button key={name} onClick={() => onPick(name)}
+              className="group relative w-48 glass-card rounded-3xl p-6 hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 active:scale-95">
+              <div className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
+              <div className="relative flex flex-col items-center gap-4">
+                <div className="w-20 h-20 rounded-2xl overflow-hidden flex items-center justify-center text-3xl shadow-lg"
+                  style={{ background: pfp ? undefined : `linear-gradient(135deg, ${color}40, ${color}20)` }}>
+                  {pfp ? <img src={pfp} alt={name} className="w-full h-full object-cover" /> : (name === 'joshua' ? '🧑' : '👩')}
                 </div>
-                <span className="font-heading text-xl capitalize text-foreground">{name}</span>
+                <span className="font-heading text-lg font-semibold capitalize text-foreground">{name}</span>
+                <div className={`h-1 w-12 rounded-full bg-gradient-to-r ${gradient} opacity-50 group-hover:opacity-100 group-hover:w-16 transition-all duration-300`} />
               </div>
             </button>
           ))}
@@ -90,7 +93,7 @@ function QuickCard({ href, icon, title, subtitle, color }: {
 }) {
   return (
     <Link href={href}
-      className="group bg-surface rounded-2xl p-4 border border-border hover:border-rose/30 transition-all hover:shadow-sm">
+      className="group glass-card rounded-2xl p-4 hover:border-rose/30 transition-all hover:shadow-sm">
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style={{ backgroundColor: `${color}15` }}>
           {icon}
@@ -177,7 +180,7 @@ function Dashboard() {
           { label: 'Bucket List', value: `${stats.bucketDone}/${stats.bucketTotal}`, icon: '✨' },
           { label: 'Recipes Made', value: stats.recipes, icon: '🍳' },
         ].map((s) => (
-          <div key={s.label} className="bg-surface rounded-2xl p-4 border border-border">
+          <div key={s.label} className="glass-card rounded-2xl p-4">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-base">{s.icon}</span>
               <span className="text-lg font-bold text-foreground">{s.value}</span>
@@ -202,7 +205,7 @@ function Dashboard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Recently watched */}
-        <div className="bg-surface rounded-2xl p-5 border border-border">
+        <div className="glass-card rounded-2xl p-5">
           <h2 className="font-heading text-base text-foreground mb-3">Recently Watched</h2>
           {recentMovies.length === 0 ? (
             <p className="text-sm text-muted">No movies yet</p>
@@ -222,7 +225,7 @@ function Dashboard() {
         </div>
 
         {/* Bucket list */}
-        <div className="bg-surface rounded-2xl p-5 border border-border">
+        <div className="glass-card rounded-2xl p-5">
           <h2 className="font-heading text-base text-foreground mb-3">Bucket List</h2>
           {bucketItems.length === 0 ? (
             <p className="text-sm text-muted">Nothing yet — dream big!</p>
@@ -240,7 +243,7 @@ function Dashboard() {
       </div>
 
       {/* Activity feed */}
-      <div className="bg-surface rounded-2xl p-5 border border-border">
+      <div className="glass-card rounded-2xl p-5">
         <h2 className="font-heading text-base text-foreground mb-3">Recent Activity</h2>
         {recentActivity.length === 0 ? (
           <p className="text-sm text-muted">No activity yet — start adding things together!</p>

@@ -1,21 +1,16 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useState, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from './UserContext';
 import { useTheme } from './ThemeContext';
 import { usePresence } from '@/lib/presence';
+import { supabase } from '@/lib/supabase';
 import {
-  Film,
-  ListTodo,
-  BookOpen,
-  UtensilsCrossed,
-  Heart,
-  MessageCircle,
-  MapPin,
-  Gift,
-  Home,
+  Film, ListTodo, BookOpen, UtensilsCrossed, Heart,
+  MessageCircle, MapPin, Gift, Home, Sun, Moon, LogOut,
+  Settings, Camera,
 } from 'lucide-react';
 
 const tabs = [
@@ -33,25 +28,68 @@ const tabs = [
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
   return (
-    <button
-      onClick={toggleTheme}
-      className="w-8 h-8 flex items-center justify-center rounded-full bg-surface-hover text-foreground/70 hover:text-foreground transition-colors"
-      aria-label="Toggle theme"
-    >
-      {theme === 'light' ? (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-        </svg>
-      ) : (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="5" />
-          <line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" />
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-          <line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" />
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-        </svg>
+    <button onClick={toggleTheme}
+      className="w-9 h-9 flex items-center justify-center rounded-xl glass hover:bg-surface-hover transition-all duration-200 active:scale-95"
+      aria-label="Toggle theme">
+      {theme === 'light' ? <Moon className="w-4 h-4 text-foreground/60" /> : <Sun className="w-4 h-4 text-foreground/60" />}
+    </button>
+  );
+}
+
+function UserAvatar({ name, color, isOnline, pfpUrl, onClick }: {
+  name: string; color: string; isOnline: boolean; pfpUrl?: string | null; onClick?: () => void;
+}) {
+  return (
+    <button onClick={onClick} className="relative group" title={`${name} ${isOnline ? 'is online' : 'is offline'}`}>
+      <div className={`w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center text-sm font-semibold transition-all duration-300 ${
+        isOnline
+          ? 'ring-2 ring-offset-2 ring-offset-background'
+          : 'opacity-50'
+      }`}
+        style={{ background: pfpUrl ? undefined : color, ['--tw-ring-color' as string]: isOnline ? color : undefined } as React.CSSProperties}>
+        {pfpUrl ? (
+          <img src={pfpUrl} alt={name} className="w-full h-full object-cover" />
+        ) : (
+          <span className="text-white">{name[0]}</span>
+        )}
+      </div>
+      {isOnline && (
+        <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-background animate-pulse" />
       )}
     </button>
+  );
+}
+
+function SettingsDropdown({ onClose }: { onClose: () => void }) {
+  const { currentUser } = useUser();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleUploadPfp = async (file: File) => {
+    if (!currentUser) return;
+    setUploading(true);
+    const ext = file.name.split('.').pop();
+    const path = `pfp/${currentUser}.${ext}`;
+    await supabase.storage.from('media').upload(path, file, { upsert: true });
+    const { data } = supabase.storage.from('media').getPublicUrl(path);
+    localStorage.setItem(`js-pfp-${currentUser}`, data.publicUrl + '?t=' + Date.now());
+    setUploading(false);
+    onClose();
+    window.location.reload();
+  };
+
+  return (
+    <div className="absolute top-full right-0 mt-2 w-56 glass-card rounded-2xl p-2 animate-scale-in z-50">
+      <div className="px-3 py-2 text-xs text-muted font-medium uppercase tracking-wider">Settings</div>
+      <button
+        onClick={() => fileRef.current?.click()}
+        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground/80 hover:bg-surface-hover transition-colors">
+        <Camera className="w-4 h-4 text-mauve" />
+        {uploading ? 'Uploading...' : 'Change Profile Photo'}
+      </button>
+      <input ref={fileRef} type="file" accept="image/*" className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUploadPfp(f); }} />
+    </div>
   );
 }
 
@@ -60,64 +98,54 @@ export default function Layout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { currentUser, setUser } = useUser();
   const onlineUsers = usePresence(currentUser);
+  const [showSettings, setShowSettings] = useState(false);
+
+  // Load profile photos from localStorage
+  const joshuaPfp = typeof window !== 'undefined' ? localStorage.getItem('js-pfp-joshua') : null;
+  const sophiePfp = typeof window !== 'undefined' ? localStorage.getItem('js-pfp-sophie') : null;
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground transition-colors duration-300">
       {/* ── Top Navigation ── */}
-      <nav className="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-rose/15 shadow-sm transition-colors duration-300">
+      <nav className="sticky top-0 z-50 backdrop-blur-xl border-b border-glass-border transition-colors duration-300"
+        style={{ background: 'var(--topnav-bg)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2">
-              <span className="font-heading text-2xl text-foreground">J</span>
-              <Heart className="w-5 h-5 text-rose" fill="currentColor" />
-              <span className="font-heading text-2xl text-foreground">S</span>
+            <Link href="/" className="flex items-center gap-2 group">
+              <span className="font-heading text-xl font-bold text-foreground group-hover:text-rose transition-colors">J</span>
+              <Heart className="w-4 h-4 text-rose animate-heartbeat" fill="currentColor" />
+              <span className="font-heading text-xl font-bold text-foreground group-hover:text-rose transition-colors">S</span>
             </Link>
 
-            {/* Right side: avatars + theme */}
-            <div className="flex items-center gap-3">
-              {/* Joshua avatar */}
-              <div className="relative" title={onlineUsers.includes('joshua') ? 'Joshua is online' : 'Joshua is offline'}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
-                  onlineUsers.includes('joshua')
-                    ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-400 ring-offset-2 dark:ring-offset-[#0B0F1A]'
-                    : 'bg-surface-hover text-muted'
-                }`}>
-                  J
-                </div>
-                {onlineUsers.includes('joshua') && (
-                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-surface animate-pulse" />
-                )}
-              </div>
+            {/* Right side */}
+            <div className="flex items-center gap-2">
+              <UserAvatar name="Joshua" color="#3B82F6" isOnline={onlineUsers.includes('joshua')} pfpUrl={joshuaPfp}
+                onClick={currentUser === 'joshua' ? () => setShowSettings(!showSettings) : undefined} />
+              <UserAvatar name="Sophie" color="#EC4899" isOnline={onlineUsers.includes('sophie')} pfpUrl={sophiePfp}
+                onClick={currentUser === 'sophie' ? () => setShowSettings(!showSettings) : undefined} />
 
-              {/* Sophie avatar */}
-              <div className="relative" title={onlineUsers.includes('sophie') ? 'Sophie is online' : 'Sophie is offline'}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
-                  onlineUsers.includes('sophie')
-                    ? 'bg-rose-100 text-rose-600 ring-2 ring-rose-400 ring-offset-2 dark:ring-offset-[#0B0F1A]'
-                    : 'bg-surface-hover text-muted'
-                }`}>
-                  S
-                </div>
-                {onlineUsers.includes('sophie') && (
-                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-surface animate-pulse" />
-                )}
-              </div>
+              <div className="w-px h-6 bg-border mx-1" />
 
               <ThemeToggle />
+
               {currentUser && (
                 <button
                   onClick={() => { setUser(null); router.push('/'); }}
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-surface-hover text-foreground/70 hover:text-foreground transition-colors"
-                  aria-label="Switch user"
-                  title="Switch user"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                  </svg>
+                  className="w-9 h-9 flex items-center justify-center rounded-xl glass hover:bg-surface-hover transition-all duration-200 active:scale-95"
+                  aria-label="Switch user" title="Switch user">
+                  <LogOut className="w-4 h-4 text-foreground/60" />
                 </button>
+              )}
+
+              {/* Settings dropdown */}
+              {showSettings && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowSettings(false)} />
+                  <div className="relative">
+                    <SettingsDropdown onClose={() => setShowSettings(false)} />
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -125,23 +153,21 @@ export default function Layout({ children }: { children: ReactNode }) {
       </nav>
 
       {/* ── Tab Bar ── */}
-      <div className="sticky top-16 z-40 bg-surface/90 backdrop-blur-sm border-b border-rose/10 transition-colors duration-300">
+      <div className="sticky top-16 z-40 backdrop-blur-lg border-b border-glass-border transition-colors duration-300"
+        style={{ background: 'var(--topnav-bg)' }}>
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
-          <div className="flex items-center justify-center gap-1 sm:gap-2 overflow-x-auto py-3 scrollbar-hide">
+          <div className="flex items-center justify-center gap-1 overflow-x-auto py-2.5 scrollbar-hide">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = pathname === tab.href;
 
               return (
-                <Link
-                  key={tab.href}
-                  href={tab.href}
-                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
+                <Link key={tab.href} href={tab.href}
+                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-200 flex-shrink-0 active:scale-95 ${
                     isActive
-                      ? 'bg-gradient-to-r from-rose-400 to-rose-500 text-white shadow-md shadow-rose-200 dark:shadow-rose-900/30'
-                      : 'text-muted hover:bg-rose/8 hover:text-rose'
-                  }`}
-                >
+                      ? 'bg-mauve text-white shadow-lg shadow-mauve/25'
+                      : 'text-muted hover:text-foreground hover:bg-surface-hover'
+                  }`}>
                   <Icon className="w-4 h-4" />
                   <span className="hidden sm:inline">{tab.label}</span>
                 </Link>
@@ -157,8 +183,8 @@ export default function Layout({ children }: { children: ReactNode }) {
       </main>
 
       {/* ── Footer ── */}
-      <footer className="py-8 text-center text-muted text-sm">
-        <p>Made with love for J & S</p>
+      <footer className="py-8 text-center text-sm">
+        <p className="text-muted/60">Made with <Heart className="w-3 h-3 text-rose inline animate-heartbeat" fill="currentColor" /> for J & S</p>
       </footer>
     </div>
   );
