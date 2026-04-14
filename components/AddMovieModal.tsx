@@ -61,6 +61,21 @@ export default function AddMovieModal({
     img.src = posterUrl;
   }, [posterUrl]);
 
+  // Re-clamp offset when zoom changes so it stays in bounds
+  useEffect(() => {
+    if (!posterNatural.w) return;
+    const a = posterNatural.w / posterNatural.h;
+    const pa = PW / PH;
+    let sw: number, sh: number;
+    if (a > pa) { sh = PH * posterZoom; sw = sh * a; } else { sw = PW * posterZoom; sh = sw / a; }
+    const mx = Math.max(0, (sw - PW) / 2);
+    const my = Math.max(0, (sh - PH) / 2);
+    setPosterOffset(prev => ({
+      x: Math.min(mx, Math.max(-mx, prev.x)),
+      y: Math.min(my, Math.max(-my, prev.y)),
+    }));
+  }, [posterZoom, posterNatural]);
+
   if (!isOpen) return null;
 
   const uploadFile = async (file: File) => {
@@ -155,15 +170,9 @@ export default function AddMovieModal({
                 sw = PW * z;
                 sh = sw / imgAspect;
               }
-              const maxX = Math.max(0, (sw - PW) / 2);
-              const maxY = Math.max(0, (sh - PH) / 2);
-              // Clamp and store back so state always matches display
-              const ox = Math.min(maxX, Math.max(-maxX, posterOffset.x));
-              const oy = Math.min(maxY, Math.max(-maxY, posterOffset.y));
-              if (ox !== posterOffset.x || oy !== posterOffset.y) {
-                // Schedule a state sync (can't set state during render directly)
-                setTimeout(() => setPosterOffset({ x: ox, y: oy }), 0);
-              }
+              // offset is already clamped by useEffect
+              const ox = posterOffset.x;
+              const oy = posterOffset.y;
 
               return (
                 <div className="flex flex-col items-center gap-2">
@@ -174,8 +183,7 @@ export default function AddMovieModal({
                       e.preventDefault();
                       setPosterDragging(true);
                       const sx = e.clientX, sy = e.clientY;
-                      // Use current clamped values as start
-                      const startX = ox, startY = oy;
+                      const startX = posterOffset.x, startY = posterOffset.y;
                       e.currentTarget.setPointerCapture(e.pointerId);
                       const onMove = (ev: PointerEvent) => {
                         const a = posterNatural.w / posterNatural.h;

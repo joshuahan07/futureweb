@@ -735,6 +735,71 @@ export default function WeddingPage() {
   const [collapsedSubtabs, setCollapsedSubtabs] = useState<Record<string, boolean>>({});
   const toggleSubtab = (key: string) => setCollapsedSubtabs((p) => ({ ...p, [key]: !p[key] }));
 
+  // ── Subtab management ────────────────────────────────────
+  // customSubtabs: Record<parent, orderedSubs[]>. If absent for a parent, use CATEGORY_STRUCTURE default.
+  const [customSubtabs, setCustomSubtabs] = useState<Record<string, string[]>>({});
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try { setCustomSubtabs(JSON.parse(localStorage.getItem('js-wedding-subtabs-v1') || '{}')); } catch {}
+  }, []);
+
+  const saveCustomSubtabs = (next: Record<string, string[]>) => {
+    localStorage.setItem('js-wedding-subtabs-v1', JSON.stringify(next));
+    setCustomSubtabs(next);
+  };
+
+  const getSubsFor = useCallback((parent: string): string[] => {
+    if (customSubtabs[parent]) return customSubtabs[parent];
+    const def = CATEGORY_STRUCTURE.find((c) => c.name === parent);
+    return def?.subs || [];
+  }, [customSubtabs]);
+
+  // Sub-filter: which sub is selected within a given parent (null = show all subs).
+  const [subFilter, setSubFilter] = useState<Record<string, string | null>>({});
+  // Which parent currently has its subtab manager open.
+  const [subMgrOpen, setSubMgrOpen] = useState<string | null>(null);
+  const [newSubName, setNewSubName] = useState('');
+  const [renamingSub, setRenamingSub] = useState<string | null>(null); // `${parent}::${sub}`
+  const [renameSubVal, setRenameSubVal] = useState('');
+
+  const handleAddSubtab = (parent: string) => {
+    const name = newSubName.trim();
+    if (!name) return;
+    const current = getSubsFor(parent);
+    if (current.includes(name)) return;
+    saveCustomSubtabs({ ...customSubtabs, [parent]: [...current, name] });
+    setNewSubName('');
+  };
+
+  const handleRenameSubtab = async (parent: string, oldSub: string, newSub: string) => {
+    const name = newSub.trim();
+    if (!name || name === oldSub) { setRenamingSub(null); return; }
+    const current = getSubsFor(parent);
+    const next = current.map((s) => (s === oldSub ? name : s));
+    saveCustomSubtabs({ ...customSubtabs, [parent]: next });
+    await supabase.from('wedding_elements').update({ category: `${parent} (${name})` }).eq('category', `${parent} (${oldSub})`);
+    setRenamingSub(null);
+    fetchElements();
+  };
+
+  const handleDeleteSubtab = async (parent: string, sub: string) => {
+    if (!confirm(`Delete subtab "${sub}" and all its elements?`)) return;
+    const current = getSubsFor(parent);
+    saveCustomSubtabs({ ...customSubtabs, [parent]: current.filter((s) => s !== sub) });
+    await supabase.from('wedding_elements').delete().eq('category', `${parent} (${sub})`);
+    fetchElements();
+  };
+
+  const handleMoveSubtab = (parent: string, sub: string, dir: -1 | 1) => {
+    const current = [...getSubsFor(parent)];
+    const idx = current.indexOf(sub);
+    const swap = idx + dir;
+    if (idx < 0 || swap < 0 || swap >= current.length) return;
+    [current[idx], current[swap]] = [current[swap], current[idx]];
+    saveCustomSubtabs({ ...customSubtabs, [parent]: current });
+  };
+
   const totals = useMemo(() => {
     const estimated = budget.reduce((s, i) => s + i.estimated, 0);
     const actual = budget.reduce((s, i) => s + i.actual, 0);
@@ -917,12 +982,15 @@ export default function WeddingPage() {
                 const subs = nestedGroups[parent] || {};
                 const allItems = Object.values(subs).flat();
                 const done = allItems.filter((i) => i.status === 'done').length;
-                const subOrder = CATEGORY_STRUCTURE.find((c) => c.name === parent)?.subs || [];
-                const subKeys = [
+                const subOrder = getSubsFor(parent);
+                const activeSub = subFilter[parent] ?? null;
+                const allSubKeys = [
                   '',
                   ...subOrder.filter((s) => subs[s]),
                   ...Object.keys(subs).filter((k) => k !== '' && !subOrder.includes(k)),
                 ].filter((k) => subs[k]);
+                const subKeys = activeSub ? allSubKeys.filter((k) => k === activeSub) : allSubKeys;
+                const hasAnySubs = subOrder.length > 0 || allSubKeys.some((k) => k !== '');
                 return (
                   <div key={parent} className="mb-8">
                     <div className="flex items-center gap-3 mb-3">
@@ -932,22 +1000,97 @@ export default function WeddingPage() {
                         <div className="h-full rounded-full bg-blue-500/50 transition-all" style={{ width: `${allItems.length > 0 ? (done / allItems.length) * 100 : 0}%` }} />
                       </div>
                     </div>
+
+                    {/* Subtab pill row — per-parent filter + manager */}
+                    {hasAnySubs && (
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        <button onClick={() => setSubFilter((p) => ({ ...p, [parent]: null }))}
+                          className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
+                            activeSub === null ? 'bg-mauve text-white' : 'bg-surface-hover text-foreground/70 hover:bg-mauve/20'
+                          }`}>All</button>
+                        {subOrder.map((s) => (
+                          <button key={s} onClick={() => setSubFilter((p) => ({ ...p, [parent]: s }))}
+                            className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
+                              activeSub === s ? 'bg-mauve text-white' : 'bg-surface-hover text-foreground/70 hover:bg-mauve/20'
+                            }`}>{s}</button>
+                        ))}
+                        <button onClick={() => setSubMgrOpen(subMgrOpen === parent ? null : parent)}
+                          className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-surface-hover text-mauve/80 hover:bg-mauve/20 transition-all">
+                          ⚙ Subtabs
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Subtab manager inline panel */}
+                    {subMgrOpen === parent && (
+                      <div className="mb-4 p-3 rounded-2xl border border-dashed border-border bg-surface space-y-2 animate-fade-in">
+                        <div className="flex gap-2">
+                          <input type="text" value={newSubName} onChange={(e) => setNewSubName(e.target.value)}
+                            placeholder="New subtab name..." onKeyDown={(e) => e.key === 'Enter' && handleAddSubtab(parent)}
+                            className="flex-1 px-3 py-1.5 rounded-lg border border-border bg-surface text-xs text-foreground focus:outline-none focus:border-mauve/40" />
+                          <button onClick={() => handleAddSubtab(parent)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${newSubName.trim() ? 'bg-mauve text-white hover:bg-mauve/90' : 'bg-surface-hover text-muted'}`}>Add</button>
+                        </div>
+                        <div className="space-y-1">
+                          {subOrder.map((s, i) => {
+                            const rkey = `${parent}::${s}`;
+                            const isRenaming = renamingSub === rkey;
+                            return (
+                              <div key={s} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-surface/60">
+                                <button onClick={() => handleMoveSubtab(parent, s, -1)} disabled={i === 0}
+                                  className="text-[10px] text-muted hover:text-foreground/70 disabled:opacity-30">↑</button>
+                                <button onClick={() => handleMoveSubtab(parent, s, 1)} disabled={i === subOrder.length - 1}
+                                  className="text-[10px] text-muted hover:text-foreground/70 disabled:opacity-30">↓</button>
+                                {isRenaming ? (
+                                  <input type="text" value={renameSubVal} onChange={(e) => setRenameSubVal(e.target.value)} autoFocus
+                                    onKeyDown={(e) => { if (e.key === 'Enter') handleRenameSubtab(parent, s, renameSubVal); if (e.key === 'Escape') setRenamingSub(null); }}
+                                    className="flex-1 px-2 py-0.5 rounded border border-border bg-surface text-xs text-foreground focus:outline-none" />
+                                ) : (
+                                  <span className="flex-1 text-xs text-foreground">{s}</span>
+                                )}
+                                <span className="text-[10px] text-muted">{(subs[s] || []).length}</span>
+                                {isRenaming ? (
+                                  <button onClick={() => handleRenameSubtab(parent, s, renameSubVal)} className="text-[11px] text-mauve/80 font-medium">Save</button>
+                                ) : (
+                                  <button onClick={() => { setRenamingSub(rkey); setRenameSubVal(s); }} className="text-[11px] text-muted hover:text-mauve/80">Rename</button>
+                                )}
+                                <button onClick={() => handleDeleteSubtab(parent, s)} className="text-[11px] text-muted hover:text-red-400">Delete</button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <button onClick={() => setSubMgrOpen(null)} className="text-[11px] text-muted hover:text-foreground/70">Close</button>
+                      </div>
+                    )}
+
                     {subKeys.map((subKey) => {
                       const items = subs[subKey];
                       const key = `${parent}::${subKey}`;
                       const collapsed = collapsedSubtabs[key];
                       const hasSubLabel = subKey !== '';
+                      const rkey = `${parent}::${subKey}`;
+                      const isRenaming = renamingSub === rkey;
                       return (
                         <div key={key} className={hasSubLabel ? 'mb-4 rounded-2xl border border-border/40 bg-surface/40 overflow-hidden' : 'mb-4'}>
                           {hasSubLabel && (
-                            <button onClick={() => toggleSubtab(key)}
-                              className="w-full px-4 py-2.5 flex items-center justify-between text-left hover:bg-foreground/[0.02] transition-colors">
-                              <div className="flex items-center gap-2">
-                                <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border ${PARENT_COLORS[parent] || PARENT_COLORS['Other']}`}>{subKey}</span>
+                            <div className="w-full px-4 py-2.5 flex items-center justify-between gap-2 hover:bg-foreground/[0.02] transition-colors">
+                              <button onClick={() => { setRenamingSub(rkey); setRenameSubVal(subKey); }}
+                                title="Rename subtab" className="text-muted hover:text-mauve/80 text-xs">✎</button>
+                              <div className="flex-1 flex items-center gap-2">
+                                {isRenaming ? (
+                                  <input type="text" value={renameSubVal} onChange={(e) => setRenameSubVal(e.target.value)} autoFocus
+                                    onKeyDown={(e) => { if (e.key === 'Enter') handleRenameSubtab(parent, subKey, renameSubVal); if (e.key === 'Escape') setRenamingSub(null); }}
+                                    onBlur={() => handleRenameSubtab(parent, subKey, renameSubVal)}
+                                    className="px-2 py-0.5 rounded border border-border bg-surface text-xs text-foreground focus:outline-none" />
+                                ) : (
+                                  <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border ${PARENT_COLORS[parent] || PARENT_COLORS['Other']}`}>{subKey}</span>
+                                )}
                                 <span className="text-[10px] text-muted">{items.length}</span>
                               </div>
-                              <ChevronDown className={`w-4 h-4 text-foreground/40 transition-transform ${collapsed ? '' : 'rotate-180'}`} />
-                            </button>
+                              <button onClick={() => toggleSubtab(key)} className="shrink-0">
+                                <ChevronDown className={`w-4 h-4 text-foreground/40 transition-transform ${collapsed ? '' : 'rotate-180'}`} />
+                              </button>
+                            </div>
                           )}
                           <AnimatePresence initial={false}>
                             {!collapsed && (
