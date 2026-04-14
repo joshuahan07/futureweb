@@ -190,13 +190,15 @@ export default function QAPage() {
       <div className="space-y-6">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-              <MessageCircleQuestion className="w-8 h-8 text-purple-400" />
+          className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-purple-50 via-fuchsia-50 to-pink-50/40 px-6 py-8 sm:py-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="absolute top-4 right-6 opacity-10 text-6xl select-none pointer-events-none">💭</div>
+          <div className="absolute bottom-3 left-6 opacity-10 text-3xl select-none pointer-events-none">✨</div>
+          <div className="relative">
+            <h1 className="font-heading italic text-3xl sm:text-4xl text-purple-700 tracking-tight flex items-center gap-3">
+              <MessageCircleQuestion className="w-8 h-8 text-purple-500" />
               Q&A Journal
             </h1>
-            <p className="text-foreground/40 mt-1">Deep conversations and shared understanding</p>
+            <p className="text-sm text-purple-700/70 mt-1">Deep conversations and shared understanding</p>
           </div>
           <div className="flex items-center gap-3">
             {/* Stats pill */}

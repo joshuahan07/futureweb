@@ -396,27 +396,32 @@ export default function RecipesPage() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-heading text-foreground">Recipes</h1>
-            <p className="text-sm text-muted mt-1">Dishes to make together &mdash; {madeCount} of {dishes.length} made</p>
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50/40 px-6 py-8 sm:py-10">
+          <div className="absolute top-4 right-6 opacity-10 text-6xl select-none pointer-events-none">🍳</div>
+          <div className="absolute bottom-3 left-6 opacity-10 text-3xl select-none pointer-events-none">🥘</div>
+          <div className="relative flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h1 className="font-heading italic text-3xl sm:text-4xl text-orange-700 tracking-tight">Recipes</h1>
+              <p className="text-sm text-orange-700/70 mt-1">Dishes to make together &mdash; {madeCount} of {dishes.length} made</p>
+            </div>
+            <button onClick={() => setShowAdd(true)}
+              className="px-4 py-2 rounded-xl bg-mauve text-white text-sm font-medium hover:bg-mauve/90 active:scale-95 transition-all shadow-lg shadow-mauve/25">
+              + Add Recipe
+            </button>
           </div>
-          <button onClick={() => setShowAdd(true)}
-            className="px-4 py-2 rounded-xl bg-mauve text-white text-sm font-medium hover:bg-mauve/90 active:scale-95 transition-all shadow-lg shadow-mauve/25">
-            + Add Recipe
-          </button>
         </div>
 
         {/* Progress */}
-        <div className="glass-card rounded-2xl p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-foreground">{madeCount} / {dishes.length}</span>
-            <span className="text-sm font-bold text-mauve">
+        <div className="glass-card rounded-2xl p-5 relative overflow-hidden" style={{ borderLeft: '3px solid #ea580c' }}>
+          <div className="absolute -right-4 -bottom-4 text-5xl opacity-5 select-none pointer-events-none">🍳</div>
+          <div className="flex items-center justify-between mb-2 relative">
+            <span className="text-sm font-semibold text-foreground flex items-center gap-2"><span>👨‍🍳</span>{madeCount} / {dishes.length} made</span>
+            <span className="text-xl font-bold text-orange-600">
               {dishes.length > 0 ? Math.round((madeCount / dishes.length) * 100) : 0}%
             </span>
           </div>
-          <div className="h-2.5 rounded-full bg-surface-hover overflow-hidden">
-            <div className="h-full rounded-full bg-gradient-to-r from-mauve to-sage transition-all duration-700"
+          <div className="h-3 rounded-full bg-surface-hover overflow-hidden">
+            <div className="h-full rounded-full bg-gradient-to-r from-amber-400 via-orange-400 to-orange-500 transition-all duration-700"
               style={{ width: `${dishes.length > 0 ? (madeCount / dishes.length) * 100 : 0}%` }} />
           </div>
         </div>
@@ -456,7 +461,14 @@ export default function RecipesPage() {
           ))}
         </div>
         {filtered.length === 0 && (
-          <div className="text-center py-16"><span className="text-4xl mb-3 block">🍳</span><p className="text-muted">No recipes match your filters</p></div>
+          <div className="text-center py-20 glass-card rounded-2xl">
+            <span className="text-5xl mb-4 block">🍳</span>
+            <p className="text-muted mb-4">No recipes match your filters</p>
+            <button onClick={() => setShowAdd(true)}
+              className="px-4 py-2 rounded-xl bg-orange-500 text-white text-sm font-medium hover:bg-orange-600 transition-colors">
+              + Add your first recipe
+            </button>
+          </div>
         )}
       </div>
 

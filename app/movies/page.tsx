@@ -232,11 +232,11 @@ export default function MoviesPage() {
     <Layout>
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-heading text-foreground">Movies & Shows</h1>
-        <p className="text-sm text-muted mt-1">
-          Everything we&apos;ve watched (and want to watch) together
-        </p>
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100/40 px-6 py-8 sm:py-10">
+        <div className="absolute top-4 right-6 opacity-10 text-6xl select-none pointer-events-none">🎬</div>
+        <div className="absolute bottom-3 left-6 opacity-10 text-3xl select-none pointer-events-none">🍿</div>
+        <h1 className="font-heading italic text-3xl sm:text-4xl text-rose tracking-tight relative">Movies & Shows</h1>
+        <p className="text-sm text-rose/70 mt-1 relative">Everything we&apos;ve watched (and want to watch) together</p>
       </div>
 
       {/* Sub-tabs */}
@@ -265,29 +265,20 @@ export default function MoviesPage() {
         <div className="space-y-6 animate-fade-in">
           {/* Stats bar */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="rounded-2xl p-4 glass-card">
-              <div className="text-2xl font-bold text-foreground">{totalWatched}</div>
-              <div className="text-xs text-muted">Watched Together</div>
-            </div>
-            <div className="rounded-2xl p-4 glass-card">
-              <div className="text-2xl font-bold text-foreground">{movieCount}</div>
-              <div className="text-xs text-muted">Movies</div>
-            </div>
-            <div className="rounded-2xl p-4 glass-card">
-              <div className="text-2xl font-bold text-foreground">{showCount}</div>
-              <div className="text-xs text-muted">Shows</div>
-            </div>
-            <div className="rounded-2xl p-4 glass-card">
-              <div className="text-sm font-semibold text-rose">
-                {mostRecent
-                  ? new Date(mostRecent.date_watched!).toLocaleDateString(
-                      'en-US',
-                      { month: 'short', day: 'numeric' }
-                    )
-                  : '\u2014'}
+            {[
+              { value: totalWatched, label: 'Watched Together', icon: '❤️', accent: '#F4A5B0' },
+              { value: movieCount, label: 'Movies', icon: '🎬', accent: '#ec4899' },
+              { value: showCount, label: 'Shows', icon: '📺', accent: '#a855f7' },
+              { value: mostRecent ? new Date(mostRecent.date_watched!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—', label: 'Last Watch', icon: '📅', accent: '#f59e0b' },
+            ].map((s) => (
+              <div key={s.label} className="rounded-2xl p-4 glass-card hover:shadow-md hover:-translate-y-0.5 transition-all relative overflow-hidden" style={{ borderLeft: `3px solid ${s.accent}` }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-base">{s.icon}</span>
+                  <span className="text-xl font-bold" style={{ color: s.accent }}>{s.value}</span>
+                </div>
+                <div className="text-[11px] text-muted">{s.label}</div>
               </div>
-              <div className="text-xs text-muted">Last Watch Date</div>
-            </div>
+            ))}
           </div>
 
           {/* Filters + Add */}

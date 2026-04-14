@@ -292,26 +292,20 @@ export default function HomePage() {
   return (
     <Layout>
       <div className="space-y-8 pb-8">
+        {/* Page hero */}
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50/40 px-6 py-8 sm:py-10">
+          <div className="absolute top-4 right-6 opacity-10 text-6xl select-none pointer-events-none">🏠</div>
+          <div className="absolute bottom-3 left-6 opacity-10 text-3xl select-none pointer-events-none">🌿</div>
+          <h1 className="font-heading italic text-3xl sm:text-4xl text-amber-700 tracking-tight relative">Our Nest</h1>
+          <p className="text-sm text-amber-700/70 mt-1 relative">Things we want and things we have</p>
+        </div>
+
         {/* ── Items List Section ────────────────────────────────── */}
         <section>
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2.5">
-              {/* Home icon */}
-              <svg
-                className="w-6 h-6 text-amber-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
-                />
-              </svg>
-              <h2 className="font-heading text-2xl text-foreground">Our Nest</h2>
-            </div>
+            <h2 className="font-heading text-xl text-foreground flex items-center gap-2">
+              <span>🏠</span> Items
+            </h2>
             <button
               onClick={() => setShowAddModal(true)}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 transition-colors shadow-sm hover:shadow"

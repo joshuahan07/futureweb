@@ -155,15 +155,18 @@ function QuickCard({ href, icon, title, subtitle, color }: {
 }) {
   return (
     <Link href={href}
-      className="group glass-card rounded-2xl p-4 hover:border-rose/30 transition-all hover:shadow-sm">
-      <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style={{ backgroundColor: `${color}15` }}>
+      className="group glass-card rounded-2xl p-4 transition-all hover:shadow-md hover:-translate-y-0.5 relative overflow-hidden"
+      style={{ borderColor: `${color}30` }}>
+      <div className="absolute -right-6 -bottom-6 w-20 h-20 rounded-full opacity-5 group-hover:opacity-15 transition-opacity" style={{ background: color }} />
+      <div className="flex items-center gap-3 relative">
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 transition-transform group-hover:scale-110" style={{ backgroundColor: `${color}20` }}>
           {icon}
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-medium text-foreground group-hover:text-rose transition-colors">{title}</h3>
+          <h3 className="text-sm font-semibold text-foreground transition-colors" style={{ color: undefined }}>{title}</h3>
           <p className="text-xs text-muted mt-0.5 truncate">{subtitle}</p>
         </div>
+        <span className="text-muted opacity-0 group-hover:opacity-100 transition-opacity text-lg shrink-0" style={{ color }}>→</span>
       </div>
     </Link>
   );
@@ -275,34 +278,41 @@ function Dashboard() {
   return (
     <div className="relative z-10 space-y-8">
       {/* Greeting */}
-      <div>
-        <h1 className="font-heading text-3xl sm:text-4xl text-foreground">
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-rose-50 via-pink-50 to-mauve/10 px-6 py-8 sm:py-10">
+        <div className="absolute top-4 right-8 opacity-10 text-6xl select-none pointer-events-none">💕</div>
+        <div className="absolute bottom-3 left-8 opacity-10 text-3xl select-none pointer-events-none">✨</div>
+        <h1 className="font-heading italic text-3xl sm:text-4xl text-mauve tracking-tight relative">
           {getGreeting(currentUser!)}
         </h1>
-        <p className="text-muted mt-1 text-sm">Here&apos;s what&apos;s happening in your world</p>
+        <p className="text-muted mt-1 text-sm relative">Here&apos;s what&apos;s happening in your world</p>
       </div>
 
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Movies Watched', value: stats.movies, icon: '🎬' },
-          { label: 'Books', value: stats.books, icon: '📚' },
-          { label: 'Bucket List', value: `${stats.bucketDone}/${stats.bucketTotal}`, icon: '✨' },
-          { label: 'Recipes Made', value: stats.recipes, icon: '🍳' },
+          { label: 'Movies Watched', value: stats.movies, icon: '🎬', accent: '#F4A5B0', href: '/movies' },
+          { label: 'Books', value: stats.books, icon: '📚', accent: '#7BA5D4', href: '/books' },
+          { label: 'Bucket List', value: `${stats.bucketDone}/${stats.bucketTotal}`, icon: '✨', accent: '#A8C5A0', href: '/lists' },
+          { label: 'Recipes Made', value: stats.recipes, icon: '🍳', accent: '#C9A0B4', href: '/recipes' },
         ].map((s) => (
-          <div key={s.label} className="glass-card rounded-2xl p-4">
+          <Link key={s.label} href={s.href}
+            className="glass-card rounded-2xl p-4 hover:shadow-md hover:-translate-y-0.5 transition-all relative overflow-hidden group"
+            style={{ borderLeft: `3px solid ${s.accent}` }}>
+            <div className="absolute -right-4 -top-4 w-16 h-16 rounded-full opacity-0 group-hover:opacity-10 transition-opacity" style={{ background: s.accent }} />
             <div className="flex items-center gap-2 mb-1">
               <span className="text-base">{s.icon}</span>
-              <span className="text-lg font-bold text-foreground">{s.value}</span>
+              <span className="text-xl font-bold" style={{ color: s.accent }}>{s.value}</span>
             </div>
             <span className="text-[11px] text-muted">{s.label}</span>
-          </div>
+          </Link>
         ))}
       </div>
 
       {/* Quick links */}
       <div>
-        <h2 className="font-heading text-lg text-foreground mb-3">Quick Links</h2>
+        <h2 className="font-heading text-lg text-foreground mb-3 flex items-center gap-2">
+          <span className="text-base">✨</span> Quick Links
+        </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           <QuickCard href="/movies" icon="🎬" title="Movies & Shows" subtitle="Add what you watched" color="#F4A5B0" />
           <QuickCard href="/lists" icon="📝" title="Bucket List" subtitle="Dreams to chase together" color="#A8C5A0" />
@@ -315,46 +325,58 @@ function Dashboard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Recently watched */}
-        <div className="glass-card rounded-2xl p-5">
-          <h2 className="font-heading text-base text-foreground mb-3">Recently Watched</h2>
+        <Link href="/movies" className="glass-card rounded-2xl p-5 hover:shadow-md transition-all group block" style={{ borderTop: '3px solid #F4A5B0' }}>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-heading text-base text-foreground flex items-center gap-2">
+              <span>🎬</span> Recently Watched
+            </h2>
+            <span className="text-xs text-muted opacity-0 group-hover:opacity-100 transition-opacity">View all →</span>
+          </div>
           {recentMovies.length === 0 ? (
-            <p className="text-sm text-muted">No movies yet</p>
+            <p className="text-sm text-muted italic">No movies yet</p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="space-y-1.5">
               {recentMovies.map((m, i) => (
-                <li key={i} className="flex items-center justify-between text-sm">
-                  <span className="text-foreground/80">{m.title}</span>
-                  <span className="text-xs text-muted flex gap-2">
-                    {m.rating_joshua != null && <span className="text-mauve/80">J: {(m.rating_joshua / 2).toFixed(1)}★</span>}
-                    {m.rating_sophie != null && <span className="text-rose">S: {(m.rating_sophie / 2).toFixed(1)}★</span>}
+                <li key={i} className="flex items-center justify-between text-sm py-1 border-b border-border/20 last:border-0">
+                  <span className="text-foreground/80 truncate">{m.title}</span>
+                  <span className="text-xs text-muted flex gap-2 shrink-0 ml-2">
+                    {m.rating_joshua != null && <span className="text-mauve/80">J {(m.rating_joshua / 2).toFixed(1)}★</span>}
+                    {m.rating_sophie != null && <span className="text-rose">S {(m.rating_sophie / 2).toFixed(1)}★</span>}
                   </span>
                 </li>
               ))}
             </ul>
           )}
-        </div>
+        </Link>
 
         {/* Bucket list */}
-        <div className="glass-card rounded-2xl p-5">
-          <h2 className="font-heading text-base text-foreground mb-3">Bucket List</h2>
+        <Link href="/lists" className="glass-card rounded-2xl p-5 hover:shadow-md transition-all group block" style={{ borderTop: '3px solid #A8C5A0' }}>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-heading text-base text-foreground flex items-center gap-2">
+              <span>✨</span> Bucket List
+            </h2>
+            <span className="text-xs text-muted opacity-0 group-hover:opacity-100 transition-opacity">View all →</span>
+          </div>
           {bucketItems.length === 0 ? (
-            <p className="text-sm text-muted">Nothing yet — dream big!</p>
+            <p className="text-sm text-muted italic">Nothing yet — dream big!</p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="space-y-1.5">
               {bucketItems.map((b, i) => (
-                <li key={i} className="text-sm text-foreground/80">
-                  {b.emoji && <span className="mr-1.5">{b.emoji}</span>}
-                  {b.text}
+                <li key={i} className="text-sm text-foreground/80 py-1 border-b border-border/20 last:border-0 flex items-start gap-1.5">
+                  {b.emoji && <span className="shrink-0">{b.emoji}</span>}
+                  <span className="truncate">{b.text}</span>
                 </li>
               ))}
             </ul>
           )}
-        </div>
+        </Link>
       </div>
 
       {/* Activity feed */}
-      <div className="glass-card rounded-2xl p-5">
-        <h2 className="font-heading text-base text-foreground mb-3">Recent Activity</h2>
+      <div className="glass-card rounded-2xl p-5" style={{ borderTop: '3px solid #C9A0B4' }}>
+        <h2 className="font-heading text-base text-foreground mb-3 flex items-center gap-2">
+          <span>📋</span> Recent Activity
+        </h2>
         {recentActivity.length === 0 ? (
           <p className="text-sm text-muted">No activity yet — start adding things together!</p>
         ) : (

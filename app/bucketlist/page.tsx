@@ -206,27 +206,27 @@ export default function BucketListPage() {
     <div className="min-h-screen">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">
-            ✨ Our Bucket List
-          </h1>
-          <p className="text-muted text-sm mt-1">
-            Dreams to chase together
-          </p>
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50/40 px-6 py-8 sm:py-10 mb-8">
+          <div className="absolute top-4 right-6 opacity-10 text-6xl select-none pointer-events-none">✨</div>
+          <div className="absolute bottom-3 left-6 opacity-10 text-3xl select-none pointer-events-none">🌱</div>
+          <h1 className="font-heading italic text-3xl sm:text-4xl text-emerald-700 tracking-tight relative">Our Bucket List</h1>
+          <p className="text-sm text-emerald-700/70 mt-1 relative">Dreams to chase together</p>
         </div>
 
         {/* Progress bar */}
-        <div className="mb-4 p-4 rounded-2xl glass-card shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-foreground">
+        <div className="mb-4 p-5 rounded-2xl glass-card shadow-sm relative overflow-hidden" style={{ borderLeft: '3px solid #10b981' }}>
+          <div className="absolute -right-4 -bottom-4 text-5xl opacity-5 select-none pointer-events-none">🌱</div>
+          <div className="flex items-center justify-between mb-2 relative">
+            <span className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <span>🎯</span>
               {completedCount} of {totalCount} completed
             </span>
-            <span className="text-sm font-bold text-mauve">
+            <span className="text-xl font-bold text-emerald-600">
               {totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%
             </span>
           </div>
-          <div className="h-3 rounded-full bg-surface-hover overflow-hidden">
-            <div className="h-full rounded-full transition-all duration-700 ease-out bg-gradient-to-r from-mauve to-sage"
+          <div className="h-3 rounded-full bg-surface-hover overflow-hidden relative">
+            <div className="h-full rounded-full transition-all duration-700 ease-out bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500"
               style={{ width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%` }} />
           </div>
         </div>
@@ -261,14 +261,14 @@ export default function BucketListPage() {
           {(['all', 'completed', 'remaining'] as BucketFilter[]).map((f) => (
             <button key={f} onClick={() => setFilter(f)}
               className={`px-3.5 py-1.5 rounded-full text-xs font-medium capitalize transition-all ${
-                filter === f ? 'bg-mauve/15 text-mauve border border-mauve/20' : 'glass text-muted hover:text-foreground'
+                filter === f ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'glass text-muted hover:text-foreground'
               }`}>{f}</button>
           ))}
           <div className="w-px h-6 bg-border mx-1 self-center" />
           {allCategories.map((c) => (
             <button key={c} onClick={() => setCategory(c)}
               className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-                category === c ? 'bg-mauve/10 text-mauve border border-mauve/20' : 'glass text-muted hover:text-foreground'
+                category === c ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'glass text-muted hover:text-foreground'
               }`}>{c}</button>
           ))}
         </div>
