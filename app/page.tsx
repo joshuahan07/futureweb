@@ -10,6 +10,7 @@ import { useRealtimeSync } from '@/lib/realtime';
 import { formatDistanceToNow } from 'date-fns';
 import { Heart, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePfps } from '@/lib/pfp';
 
 // ── Identity Picker ──────────────────────────────────────────
 
@@ -65,8 +66,7 @@ function IdentityPicker({ onPick }: { onPick: (user: 'joshua' | 'sophie') => voi
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const joshuaPfp = typeof window !== 'undefined' ? localStorage.getItem('js-pfp-joshua') : null;
-  const sophiePfp = typeof window !== 'undefined' ? localStorage.getItem('js-pfp-sophie') : null;
+  const { joshuaPfp, sophiePfp } = usePfps();
 
   const handleSelect = (user: 'joshua' | 'sophie') => {
     setSelectedUser(user);

@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState, useRef } from 'react';
+import { ReactNode, useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,6 +9,7 @@ import { useTheme } from './ThemeContext';
 import { usePresence } from '@/lib/presence';
 import { supabase } from '@/lib/supabase';
 import AnimatedBackground from './AnimatedBackground';
+import { usePfps, invalidatePfpCache } from '@/lib/pfp';
 import {
   Film, Star, BookOpen, UtensilsCrossed, Heart,
   MessageCircleQuestion, MapPin, Gift, LayoutDashboard,
@@ -68,18 +69,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   const [cropDragging, setCropDragging] = useState(false);
   const CIRCLE = 240;
 
-  const [joshuaPfp, setJoshuaPfp] = useState<string | null>(null);
-  const [sophiePfp, setSophiePfp] = useState<string | null>(null);
-
-  // Load and validate pfp URLs from localStorage
-  useState(() => {
-    if (typeof window === 'undefined') return;
-    const jp = localStorage.getItem('js-pfp-joshua');
-    const sp = localStorage.getItem('js-pfp-sophie');
-    // Clear broken HEIC URLs
-    if (jp?.includes('.HEIC')) { localStorage.removeItem('js-pfp-joshua'); } else if (jp) setJoshuaPfp(jp);
-    if (sp?.includes('.HEIC')) { localStorage.removeItem('js-pfp-sophie'); } else if (sp) setSophiePfp(sp);
-  });
+  const { joshuaPfp, sophiePfp } = usePfps();
 
   // Step 1: User picks file → show crop modal
   const handleFileSelect = (file: File) => {
@@ -141,7 +131,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       const { error } = await supabase.storage.from('media').upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
       if (error) { console.error('PFP upload error:', error.message); setUploading(false); return; }
       const { data } = supabase.storage.from('media').getPublicUrl(path);
-      localStorage.setItem(`js-pfp-${currentUser}`, data.publicUrl + '?t=' + Date.now());
+      invalidatePfpCache();
       window.location.reload();
     } catch (e) {
       console.error('PFP processing error:', e);

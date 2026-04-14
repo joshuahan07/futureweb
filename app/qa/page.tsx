@@ -7,6 +7,7 @@ import { useUser } from '@/components/UserContext'
 import { seedIfEmpty } from '@/lib/seed'
 import Layout from '@/components/Layout'
 import { MessageCircleQuestion, Plus, ChevronDown, Check } from 'lucide-react'
+import { usePfp } from '@/lib/pfp'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface Question { id: string; question: string; category: string | null; order_index: number | null; }
@@ -79,7 +80,7 @@ function AnswerBox({ questionId, person, currentUser, existingAnswer }: {
   const isJoshua = person === 'joshua';
   const label = isJoshua ? 'Joshua' : 'Sophie';
   const color = isJoshua ? 'blue' : 'pink';
-  const pfp = typeof window !== 'undefined' ? localStorage.getItem(`js-pfp-${person}`) : null;
+  const pfp = usePfp(person);
 
   return (
     <div className="space-y-2">

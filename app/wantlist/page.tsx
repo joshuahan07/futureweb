@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useRealtimeSync } from '@/lib/realtime';
 import { useUser } from '@/components/UserContext';
 import { Heart, Gift, ExternalLink, Check, Lock, Trash2, Plus, ImageIcon } from 'lucide-react';
+import { usePfp } from '@/lib/pfp';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface WantlistItem {
@@ -210,7 +211,7 @@ export default function WantlistPage() {
 
   const WishlistColumn = ({ ownerItems, ownerName, ownerColor }: { ownerItems: WantlistItem[]; ownerName: string; ownerColor: string }) => {
     const isOwnList = currentUser === ownerName.toLowerCase();
-    const pfp = typeof window !== 'undefined' ? localStorage.getItem(`js-pfp-${ownerName.toLowerCase()}`) : null;
+    const pfp = usePfp(ownerName.toLowerCase());
 
     return (
       <div>
