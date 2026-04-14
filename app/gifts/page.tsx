@@ -82,50 +82,33 @@ export default function GiftsPage() {
     fetchMatching();
   };
 
-  // Dynamic categories from data
-  const liveCategories = [...new Set(matching.map((m) => m.category))];
-  const allCategories = [...new Set([...DEFAULT_CATEGORIES, ...liveCategories])];
+  // Categories derived purely from DB data + defaults
+  const liveCategories = [...new Set(matching.map((m) => m.category).filter(Boolean))];
+  const displayCategories = [...new Set([...DEFAULT_CATEGORIES, ...liveCategories])];
 
-  // Category management handlers
-  const handleAddCategory = () => {
+  // Category management — all operations go through Supabase
+  const handleAddCategory = async () => {
     const name = newCatName.trim();
-    if (!name || allCategories.includes(name)) return;
-    const custom = JSON.parse(localStorage.getItem('js-custom-gift-cats') || '[]');
-    custom.push(name);
-    localStorage.setItem('js-custom-gift-cats', JSON.stringify(custom));
+    if (!name || displayCategories.includes(name)) return;
+    // Insert a placeholder item so the category persists in DB
+    await supabase.from('matching_items').insert({ category: name, item_name: '(new category)', status: 'Want', notes: '', link: '', found_by: currentUser || 'joshua' });
     setNewCatName('');
     setShowCategoryManager(false);
-    setMatching([...matching]); // force re-render
+    fetchMatching();
   };
 
   const handleRenameCategory = async (oldName: string, newName: string) => {
     if (!newName.trim() || newName === oldName) return;
-    // Update all items in this category
     await supabase.from('matching_items').update({ category: newName.trim() }).eq('category', oldName);
-    // Update localStorage custom cats
-    const custom: string[] = JSON.parse(localStorage.getItem('js-custom-gift-cats') || '[]');
-    const idx = custom.indexOf(oldName);
-    if (idx !== -1) custom[idx] = newName.trim();
-    localStorage.setItem('js-custom-gift-cats', JSON.stringify(custom));
     setRenamingCat(null);
     setRenameValue('');
     fetchMatching();
   };
 
   const handleDeleteCategory = async (catName: string) => {
-    // Delete all items in this category
     await supabase.from('matching_items').delete().eq('category', catName);
-    // Remove from localStorage
-    const custom: string[] = JSON.parse(localStorage.getItem('js-custom-gift-cats') || '[]');
-    localStorage.setItem('js-custom-gift-cats', JSON.stringify(custom.filter((c) => c !== catName)));
     fetchMatching();
   };
-
-  // Include custom categories from localStorage
-  const customCats: string[] = typeof window !== 'undefined'
-    ? JSON.parse(localStorage.getItem('js-custom-gift-cats') || '[]')
-    : [];
-  const displayCategories = [...new Set([...allCategories, ...customCats])];
 
   return (
     <Layout>

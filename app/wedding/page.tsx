@@ -89,7 +89,7 @@ const _STATUS_COLORS: Record<string, string> = {
   in_progress: 'bg-mauve/10 text-mauve',
   done: 'bg-green-50 text-sage',
 };
-const BUDGET_CATS = ['Venue', 'Catering', 'Photography', 'Dress', 'Decor', 'Music', 'Invites', 'Rings', 'Honeymoon', 'Other'];
+const BUDGET_CATS = ['Venue', 'Catering', 'Photography', 'Attire', 'Decor', 'Music', 'Invites', 'Rings', 'Honeymoon', 'Accommodation', 'Other'];
 
 const SEED_ELEMENTS: Omit<WeddingElement, 'id' | 'created_at' | 'created_by'>[] = [
   { title: 'Suit with pictures/writings inside', category: 'Vision', description: 'Hidden meaningful photos and notes sewn into the suit lining', status: 'dream', priority: false },
@@ -655,6 +655,17 @@ export default function WeddingPage() {
     })();
   }, [elements, fetchElements]);
 
+  // One-time budget rename: Dress → Attire.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (localStorage.getItem('js-wedding-budget-migrated-v1') === '1') return;
+    (async () => {
+      await supabase.from('wedding_budget').update({ category: 'Attire' }).eq('category', 'Dress');
+      localStorage.setItem('js-wedding-budget-migrated-v1', '1');
+      fetchBudget();
+    })();
+  }, [fetchBudget]);
+
   // Top-level pill order persisted in localStorage. Default: structure + Budget before Other.
   const DEFAULT_PILL_ORDER = [...TOP_LEVEL_CATS, 'Budget', 'Other'];
   const [pillOrder, setPillOrder] = useState<string[]>(DEFAULT_PILL_ORDER);
@@ -686,11 +697,14 @@ export default function WeddingPage() {
     savePillOrder(next);
   };
 
-  const handleAddVisionCat = () => {
+  const handleAddVisionCat = async () => {
     const name = newVisionCat.trim();
     if (!name || pillOrder.includes(name)) return;
+    // Insert placeholder element so category persists in DB
+    await supabase.from('wedding_elements').insert({ title: '(new category)', category: name, status: 'dream', priority: false, created_by: currentUser });
     savePillOrder([...pillOrder, name]);
     setNewVisionCat('');
+    fetchElements();
   };
 
   const handleRenameVisionCat = async (oldName: string, newName: string) => {
@@ -719,8 +733,7 @@ export default function WeddingPage() {
     fetchElements();
   };
 
-  const customVisionCats: string[] = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('js-wedding-cats') || '[]') : [];
-  const displayVisionCats = [...new Set([...allVisionCats, ...customVisionCats])];
+  const displayVisionCats = allVisionCats;
 
   // ── Filtered + nested grouping ─────────────────────────────
 
@@ -853,7 +866,7 @@ export default function WeddingPage() {
           <div className="flex-1 min-w-0 space-y-12">
 
             {/* ═══ VISION BOARD ═══ */}
-            <section>
+            <section className="flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-heading italic text-2xl text-foreground/70">Wedding Board ✦</h2>
                 <button onClick={() => { setEditingElement(null); setShowAddElement(true); }}
@@ -920,9 +933,9 @@ export default function WeddingPage() {
                 </div>
               )}
 
-              {/* Budget — its own category, rendered first when All or Budget filter is active */}
+              {/* Budget — rendered in its pill-order position (below, after parent groups) */}
               {(filterCat === 'All' || filterCat === 'Budget') && (
-                <div className="mb-10">
+                <div className="mb-10 order-last" data-budget-block>
                   <h3 className="font-heading italic text-lg text-foreground/70 mb-4">Budget</h3>
                   <DonutChart items={budget} />
                   <div className="overflow-x-auto rounded-2xl border border-border/60 bg-surface/80">
