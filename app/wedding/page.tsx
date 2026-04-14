@@ -670,22 +670,26 @@ export default function WeddingPage() {
   const DEFAULT_PILL_ORDER = [...TOP_LEVEL_CATS, 'Budget', 'Other'];
   const [pillOrder, setPillOrder] = useState<string[]>(DEFAULT_PILL_ORDER);
 
+  // Load pill order from Supabase (shared across devices)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const saved = JSON.parse(localStorage.getItem('js-wedding-pill-order-v1') || 'null');
-      if (Array.isArray(saved) && saved.length > 0) {
-        const merged = [...saved.filter((c: string) => DEFAULT_PILL_ORDER.includes(c) || !TOP_LEVEL_CATS.includes(c))];
-        DEFAULT_PILL_ORDER.forEach((c) => { if (!merged.includes(c)) merged.push(c); });
-        setPillOrder(merged);
+    supabase.from('wedding_notes').select('content').eq('user_name', '_pill_order').single().then(({ data }) => {
+      if (data?.content) {
+        try {
+          const saved = JSON.parse(data.content);
+          if (Array.isArray(saved) && saved.length > 0) {
+            const merged = [...saved];
+            DEFAULT_PILL_ORDER.forEach((c) => { if (!merged.includes(c)) merged.push(c); });
+            setPillOrder(merged);
+          }
+        } catch {}
       }
-    } catch {}
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const savePillOrder = (next: string[]) => {
+  const savePillOrder = async (next: string[]) => {
     setPillOrder(next);
-    localStorage.setItem('js-wedding-pill-order-v1', JSON.stringify(next));
+    await supabase.from('wedding_notes').upsert({ user_name: '_pill_order', content: JSON.stringify(next) }, { onConflict: 'user_name' });
   };
 
   const handleMovePillOrder = (cat: string, dir: -1 | 1) => {
@@ -769,14 +773,18 @@ export default function WeddingPage() {
   // customSubtabs: Record<parent, orderedSubs[]>. If absent for a parent, use CATEGORY_STRUCTURE default.
   const [customSubtabs, setCustomSubtabs] = useState<Record<string, string[]>>({});
 
+  // Load custom subtabs from Supabase
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try { setCustomSubtabs(JSON.parse(localStorage.getItem('js-wedding-subtabs-v1') || '{}')); } catch {}
+    supabase.from('wedding_notes').select('content').eq('user_name', '_subtabs').single().then(({ data }) => {
+      if (data?.content) {
+        try { setCustomSubtabs(JSON.parse(data.content)); } catch {}
+      }
+    });
   }, []);
 
-  const saveCustomSubtabs = (next: Record<string, string[]>) => {
-    localStorage.setItem('js-wedding-subtabs-v1', JSON.stringify(next));
+  const saveCustomSubtabs = async (next: Record<string, string[]>) => {
     setCustomSubtabs(next);
+    await supabase.from('wedding_notes').upsert({ user_name: '_subtabs', content: JSON.stringify(next) }, { onConflict: 'user_name' });
   };
 
   const getSubsFor = useCallback((parent: string): string[] => {
@@ -935,7 +943,7 @@ export default function WeddingPage() {
 
               {/* Budget — rendered in its pill-order position (below, after parent groups) */}
               {(filterCat === 'All' || filterCat === 'Budget') && (
-                <div className="mb-10 order-last" data-budget-block>
+                <div className="mb-10" data-budget-block style={{ order: 999 }}>
                   <h3 className="font-heading italic text-lg text-foreground/70 mb-4">Budget</h3>
                   <DonutChart items={budget} />
                   <div className="overflow-x-auto rounded-2xl border border-border/60 bg-surface/80">
