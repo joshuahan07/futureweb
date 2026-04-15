@@ -73,9 +73,9 @@ const PARENT_COLORS: Record<string, string> = {
   'Preparations': 'bg-sky-50 text-sky-700 border-sky-200',
   'Vision': 'bg-amber-50 text-amber-700 border-amber-200',
   'Invites': 'bg-purple-50 text-purple-700 border-purple-200',
-  'Venue': 'bg-slate-100 text-slate-600 border-slate-200',
-  'Memories': 'bg-pink-50/60 text-pink-400 border-pink-100',
-  'Catering': 'bg-red-50 text-red-600 border-red-200',
+  'Venue': 'bg-[#E0E0DE]/50 text-[#6b6b69] border-[#d0d0ce]',
+  'Memories': 'bg-[#EACBCB]/50 text-[#c8898b] border-[#EACBCB]',
+  'Catering': 'bg-[#CC6B6B]/10 text-[#CC6B6B] border-[#CC6B6B]/30',
   'Aesthetics': 'bg-[#f5ebdc] text-[#a78866] border-[#e8d9c4]',
   'Budget': 'bg-emerald-50 text-emerald-600 border-emerald-200',
   'Other': 'bg-surface-hover/50 text-muted border-border',
@@ -86,14 +86,20 @@ const PARENT_ACCENT: Record<string, string> = {
   'Preparations': '#3b82f6',
   'Vision': '#f59e0b',
   'Invites': '#a855f7',
-  'Venue': '#64748b',
-  'Memories': '#f9a8d4',
-  'Catering': '#ef4444',
+  'Venue': '#E0E0DE',
+  'Memories': '#EACBCB',
+  'Catering': '#CC6B6B',
   'Aesthetics': '#c9a87c',
   'Budget': '#10b981',
   'Other': '#94a3b8',
 };
 const accentFor = (parent: string) => PARENT_ACCENT[parent] || PARENT_ACCENT['Other'];
+
+// Subtab accent overrides (falls back to parent accent)
+const SUBTAB_ACCENT: Record<string, string> = {
+  'Preparations': '#A7C7E7',
+};
+const subtabAccentFor = (parent: string) => SUBTAB_ACCENT[parent] || accentFor(parent);
 
 const CAT_COLORS = new Proxy({} as Record<string, string>, {
   get: (_t, key: string) => PARENT_COLORS[parseCategory(key).parent] || PARENT_COLORS['Other'],
@@ -1295,6 +1301,7 @@ export default function WeddingPage() {
                 const subKeys = activeSub ? allSubKeys.filter((k) => k === activeSub) : allSubKeys;
                 const hasAnySubs = true;
                 const accent = accentFor(parent);
+                const subAccent = subtabAccentFor(parent);
                 return (
                   <div key={parent} className="mb-10 rounded-3xl bg-surface/40 border border-border/40 overflow-hidden shadow-sm"
                        style={{ borderLeft: `4px solid ${accent}` }}>
@@ -1399,11 +1406,11 @@ export default function WeddingPage() {
                       const isRenaming = renamingSub === rkey;
                       return (
                         <div key={key} className={hasSubLabel ? 'mb-3 rounded-xl border border-border/60 bg-background overflow-hidden shadow-sm' : 'mb-3'}
-                             style={hasSubLabel ? { borderLeft: `3px solid ${accent}80` } : undefined}>
+                             style={hasSubLabel ? { borderLeft: `3px solid ${subAccent}` } : undefined}>
                           {hasSubLabel && (
                             <div className="w-full px-3.5 py-2.5 flex items-center justify-between gap-2 hover:bg-foreground/[0.02] transition-colors cursor-pointer"
                                  onClick={() => toggleSubtab(key)}
-                                 style={{ background: collapsed ? 'transparent' : `${accent}08` }}>
+                                 style={{ background: collapsed ? 'transparent' : `${subAccent}15` }}>
                               <button onClick={(e) => { e.stopPropagation(); setRenamingSub(rkey); setRenameSubVal(subKey); }}
                                 title="Rename subtab" className="text-muted hover:text-mauve/80 text-xs shrink-0">✎</button>
                               <div className="flex-1 flex items-center gap-2 min-w-0" onClick={(e) => e.stopPropagation()}>
@@ -1413,11 +1420,11 @@ export default function WeddingPage() {
                                     onBlur={() => handleRenameSubtab(parent, subKey, renameSubVal)}
                                     className="px-2 py-0.5 rounded border border-border bg-surface text-xs text-foreground focus:outline-none" />
                                 ) : (
-                                  <span className="text-sm font-medium" style={{ color: accent }}>{subKey}</span>
+                                  <span className="text-sm font-medium" style={{ color: subAccent }}>{subKey}</span>
                                 )}
                                 <span className="text-[10px] text-muted px-1.5 py-0.5 rounded-full bg-surface-hover">{items.length}</span>
                               </div>
-                              <ChevronDown className={`w-4 h-4 transition-transform shrink-0 ${collapsed ? '' : 'rotate-180'}`} style={{ color: accent }} />
+                              <ChevronDown className={`w-4 h-4 transition-transform shrink-0 ${collapsed ? '' : 'rotate-180'}`} style={{ color: subAccent }} />
                             </div>
                           )}
                           <AnimatePresence initial={false}>
