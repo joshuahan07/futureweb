@@ -73,11 +73,11 @@ const PARENT_COLORS: Record<string, string> = {
   'Preparations': 'bg-sky-50 text-sky-700 border-sky-200',
   'Vision': 'bg-amber-50 text-amber-700 border-amber-200',
   'Invites': 'bg-purple-50 text-purple-700 border-purple-200',
-  'Venue': 'bg-teal-50 text-teal-600 border-teal-200',
-  'Memories': 'bg-pink-50 text-pink-600 border-pink-200',
+  'Venue': 'bg-slate-100 text-slate-600 border-slate-200',
+  'Memories': 'bg-pink-50/60 text-pink-400 border-pink-100',
   'Catering': 'bg-red-50 text-red-600 border-red-200',
-  'Aesthetics': 'bg-stone-100 text-stone-700 border-stone-200',
-  'Budget': 'bg-indigo-50 text-indigo-600 border-indigo-200',
+  'Aesthetics': 'bg-[#f5ebdc] text-[#a78866] border-[#e8d9c4]',
+  'Budget': 'bg-emerald-50 text-emerald-600 border-emerald-200',
   'Other': 'bg-surface-hover/50 text-muted border-border',
 };
 
@@ -86,11 +86,11 @@ const PARENT_ACCENT: Record<string, string> = {
   'Preparations': '#3b82f6',
   'Vision': '#f59e0b',
   'Invites': '#a855f7',
-  'Venue': '#14b8a6',
-  'Memories': '#ec4899',
+  'Venue': '#64748b',
+  'Memories': '#f9a8d4',
   'Catering': '#ef4444',
-  'Aesthetics': '#a8a29e',
-  'Budget': '#6366f1',
+  'Aesthetics': '#c9a87c',
+  'Budget': '#10b981',
   'Other': '#94a3b8',
 };
 const accentFor = (parent: string) => PARENT_ACCENT[parent] || PARENT_ACCENT['Other'];
@@ -315,7 +315,10 @@ function ElementModal({ element, onClose, onSave, categories }: {
 
 // ── Preparation Timeline ────────────────────────────────────
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const TIMELINE_SLOTS = [
+  ...Array.from({ length: 18 }, (_, i) => `${18 - i} months before`),
+  'Our Day',
+];
 
 function PreparationTimeline({ items, onUpdate, onDelete, onEdit }: {
   items: WeddingElement[];
@@ -326,73 +329,88 @@ function PreparationTimeline({ items, onUpdate, onDelete, onEdit }: {
   const [notes, setNotes] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
+  const [moveMenuId, setMoveMenuId] = useState<string | null>(null);
 
-  // Items keyed by month (stored in description as "timeline:Jan" etc)
-  const getMonth = (el: WeddingElement) => {
-    const m = el.description?.match(/^timeline:(\w+)/);
+  const getSlot = (el: WeddingElement) => {
+    const m = el.description?.match(/^timeline:(.+?)(\n|$)/);
     return m ? m[1] : null;
   };
 
-  const unassigned = items.filter((i) => !getMonth(i));
-  const byMonth: Record<string, WeddingElement[]> = {};
-  MONTHS.forEach((m) => { byMonth[m] = items.filter((i) => getMonth(i) === m); });
+  const unassigned = items.filter((i) => !getSlot(i));
+  const bySlot: Record<string, WeddingElement[]> = {};
+  TIMELINE_SLOTS.forEach((s) => { bySlot[s] = items.filter((i) => getSlot(i) === s); });
 
-  // Load/save notes from Supabase
   useEffect(() => {
     supabase.from('wedding_notes').select('content').eq('user_name', '_prep_notes').single().then(({ data }) => {
       if (data?.content) setNotes(data.content);
     });
   }, []);
 
-  const saveNotes = useCallback((val: string) => {
-    setNotes(val);
-    supabase.from('wedding_notes').upsert({ user_name: '_prep_notes', content: val }, { onConflict: 'user_name' });
-  }, []);
-
   const notesTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleNotesChange = (val: string) => {
     setNotes(val);
     if (notesTimer.current) clearTimeout(notesTimer.current);
-    notesTimer.current = setTimeout(() => saveNotes(val), 800);
+    notesTimer.current = setTimeout(() => {
+      supabase.from('wedding_notes').upsert({ user_name: '_prep_notes', content: val }, { onConflict: 'user_name' });
+    }, 800);
   };
 
-  const moveToMonth = (id: string, month: string | null) => {
+  const moveToSlot = (id: string, slot: string | null) => {
     const el = items.find((i) => i.id === id);
     if (!el) return;
     const oldDesc = el.description || '';
-    const cleanDesc = oldDesc.replace(/^timeline:\w+\n?/, '').trim();
-    const newDesc = month ? `timeline:${month}\n${cleanDesc}` : cleanDesc;
+    const cleanDesc = oldDesc.replace(/^timeline:.+?\n?/, '').trim();
+    const newDesc = slot ? `timeline:${slot}\n${cleanDesc}` : cleanDesc;
     onUpdate(id, { description: newDesc });
+    setMoveMenuId(null);
   };
 
-  const handleDrop = (month: string | null) => (e: React.DragEvent) => {
+  const handleDrop = (slot: string | null) => (e: React.DragEvent) => {
     e.preventDefault();
-    if (dragId) { moveToMonth(dragId, month); setDragId(null); }
+    if (dragId) { moveToSlot(dragId, slot); setDragId(null); }
   };
 
-  const MiniCard = ({ el }: { el: WeddingElement }) => {
+  const renderCard = (el: WeddingElement) => {
     const isExpanded = expandedId === el.id;
+    const showMove = moveMenuId === el.id;
     const sub = parseCategory(el.category).sub;
     const subColor = sub === 'Bride' ? 'bg-pink-500/15 text-pink-400' : sub === 'Groom' ? 'bg-sky-500/15 text-sky-400' : 'bg-violet-500/15 text-violet-400';
+    const currentSlot = getSlot(el);
 
     return (
-      <div draggable onDragStart={() => setDragId(el.id)}
+      <div key={el.id} draggable onDragStart={() => setDragId(el.id)}
         className={`glass-card p-2.5 cursor-grab active:cursor-grabbing transition-all ${dragId === el.id ? 'opacity-50 scale-95' : ''}`}>
-        <div className="flex items-center gap-2" onClick={() => setExpandedId(isExpanded ? null : el.id)}>
-          {sub && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${subColor}`}>{sub}</span>}
+        <div className="flex items-center gap-2" onClick={() => { setExpandedId(isExpanded ? null : el.id); setMoveMenuId(null); }}>
+          {sub && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium shrink-0 ${subColor}`}>{sub}</span>}
           <span className="text-xs font-medium text-foreground flex-1 truncate">{el.title}</span>
-          <ChevronDown className={`w-3 h-3 text-muted transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`w-3 h-3 text-muted transition-transform shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
         </div>
         {isExpanded && (
           <div className="mt-2 pt-2 border-t border-foreground/5 space-y-2 animate-fade-in">
             {el.description && !el.description.startsWith('timeline:') && (
-              <p className="text-[11px] text-muted">{el.description.replace(/^timeline:\w+\n?/, '')}</p>
+              <p className="text-[11px] text-muted">{el.description.replace(/^timeline:.+?\n?/, '')}</p>
             )}
-            <div className="flex gap-1.5">
+            <div className="flex flex-wrap gap-1.5 items-center">
               <button onClick={() => onEdit(el)} className="text-[10px] text-mauve hover:underline">Edit</button>
               <button onClick={() => { if (confirm(`Delete "${el.title}"?`)) onDelete(el.id); }} className="text-[10px] text-red-400 hover:underline">Delete</button>
-              {getMonth(el) && <button onClick={() => moveToMonth(el.id, null)} className="text-[10px] text-muted hover:underline ml-auto">Remove from timeline</button>}
+              <button onClick={(e) => { e.stopPropagation(); setMoveMenuId(showMove ? null : el.id); }}
+                className="text-[10px] text-foreground/50 hover:text-mauve hover:underline ml-auto">Move to...</button>
+              {currentSlot && <button onClick={() => moveToSlot(el.id, null)} className="text-[10px] text-muted hover:underline">Unschedule</button>}
             </div>
+            {showMove && (
+              <div className="mt-1 p-1.5 rounded-xl border border-foreground/10 bg-background max-h-48 overflow-y-auto animate-fade-in">
+                <button onClick={() => moveToSlot(el.id, null)}
+                  className={`w-full text-left px-2 py-1.5 rounded-lg text-[11px] transition-colors ${!currentSlot ? 'bg-mauve/10 text-mauve font-medium' : 'text-muted hover:bg-foreground/5'}`}>
+                  Unscheduled
+                </button>
+                {TIMELINE_SLOTS.map((slot) => (
+                  <button key={slot} onClick={() => moveToSlot(el.id, slot)}
+                    className={`w-full text-left px-2 py-1.5 rounded-lg text-[11px] transition-colors ${currentSlot === slot ? 'bg-mauve/10 text-mauve font-medium' : 'text-muted hover:bg-foreground/5'}`}>
+                    {slot}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -401,49 +419,42 @@ function PreparationTimeline({ items, onUpdate, onDelete, onEdit }: {
 
   return (
     <div className="p-4 space-y-6">
-      {/* Unassigned items — drag these onto months */}
       {unassigned.length > 0 && (
         <div className="p-3 rounded-2xl border border-dashed border-foreground/10"
           onDragOver={(e) => e.preventDefault()} onDrop={handleDrop(null)}>
           <h4 className="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Unscheduled</h4>
           <div className="flex flex-wrap gap-2">
-            {unassigned.map((el) => <div key={el.id} className="w-full sm:w-auto sm:min-w-[200px]"><MiniCard el={el} /></div>)}
+            {unassigned.map((el) => <div key={el.id} className="w-full sm:w-auto sm:min-w-[200px]">{renderCard(el)}</div>)}
           </div>
         </div>
       )}
 
-      {/* Vertical timeline */}
       <div className="relative">
-        {/* Timeline line */}
         <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-foreground/10" />
-
-        {MONTHS.map((month, idx) => {
-          const monthItems = byMonth[month];
-          const hasItems = monthItems.length > 0;
+        {TIMELINE_SLOTS.map((slot) => {
+          const slotItems = bySlot[slot];
+          const hasItems = slotItems.length > 0;
+          const isOurDay = slot === 'Our Day';
           return (
-            <div key={month} className="relative pl-12 pb-6 min-h-[48px]"
+            <div key={slot} className="relative pl-12 pb-5 min-h-[44px] rounded-lg transition-colors"
               onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('bg-mauve/5'); }}
               onDragLeave={(e) => e.currentTarget.classList.remove('bg-mauve/5')}
-              onDrop={(e) => { e.currentTarget.classList.remove('bg-mauve/5'); handleDrop(month)(e); }}>
-              {/* Month dot */}
-              <div className={`absolute left-3.5 top-1 w-4 h-4 rounded-full border-2 ${hasItems ? 'bg-mauve border-mauve' : 'bg-background border-foreground/20'}`} />
-              {/* Month label */}
+              onDrop={(e) => { e.currentTarget.classList.remove('bg-mauve/5'); handleDrop(slot)(e); }}>
+              <div className={`absolute left-3.5 top-1 w-4 h-4 rounded-full border-2 transition-colors ${
+                isOurDay ? 'bg-rose border-rose' : hasItems ? 'bg-mauve border-mauve' : 'bg-background border-foreground/20'
+              }`} />
               <div className="flex items-center gap-2 mb-2">
-                <span className={`text-sm font-semibold ${hasItems ? 'text-foreground' : 'text-muted'}`}>{month}</span>
-                {hasItems && <span className="text-[10px] text-muted">{monthItems.length} items</span>}
+                <span className={`text-sm font-semibold ${isOurDay ? 'text-rose' : hasItems ? 'text-foreground' : 'text-muted'}`}>{slot}</span>
+                {hasItems && <span className="text-[10px] text-muted">{slotItems.length}</span>}
               </div>
-              {/* Cards in this month */}
-              {monthItems.length > 0 && (
-                <div className="space-y-2">
-                  {monthItems.map((el) => <MiniCard key={el.id} el={el} />)}
-                </div>
+              {slotItems.length > 0 && (
+                <div className="space-y-2">{slotItems.map((el) => renderCard(el))}</div>
               )}
             </div>
           );
         })}
       </div>
 
-      {/* Notes section */}
       <div className="rounded-2xl border border-foreground/10 p-4">
         <h4 className="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Notes</h4>
         <textarea value={notes} onChange={(e) => handleNotesChange(e.target.value)}
