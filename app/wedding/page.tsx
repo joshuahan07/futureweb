@@ -864,6 +864,36 @@ export default function WeddingPage() {
     await supabase.from('wedding_budget').delete().eq('id', id);
   };
 
+  const handleAddBudgetToCat = async (cat: string) => {
+    const newRow = { category: cat, label: 'New Item', estimated: 0, actual: 0, paid: false, notes: '' };
+    const { data } = await supabase.from('wedding_budget').insert(newRow).select().single();
+    if (data) setBudget((prev) => [...prev, { id: data.id, category: data.category, label: data.label ?? '', estimated: Number(data.estimated), actual: Number(data.actual), paid: data.paid ?? false, notes: data.notes ?? '' }]);
+  };
+
+  const handleAddBudgetWithCat = async (cat: string) => {
+    const newRow = { category: cat, label: 'New Item', estimated: 0, actual: 0, paid: false, notes: '' };
+    const { data } = await supabase.from('wedding_budget').insert(newRow).select().single();
+    if (data) setBudget((prev) => [...prev, { id: data.id, category: cat, label: '', estimated: 0, actual: 0, paid: false, notes: '' }]);
+  };
+
+  const handleRenameBudgetCat = async (oldName: string, newName: string) => {
+    if (!newName.trim() || newName === oldName) { setRenamingBudgetCat(null); return; }
+    await supabase.from('wedding_budget').update({ category: newName.trim() }).eq('category', oldName);
+    setRenamingBudgetCat(null);
+    fetchBudget();
+  };
+
+  const handleDeleteBudgetCat = async (catName: string) => {
+    await supabase.from('wedding_budget').delete().eq('category', catName);
+    fetchBudget();
+  };
+
+  // Budget category manager state
+  const [budgetMgrOpen, setBudgetMgrOpen] = useState(false);
+  const [newBudgetCat, setNewBudgetCat] = useState('');
+  const [renamingBudgetCat, setRenamingBudgetCat] = useState<string | null>(null);
+  const [renameBudgetCatVal, setRenameBudgetCatVal] = useState('');
+
   // ── Category management (Vision Board) ─────────────────────
 
   const [showVisionCatMgr, setShowVisionCatMgr] = useState(false);
@@ -1197,96 +1227,133 @@ export default function WeddingPage() {
                 </div>
               )}
 
-              {/* Budget — rendered in its pill-order position (below, after parent groups) */}
-              {(filterCat === 'All' || filterCat === 'Budget') && (
-                <div className="mb-10 rounded-3xl bg-surface/40 border border-border/40 overflow-hidden shadow-sm" data-budget-block
-                     style={{ order: 999, borderLeft: `4px solid ${accentFor('Budget')}` }}>
-                  <div className="px-5 pt-5 pb-4 border-b border-border/30" style={{ background: `linear-gradient(90deg, ${accentFor('Budget')}10 0%, transparent 100%)` }}>
-                    <div className="flex items-center gap-3">
-                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: accentFor('Budget') }} />
-                      <h3 className="font-heading italic text-xl" style={{ color: accentFor('Budget') }}>Budget</h3>
+              {/* Budget — grouped by category */}
+              {(filterCat === 'All' || filterCat === 'Budget') && (() => {
+                const budgetCats = [...new Set(budget.map((b) => b.category))];
+                const allBudgetCats = [...new Set([...BUDGET_CATS, ...budgetCats])];
+                const [budgetMgr, setBudgetMgr] = [budgetMgrOpen, setBudgetMgrOpen];
+                const [newBCat, setNewBCat] = [newBudgetCat, setNewBudgetCat];
+                const [renamingBC, setRenamingBC] = [renamingBudgetCat, setRenamingBudgetCat];
+                const [renameBCVal, setRenameBCVal] = [renameBudgetCatVal, setRenameBudgetCatVal];
+
+                return (
+                  <div className="mb-10 rounded-3xl bg-surface/40 border border-border/40 overflow-hidden shadow-sm"
+                    style={{ order: 999, borderLeft: `4px solid ${accentFor('Budget')}` }}>
+                    <div className="px-5 pt-5 pb-4 border-b border-border/30" style={{ background: `linear-gradient(90deg, ${accentFor('Budget')}10 0%, transparent 100%)` }}>
+                      <div className="flex items-center gap-3">
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: accentFor('Budget') }} />
+                        <h3 className="font-heading italic text-xl" style={{ color: accentFor('Budget') }}>Budget</h3>
+                        <span className="text-[11px] text-muted font-medium ml-auto">${totals.estimated.toLocaleString()} est · ${totals.actual.toLocaleString()} actual</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="p-5">
-                  <DonutChart items={budget} />
-                  <div className="overflow-x-auto rounded-2xl border border-border/60 bg-surface/80">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="bg-surface">
-                          <th className="text-left px-4 py-3 text-xs font-medium text-foreground/70">Category</th>
-                          <th className="text-left px-4 py-3 text-xs font-medium text-foreground/70">Label</th>
-                          <th className="text-right px-4 py-3 text-xs font-medium text-foreground/70">Estimated</th>
-                          <th className="text-right px-4 py-3 text-xs font-medium text-foreground/70">Actual</th>
-                          <th className="text-right px-4 py-3 text-xs font-medium text-foreground/70">Diff</th>
-                          <th className="text-center px-3 py-3 text-xs font-medium text-foreground/70">Paid</th>
-                          <th className="text-left px-4 py-3 text-xs font-medium text-foreground/70">Notes</th>
-                          <th className="w-8" />
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {budget.map((item, idx) => {
-                          const diff = item.estimated - item.actual;
-                          return (
-                            <tr key={item.id} className={`border-t border-border/30 transition-colors ${item.paid ? 'bg-sage/10' : idx % 2 === 0 ? 'bg-surface/50' : ''} hover:bg-surface-hover/50 group`}>
-                              <td className="px-4 py-2.5">
-                                <select value={item.category} onChange={(e) => handleUpdateBudget({ ...item, category: e.target.value })}
-                                  className="bg-transparent text-xs text-foreground outline-none cursor-pointer">
-                                  {BUDGET_CATS.map((c) => <option key={c} value={c}>{c}</option>)}
-                                </select>
-                              </td>
-                              <td className="px-4 py-2.5">
-                                <input type="text" value={item.label} onChange={(e) => handleUpdateBudget({ ...item, label: e.target.value })}
-                                  className="bg-transparent text-sm text-foreground outline-none w-full border-b border-transparent focus:border-mauve/40/50" />
-                              </td>
-                              <td className="text-right px-4 py-2.5">
-                                <input type="number" value={item.estimated} onChange={(e) => handleUpdateBudget({ ...item, estimated: parseFloat(e.target.value) || 0 })}
-                                  className="bg-transparent text-sm text-foreground outline-none w-20 text-right border-b border-transparent focus:border-mauve/40/50" />
-                              </td>
-                              <td className="text-right px-4 py-2.5">
-                                <input type="number" value={item.actual} onChange={(e) => handleUpdateBudget({ ...item, actual: parseFloat(e.target.value) || 0 })}
-                                  className="bg-transparent text-sm text-foreground outline-none w-20 text-right border-b border-transparent focus:border-mauve/40/50" />
-                              </td>
-                              <td className={`text-right px-4 py-2.5 text-xs font-medium ${diff > 0 ? 'text-sage' : diff < 0 ? 'text-red-500' : 'text-muted'}`}>
-                                {diff !== 0 && (diff > 0 ? '+' : '')}${Math.abs(diff).toLocaleString()}
-                              </td>
-                              <td className="text-center px-3 py-2.5">
-                                <input type="checkbox" checked={item.paid} onChange={(e) => handleUpdateBudget({ ...item, paid: e.target.checked })}
-                                  className="w-4 h-4 rounded border-border text-sage focus:ring-green-200 cursor-pointer" />
-                              </td>
-                              <td className="px-4 py-2.5">
-                                <input type="text" value={item.notes} onChange={(e) => handleUpdateBudget({ ...item, notes: e.target.value })}
-                                  className="bg-transparent text-xs text-muted outline-none w-full border-b border-transparent focus:border-mauve/40/50" placeholder="Notes..." />
-                              </td>
-                              <td className="px-2 py-2.5">
-                                <button onClick={() => handleDeleteBudget(item.id)}
-                                  className="opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded-full text-muted/60 hover:text-red-400 transition-all text-xs">✕</button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                      <tfoot>
-                        <tr className="border-t-2 border-border/80 bg-surface">
-                          <td className="px-4 py-3 font-medium text-foreground" colSpan={2}>Total</td>
-                          <td className="text-right px-4 py-3 font-semibold text-foreground">${totals.estimated.toLocaleString()}</td>
-                          <td className="text-right px-4 py-3 font-semibold text-foreground">${totals.actual.toLocaleString()}</td>
-                          <td className={`text-right px-4 py-3 font-semibold ${totals.diff >= 0 ? 'text-sage' : 'text-red-500'}`}>
+                    <div className="p-5 space-y-4">
+                      <DonutChart items={budget} />
+
+                      {/* Category manager toggle */}
+                      <div className="flex gap-2">
+                        <button onClick={() => setBudgetMgr(!budgetMgr)}
+                          className="text-[11px] text-mauve/80 hover:text-mauve transition-colors">⚙ Categories</button>
+                      </div>
+
+                      {budgetMgr && (
+                        <div className="p-3 rounded-2xl border border-dashed border-border bg-surface space-y-2 animate-fade-in">
+                          <div className="flex gap-2">
+                            <input type="text" value={newBCat} onChange={(e) => setNewBCat(e.target.value)}
+                              placeholder="New category..." onKeyDown={(e) => e.key === 'Enter' && newBCat.trim() && (handleAddBudgetWithCat(newBCat.trim()), setNewBCat(''))}
+                              className="flex-1 px-3 py-1.5 rounded-lg border border-border bg-surface text-xs text-foreground focus:outline-none focus:border-mauve/40" />
+                            <button onClick={() => { if (newBCat.trim()) { handleAddBudgetWithCat(newBCat.trim()); setNewBCat(''); } }}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-medium ${newBCat.trim() ? 'bg-mauve text-white' : 'bg-surface-hover text-muted'}`}>Add</button>
+                          </div>
+                          {allBudgetCats.map((cat) => (
+                            <div key={cat} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-surface/60">
+                              {renamingBC === cat ? (
+                                <input type="text" value={renameBCVal} onChange={(e) => setRenameBCVal(e.target.value)} autoFocus
+                                  onKeyDown={(e) => { if (e.key === 'Enter') { handleRenameBudgetCat(cat, renameBCVal); } if (e.key === 'Escape') setRenamingBC(null); }}
+                                  className="flex-1 px-2 py-0.5 rounded border border-border bg-surface text-xs text-foreground focus:outline-none" />
+                              ) : (
+                                <span className="flex-1 text-xs text-foreground">{cat}</span>
+                              )}
+                              <span className="text-[10px] text-muted">{budget.filter((b) => b.category === cat).length}</span>
+                              {renamingBC === cat ? (
+                                <button onClick={() => handleRenameBudgetCat(cat, renameBCVal)} className="text-[10px] text-mauve font-medium">Save</button>
+                              ) : (
+                                <button onClick={() => { setRenamingBC(cat); setRenameBCVal(cat); }} className="text-[10px] text-muted hover:text-mauve">Rename</button>
+                              )}
+                              <button onClick={() => { if (confirm(`Delete "${cat}" and all its items?`)) handleDeleteBudgetCat(cat); }}
+                                className="text-[10px] text-muted hover:text-red-400">Delete</button>
+                            </div>
+                          ))}
+                          <button onClick={() => setBudgetMgr(false)} className="text-[10px] text-muted hover:text-foreground">Close</button>
+                        </div>
+                      )}
+
+                      {/* Grouped sections */}
+                      {allBudgetCats.map((cat) => {
+                        const catItems = budget.filter((b) => b.category === cat);
+                        if (catItems.length === 0) return null;
+                        const catTotal = catItems.reduce((s, i) => s + i.estimated, 0);
+                        return (
+                          <div key={cat} className="rounded-2xl border border-border/40 overflow-hidden">
+                            <div className="px-4 py-3 bg-surface/60 flex items-center justify-between">
+                              <span className="text-sm font-semibold text-foreground">{cat}</span>
+                              <span className="text-xs text-muted">${catTotal.toLocaleString()}</span>
+                            </div>
+                            <div className="divide-y divide-border/30">
+                              {catItems.map((item) => {
+                                const diff = item.estimated - item.actual;
+                                return (
+                                  <div key={item.id} className={`px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-2 ${item.paid ? 'bg-sage/5' : ''} group`}>
+                                    <input type="text" value={item.label} onChange={(e) => handleUpdateBudget({ ...item, label: e.target.value })}
+                                      className="flex-1 min-w-[120px] bg-transparent text-sm text-foreground outline-none border-b border-transparent focus:border-mauve/40" placeholder="Label..." />
+                                    <div className="flex items-center gap-3 text-xs">
+                                      <div className="flex items-center gap-1"><span className="text-muted">Est:</span>
+                                        <input type="number" value={item.estimated} onChange={(e) => handleUpdateBudget({ ...item, estimated: parseFloat(e.target.value) || 0 })}
+                                          className="bg-transparent text-foreground outline-none w-16 text-right border-b border-transparent focus:border-mauve/40" />
+                                      </div>
+                                      <div className="flex items-center gap-1"><span className="text-muted">Act:</span>
+                                        <input type="number" value={item.actual} onChange={(e) => handleUpdateBudget({ ...item, actual: parseFloat(e.target.value) || 0 })}
+                                          className="bg-transparent text-foreground outline-none w-16 text-right border-b border-transparent focus:border-mauve/40" />
+                                      </div>
+                                      <span className={`font-medium ${diff > 0 ? 'text-sage' : diff < 0 ? 'text-red-400' : 'text-muted'}`}>
+                                        {diff !== 0 ? `${diff > 0 ? '+' : ''}$${Math.abs(diff).toLocaleString()}` : '—'}
+                                      </span>
+                                      <label className="flex items-center gap-1 cursor-pointer">
+                                        <input type="checkbox" checked={item.paid} onChange={(e) => handleUpdateBudget({ ...item, paid: e.target.checked })}
+                                          className="w-3.5 h-3.5 rounded border-border text-sage cursor-pointer" />
+                                        <span className="text-muted">Paid</span>
+                                      </label>
+                                    </div>
+                                    <input type="text" value={item.notes} onChange={(e) => handleUpdateBudget({ ...item, notes: e.target.value })}
+                                      className="w-full bg-transparent text-[11px] text-muted outline-none border-b border-transparent focus:border-mauve/40 mt-1" placeholder="Notes..." />
+                                    <button onClick={() => handleDeleteBudget(item.id)}
+                                      className="text-muted/40 hover:text-red-400 text-xs transition-colors ml-auto">✕</button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            <div className="px-4 py-2 border-t border-border/30">
+                              <button onClick={() => handleAddBudgetToCat(cat)}
+                                className="text-[11px] text-mauve/70 hover:text-mauve transition-colors">+ Add item</button>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {/* Totals */}
+                      <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-surface/60 border border-border/40">
+                        <span className="text-sm font-semibold text-foreground">Total</span>
+                        <div className="flex gap-4 text-sm">
+                          <span className="text-foreground">${totals.estimated.toLocaleString()} est</span>
+                          <span className="text-foreground">${totals.actual.toLocaleString()} actual</span>
+                          <span className={`font-semibold ${totals.diff >= 0 ? 'text-sage' : 'text-red-400'}`}>
                             {totals.diff >= 0 ? '+' : ''}${totals.diff.toLocaleString()}
-                          </td>
-                          <td colSpan={3} />
-                        </tr>
-                      </tfoot>
-                    </table>
-                    <div className="px-4 py-3 border-t border-border/40">
-                      <button onClick={handleAddBudget}
-                        className="flex items-center gap-1.5 text-sm text-mauve/80 hover:text-blue-300 transition-colors">
-                        + Add expense
-                      </button>
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Cards grouped by top-level category → subtab */}
               {filterCat !== 'Budget' && orderedParents.map((parent) => {
