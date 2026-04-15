@@ -322,7 +322,10 @@ function ElementModal({ element, onClose, onSave, categories }: {
 // ── Preparation Timeline ────────────────────────────────────
 
 const TIMELINE_SLOTS = [
-  ...Array.from({ length: 18 }, (_, i) => `${18 - i} months before`),
+  ...Array.from({ length: 17 }, (_, i) => `${18 - i} months before`),
+  '1 month before',
+  '2 weeks before',
+  '1 week before',
   'Our Day',
 ];
 
