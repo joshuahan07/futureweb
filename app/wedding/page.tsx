@@ -1312,12 +1312,12 @@ export default function WeddingPage() {
                                       <button onClick={() => handleDeleteBudget(item.id)}
                                         className="text-muted/30 hover:text-red-400 text-xs transition-colors shrink-0">✕</button>
                                     </div>
-                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 pl-6 pr-1 text-[12px]">
-                                      <span className={`inline-flex items-center gap-1 shrink-0 ${item.paid ? 'text-muted/50' : 'text-muted'}`}>Est: $<input type="number" value={item.estimated} onChange={(e) => handleUpdateBudget({ ...item, estimated: parseFloat(e.target.value) || 0 })}
-                                        className={`bg-transparent outline-none w-20 border-b border-transparent focus:border-mauve/40 ${item.paid ? 'text-muted/50' : 'text-foreground'}`} /></span>
-                                      <span className={`inline-flex items-center gap-1 shrink-0 ${item.paid ? 'text-muted/50' : 'text-muted'}`}>Act: $<input type="number" value={item.actual} onChange={(e) => handleUpdateBudget({ ...item, actual: parseFloat(e.target.value) || 0 })}
-                                        className={`bg-transparent outline-none w-20 border-b border-transparent focus:border-mauve/40 ${item.paid ? 'text-muted/50' : 'text-foreground'}`} /></span>
-                                      <span className={`shrink-0 font-semibold ${item.paid ? 'text-muted/50' : diff > 0 ? 'text-sage' : diff < 0 ? 'text-red-400' : 'text-muted'}`}>
+                                    <div className="grid grid-cols-3 items-center mt-2 pl-6 pr-1 text-[12px] gap-1">
+                                      <span className={`inline-flex items-center gap-0.5 justify-self-start min-w-0 ${item.paid ? 'text-muted/50' : 'text-muted'}`}>Est:$<input type="number" value={item.estimated} onChange={(e) => handleUpdateBudget({ ...item, estimated: parseFloat(e.target.value) || 0 })}
+                                        className={`bg-transparent outline-none w-12 min-w-0 border-b border-transparent focus:border-mauve/40 ${item.paid ? 'text-muted/50' : 'text-foreground'}`} /></span>
+                                      <span className={`inline-flex items-center gap-0.5 justify-self-center min-w-0 ${item.paid ? 'text-muted/50' : 'text-muted'}`}>Act:$<input type="number" value={item.actual} onChange={(e) => handleUpdateBudget({ ...item, actual: parseFloat(e.target.value) || 0 })}
+                                        className={`bg-transparent outline-none w-12 min-w-0 border-b border-transparent focus:border-mauve/40 ${item.paid ? 'text-muted/50' : 'text-foreground'}`} /></span>
+                                      <span className={`justify-self-end font-semibold ${item.paid ? 'text-muted/50' : diff > 0 ? 'text-sage' : diff < 0 ? 'text-red-400' : 'text-muted'}`}>
                                         {diff !== 0 ? `${diff > 0 ? '+' : ''}$${Math.abs(diff).toLocaleString()}` : '—'}
                                       </span>
                                     </div>
