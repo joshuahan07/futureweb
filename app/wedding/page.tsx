@@ -1287,51 +1287,47 @@ export default function WeddingPage() {
                         </div>
                       )}
 
-                      {/* Grouped sections */}
-                      {allBudgetCats.map((cat) => {
+                      {/* Grouped sections — 2 columns, alphabetical */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {[...allBudgetCats].sort((a, b) => a.localeCompare(b)).map((cat) => {
                         const catItems = budget.filter((b) => b.category === cat);
                         if (catItems.length === 0) return null;
                         const catTotal = catItems.reduce((s, i) => s + i.estimated, 0);
                         return (
                           <div key={cat} className="rounded-2xl border border-border/40 overflow-hidden">
-                            <div className="px-4 py-3 bg-surface/60 flex items-center justify-between">
+                            <div className="px-4 py-2.5 bg-surface/60 flex items-center justify-between">
                               <span className="text-sm font-semibold text-foreground">{cat}</span>
-                              <span className="text-xs text-muted">${catTotal.toLocaleString()}</span>
+                              <span className="text-[11px] text-muted">${catTotal.toLocaleString()}</span>
                             </div>
-                            <div className="divide-y divide-border/30">
+                            <div className="divide-y divide-border/20">
                               {catItems.map((item) => {
                                 const diff = item.estimated - item.actual;
                                 return (
-                                  <div key={item.id} className={`px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-2 ${item.paid ? 'bg-sage/5' : ''} group`}>
-                                    <input type="text" value={item.label} onChange={(e) => handleUpdateBudget({ ...item, label: e.target.value })}
-                                      className="flex-1 min-w-[120px] bg-transparent text-sm text-foreground outline-none border-b border-transparent focus:border-mauve/40" placeholder="Label..." />
-                                    <div className="flex items-center gap-3 text-xs">
-                                      <div className="flex items-center gap-1"><span className="text-muted">Est:</span>
-                                        <input type="number" value={item.estimated} onChange={(e) => handleUpdateBudget({ ...item, estimated: parseFloat(e.target.value) || 0 })}
-                                          className="bg-transparent text-foreground outline-none w-16 text-right border-b border-transparent focus:border-mauve/40" />
-                                      </div>
-                                      <div className="flex items-center gap-1"><span className="text-muted">Act:</span>
-                                        <input type="number" value={item.actual} onChange={(e) => handleUpdateBudget({ ...item, actual: parseFloat(e.target.value) || 0 })}
-                                          className="bg-transparent text-foreground outline-none w-16 text-right border-b border-transparent focus:border-mauve/40" />
-                                      </div>
-                                      <span className={`font-medium ${diff > 0 ? 'text-sage' : diff < 0 ? 'text-red-400' : 'text-muted'}`}>
+                                  <div key={item.id} className={`px-3 py-2.5 ${item.paid ? 'bg-sage/5' : ''} group`}>
+                                    <div className="flex items-center gap-2">
+                                      <input type="checkbox" checked={item.paid} onChange={(e) => handleUpdateBudget({ ...item, paid: e.target.checked })}
+                                        className="w-4 h-4 rounded border-border text-sage cursor-pointer shrink-0" />
+                                      <input type="text" value={item.label} onChange={(e) => handleUpdateBudget({ ...item, label: e.target.value })}
+                                        className={`flex-1 bg-transparent text-sm outline-none border-b border-transparent focus:border-mauve/40 ${item.paid ? 'line-through text-muted' : 'text-foreground'}`} placeholder="Label..." />
+                                      <button onClick={() => handleDeleteBudget(item.id)}
+                                        className="text-muted/30 hover:text-red-400 text-xs transition-colors shrink-0">✕</button>
+                                    </div>
+                                    <div className="flex items-center gap-3 mt-1.5 ml-6 text-[11px]">
+                                      <span className={`${item.paid ? 'text-muted/50' : 'text-muted'}`}>Est: <input type="number" value={item.estimated} onChange={(e) => handleUpdateBudget({ ...item, estimated: parseFloat(e.target.value) || 0 })}
+                                        className={`bg-transparent outline-none w-14 text-right border-b border-transparent focus:border-mauve/40 ${item.paid ? 'text-muted/50' : 'text-foreground'}`} /></span>
+                                      <span className={`${item.paid ? 'text-muted/50' : 'text-muted'}`}>Act: <input type="number" value={item.actual} onChange={(e) => handleUpdateBudget({ ...item, actual: parseFloat(e.target.value) || 0 })}
+                                        className={`bg-transparent outline-none w-14 text-right border-b border-transparent focus:border-mauve/40 ${item.paid ? 'text-muted/50' : 'text-foreground'}`} /></span>
+                                      <span className={`font-medium ${item.paid ? 'text-muted/50' : diff > 0 ? 'text-sage' : diff < 0 ? 'text-red-400' : 'text-muted'}`}>
                                         {diff !== 0 ? `${diff > 0 ? '+' : ''}$${Math.abs(diff).toLocaleString()}` : '—'}
                                       </span>
-                                      <label className="flex items-center gap-1 cursor-pointer">
-                                        <input type="checkbox" checked={item.paid} onChange={(e) => handleUpdateBudget({ ...item, paid: e.target.checked })}
-                                          className="w-3.5 h-3.5 rounded border-border text-sage cursor-pointer" />
-                                        <span className="text-muted">Paid</span>
-                                      </label>
                                     </div>
                                     <input type="text" value={item.notes} onChange={(e) => handleUpdateBudget({ ...item, notes: e.target.value })}
-                                      className="w-full bg-transparent text-[11px] text-muted outline-none border-b border-transparent focus:border-mauve/40 mt-1" placeholder="Notes..." />
-                                    <button onClick={() => handleDeleteBudget(item.id)}
-                                      className="text-muted/40 hover:text-red-400 text-xs transition-colors ml-auto">✕</button>
+                                      className={`w-full bg-transparent text-[10px] outline-none border-b border-transparent focus:border-mauve/40 mt-1 ml-6 ${item.paid ? 'text-muted/40' : 'text-muted'}`} placeholder="Notes..." />
                                   </div>
                                 );
                               })}
                             </div>
-                            <div className="px-4 py-2 border-t border-border/30">
+                            <div className="px-3 py-2 border-t border-border/20">
                               <button onClick={() => handleAddBudgetToCat(cat)}
                                 className="text-[11px] text-mauve/70 hover:text-mauve transition-colors">+ Add item</button>
                             </div>
@@ -1340,7 +1336,7 @@ export default function WeddingPage() {
                       })}
 
                       {/* Totals */}
-                      <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-surface/60 border border-border/40">
+                      <div className="sm:col-span-2 flex items-center justify-between px-4 py-3 rounded-2xl bg-surface/60 border border-border/40">
                         <span className="text-sm font-semibold text-foreground">Total</span>
                         <div className="flex gap-4 text-sm">
                           <span className="text-foreground">${totals.estimated.toLocaleString()} est</span>
@@ -1351,6 +1347,7 @@ export default function WeddingPage() {
                         </div>
                       </div>
                     </div>
+                  </div>
                   </div>
                 );
               })()}
