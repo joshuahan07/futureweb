@@ -1312,17 +1312,17 @@ export default function WeddingPage() {
                                       <button onClick={() => handleDeleteBudget(item.id)}
                                         className="text-muted/30 hover:text-red-400 text-xs transition-colors shrink-0">✕</button>
                                     </div>
-                                    <div className="flex items-center gap-3 mt-1.5 ml-6 text-[11px]">
-                                      <span className={`${item.paid ? 'text-muted/50' : 'text-muted'}`}>Est: <input type="number" value={item.estimated} onChange={(e) => handleUpdateBudget({ ...item, estimated: parseFloat(e.target.value) || 0 })}
-                                        className={`bg-transparent outline-none w-14 text-right border-b border-transparent focus:border-mauve/40 ${item.paid ? 'text-muted/50' : 'text-foreground'}`} /></span>
-                                      <span className={`${item.paid ? 'text-muted/50' : 'text-muted'}`}>Act: <input type="number" value={item.actual} onChange={(e) => handleUpdateBudget({ ...item, actual: parseFloat(e.target.value) || 0 })}
-                                        className={`bg-transparent outline-none w-14 text-right border-b border-transparent focus:border-mauve/40 ${item.paid ? 'text-muted/50' : 'text-foreground'}`} /></span>
-                                      <span className={`font-medium ${item.paid ? 'text-muted/50' : diff > 0 ? 'text-sage' : diff < 0 ? 'text-red-400' : 'text-muted'}`}>
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 pl-6 pr-1 text-[12px]">
+                                      <span className={`inline-flex items-center gap-1 shrink-0 ${item.paid ? 'text-muted/50' : 'text-muted'}`}>Est: $<input type="number" value={item.estimated} onChange={(e) => handleUpdateBudget({ ...item, estimated: parseFloat(e.target.value) || 0 })}
+                                        className={`bg-transparent outline-none w-20 border-b border-transparent focus:border-mauve/40 ${item.paid ? 'text-muted/50' : 'text-foreground'}`} /></span>
+                                      <span className={`inline-flex items-center gap-1 shrink-0 ${item.paid ? 'text-muted/50' : 'text-muted'}`}>Act: $<input type="number" value={item.actual} onChange={(e) => handleUpdateBudget({ ...item, actual: parseFloat(e.target.value) || 0 })}
+                                        className={`bg-transparent outline-none w-20 border-b border-transparent focus:border-mauve/40 ${item.paid ? 'text-muted/50' : 'text-foreground'}`} /></span>
+                                      <span className={`shrink-0 font-semibold ${item.paid ? 'text-muted/50' : diff > 0 ? 'text-sage' : diff < 0 ? 'text-red-400' : 'text-muted'}`}>
                                         {diff !== 0 ? `${diff > 0 ? '+' : ''}$${Math.abs(diff).toLocaleString()}` : '—'}
                                       </span>
                                     </div>
                                     <input type="text" value={item.notes} onChange={(e) => handleUpdateBudget({ ...item, notes: e.target.value })}
-                                      className={`w-full bg-transparent text-[10px] outline-none border-b border-transparent focus:border-mauve/40 mt-1 ml-6 ${item.paid ? 'text-muted/40' : 'text-muted/70'}`} placeholder="Notes..." />
+                                      className={`w-full bg-transparent text-[11px] outline-none border-b border-transparent focus:border-mauve/40 mt-1.5 pl-6 pr-1 ${item.paid ? 'text-muted/40' : 'text-muted/70'}`} placeholder="Notes..." />
                                   </div>
                                 );
                               })}
