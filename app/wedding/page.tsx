@@ -1288,27 +1288,27 @@ export default function WeddingPage() {
                       )}
 
                       {/* Grouped sections — 2 columns, alphabetical */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       {[...allBudgetCats].sort((a, b) => a.localeCompare(b)).map((cat) => {
                         const catItems = budget.filter((b) => b.category === cat);
                         if (catItems.length === 0) return null;
                         const catTotal = catItems.reduce((s, i) => s + i.estimated, 0);
                         return (
-                          <div key={cat} className="rounded-2xl border border-border/40 overflow-hidden">
-                            <div className="px-4 py-2.5 bg-surface/60 flex items-center justify-between">
-                              <span className="text-sm font-semibold text-foreground">{cat}</span>
-                              <span className="text-[11px] text-muted">${catTotal.toLocaleString()}</span>
+                          <div key={cat} className="rounded-2xl border-2 border-border/60 dark:border-border/80 overflow-hidden shadow-md dark:shadow-lg dark:shadow-black/20">
+                            <div className="px-4 py-3 bg-surface/80 dark:bg-white/[0.06] border-b-2 border-border/50 dark:border-border/70 flex items-center justify-between">
+                              <span className="text-sm font-bold text-foreground tracking-wide">{cat}</span>
+                              <span className="text-[11px] font-semibold text-mauve/80">${catTotal.toLocaleString()}</span>
                             </div>
-                            <div className="divide-y divide-border/20">
+                            <div className="divide-y divide-border/40 dark:divide-border/50">
                               {catItems.map((item) => {
                                 const diff = item.estimated - item.actual;
                                 return (
-                                  <div key={item.id} className={`px-3 py-2.5 ${item.paid ? 'bg-sage/5' : ''} group`}>
+                                  <div key={item.id} className={`px-3 py-3 ${item.paid ? 'bg-sage/5' : 'hover:bg-surface/60'} transition-colors group`}>
                                     <div className="flex items-center gap-2">
                                       <input type="checkbox" checked={item.paid} onChange={(e) => handleUpdateBudget({ ...item, paid: e.target.checked })}
-                                        className="w-4 h-4 rounded border-border text-sage cursor-pointer shrink-0" />
+                                        className="w-4 h-4 rounded border-border text-sage cursor-pointer shrink-0 accent-sage" />
                                       <input type="text" value={item.label} onChange={(e) => handleUpdateBudget({ ...item, label: e.target.value })}
-                                        className={`flex-1 bg-transparent text-sm outline-none border-b border-transparent focus:border-mauve/40 ${item.paid ? 'line-through text-muted' : 'text-foreground'}`} placeholder="Label..." />
+                                        className={`flex-1 bg-transparent text-sm font-medium outline-none border-b border-transparent focus:border-mauve/40 ${item.paid ? 'line-through text-muted' : 'text-foreground'}`} placeholder="Label..." />
                                       <button onClick={() => handleDeleteBudget(item.id)}
                                         className="text-muted/30 hover:text-red-400 text-xs transition-colors shrink-0">✕</button>
                                     </div>
@@ -1322,21 +1322,21 @@ export default function WeddingPage() {
                                       </span>
                                     </div>
                                     <input type="text" value={item.notes} onChange={(e) => handleUpdateBudget({ ...item, notes: e.target.value })}
-                                      className={`w-full bg-transparent text-[10px] outline-none border-b border-transparent focus:border-mauve/40 mt-1 ml-6 ${item.paid ? 'text-muted/40' : 'text-muted'}`} placeholder="Notes..." />
+                                      className={`w-full bg-transparent text-[10px] outline-none border-b border-transparent focus:border-mauve/40 mt-1 ml-6 ${item.paid ? 'text-muted/40' : 'text-muted/70'}`} placeholder="Notes..." />
                                   </div>
                                 );
                               })}
                             </div>
-                            <div className="px-3 py-2 border-t border-border/20">
+                            <div className="px-3 py-2.5 border-t-2 border-border/40 dark:border-border/60 bg-surface/40">
                               <button onClick={() => handleAddBudgetToCat(cat)}
-                                className="text-[11px] text-mauve/70 hover:text-mauve transition-colors">+ Add item</button>
+                                className="text-[11px] text-mauve/70 hover:text-mauve font-medium transition-colors">+ Add item</button>
                             </div>
                           </div>
                         );
                       })}
 
                       {/* Totals */}
-                      <div className="sm:col-span-2 flex items-center justify-between px-4 py-3 rounded-2xl bg-surface/60 border border-border/40">
+                      <div className="sm:col-span-2 flex items-center justify-between px-4 py-3.5 rounded-2xl bg-surface/80 dark:bg-white/[0.06] border-2 border-border/60 dark:border-border/80 shadow-md">
                         <span className="text-sm font-semibold text-foreground">Total</span>
                         <div className="flex gap-4 text-sm">
                           <span className="text-foreground">${totals.estimated.toLocaleString()} est</span>
