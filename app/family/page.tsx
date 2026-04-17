@@ -740,22 +740,53 @@ function ParentingSection({ tips, todos, currentUser, onSaveTip, onUpdateTip, on
 
 function RoomModal({ room, onClose, onSave }: {
   room: HomeRoom | null; onClose: () => void;
-  onSave: (data: { name: string; vibe: string; image_url: string | null; notes: string }) => void;
+  onSave: (data: { name: string }) => void;
 }) {
   const [name, setName] = useState(room?.name || '');
-  const [vibe, setVibe] = useState(room?.vibe || '');
-  const [image, setImage] = useState(room?.image_url || '');
-  const [notes, setNotes] = useState('');
+  return (
+    <div data-modal className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
+      <div className="glass-strong rounded-2xl shadow-xl w-full max-w-sm p-6 animate-fade-in border border-border">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-heading italic text-xl text-foreground/80">{room ? 'Rename Category' : 'Add Category'}</h3>
+          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-muted hover:bg-surface-hover">✕</button>
+        </div>
+        <div className="space-y-3">
+          <input autoFocus type="text" value={name} onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter' && name.trim()) onSave({ name: name.trim() }); }}
+            placeholder="e.g. Kitchen, Nursery"
+            className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:border-mauve/40" />
+          <button type="button" disabled={!name.trim()}
+            onClick={() => name.trim() && onSave({ name: name.trim() })}
+            className={`w-full py-2.5 rounded-xl text-sm font-medium ${name.trim() ? 'bg-mauve text-white hover:bg-mauve/90' : 'bg-surface-hover text-muted'}`}>
+            {room ? 'Save' : 'Add Category'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RoomItemModal({ roomName, item, onClose, onSave }: {
+  roomName: string; item: RoomItem | null; onClose: () => void;
+  onSave: (data: Omit<RoomItem, 'id' | 'created_at' | 'created_by' | 'room_id'>) => void;
+}) {
+  const [name, setName] = useState(item?.name || '');
+  const [image, setImage] = useState(item?.image_url || '');
+  const [price, setPrice] = useState(item?.price_estimate?.toString() || '');
+  const [link, setLink] = useState(item?.link || '');
+  const [status, setStatus] = useState<RoomItem['status']>(item?.status || 'dream');
+  const [priority, setPriority] = useState(item?.priority || 2);
+  const [notes, setNotes] = useState(item?.notes || '');
   const [uploading, setUploading] = useState(false);
 
   const handleFiles = useCallback(async (files: File[]) => {
     const file = files.find((f) => f.type.startsWith('image/'));
     if (!file) return;
     setUploading(true);
-    const url = await uploadFamilyImage(file, 'family/home/categories');
+    const url = await uploadFamilyImage(file, `family/home/${roomName}`);
     if (url) setImage(url);
     setUploading(false);
-  }, []);
+  }, [roomName]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: handleFiles,
@@ -768,18 +799,15 @@ function RoomModal({ room, onClose, onSave }: {
     <div data-modal className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
       <div className="glass-strong rounded-2xl shadow-xl w-full max-w-md p-6 animate-fade-in border border-border max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-heading italic text-xl text-foreground/80">{room ? 'Edit Category' : 'Add Category'}</h3>
+          <h3 className="font-heading italic text-xl text-foreground/80">{item ? 'Edit Item' : 'Add Item'}</h3>
           <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-muted hover:bg-surface-hover">✕</button>
         </div>
         <div className="space-y-3">
           <input autoFocus type="text" value={name} onChange={(e) => setName(e.target.value)}
-            placeholder="Category name (e.g. Nursery, Kitchen)"
-            className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:border-mauve/40" />
-          <input type="text" value={vibe} onChange={(e) => setVibe(e.target.value)}
-            placeholder="Vibe / mood (optional)"
+            placeholder="Item name"
             className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:border-mauve/40" />
           <div>
-            <label className="text-xs font-medium text-foreground/70 mb-1 block">Cover image</label>
+            <label className="text-xs font-medium text-foreground/70 mb-1 block">Image</label>
             <div {...getRootProps()}
               className={`relative rounded-xl border-2 border-dashed transition-all overflow-hidden ${
                 isDragActive ? 'border-amber-400 bg-amber-50/60' : 'border-border bg-surface/60 hover:border-amber-300'
@@ -807,73 +835,6 @@ function RoomModal({ room, onClose, onSave }: {
             <input type="url" value={image} onChange={(e) => setImage(e.target.value)}
               placeholder="…or paste image URL"
               className="w-full mt-2 px-3 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:border-mauve/40" />
-          </div>
-          {!room && (
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Notes..."
-              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm resize-none focus:outline-none focus:border-mauve/40" />
-          )}
-          <button type="button" disabled={!name.trim()}
-            onClick={() => name.trim() && onSave({ name: name.trim(), vibe: vibe.trim(), image_url: image.trim() || null, notes })}
-            className={`w-full py-2.5 rounded-xl text-sm font-medium ${name.trim() ? 'bg-mauve text-white hover:bg-mauve/90' : 'bg-surface-hover text-muted'}`}>
-            {room ? 'Save' : 'Add Category'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function RoomItemModal({ roomName, item, onClose, onSave }: {
-  roomName: string; item: RoomItem | null; onClose: () => void;
-  onSave: (data: Omit<RoomItem, 'id' | 'created_at' | 'created_by' | 'room_id'>) => void;
-}) {
-  const [name, setName] = useState(item?.name || '');
-  const [image, setImage] = useState(item?.image_url || '');
-  const [price, setPrice] = useState(item?.price_estimate?.toString() || '');
-  const [link, setLink] = useState(item?.link || '');
-  const [status, setStatus] = useState<RoomItem['status']>(item?.status || 'dream');
-  const [priority, setPriority] = useState(item?.priority || 2);
-  const [notes, setNotes] = useState(item?.notes || '');
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  const handleUpload = async (file: File) => {
-    setUploading(true);
-    const url = await uploadFamilyImage(file, `family/home/${roomName}`);
-    if (url) setImage(url);
-    setUploading(false);
-  };
-
-  return (
-    <div data-modal className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
-      <div className="glass-strong rounded-2xl shadow-xl w-full max-w-md p-6 animate-fade-in border border-border max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-heading italic text-xl text-foreground/80">{item ? 'Edit Item' : 'Add Item'}</h3>
-          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-muted hover:bg-surface-hover">✕</button>
-        </div>
-        <div className="space-y-3">
-          <input autoFocus type="text" value={name} onChange={(e) => setName(e.target.value)}
-            placeholder="Item name"
-            className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:border-mauve/40" />
-          <div>
-            <label className="text-xs font-medium text-foreground/70 mb-1 block">Image</label>
-            {image ? (
-              <div className="relative rounded-xl overflow-hidden mb-2">
-                <img src={image} alt="" className="w-full h-40 object-cover" />
-                <button onClick={() => setImage('')} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/50 text-white text-xs">✕</button>
-              </div>
-            ) : null}
-            <div className="flex gap-2">
-              <input type="url" value={image} onChange={(e) => setImage(e.target.value)}
-                placeholder="Paste image URL or upload →"
-                className="flex-1 px-3 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:border-mauve/40" />
-              <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
-                className="px-3 py-2 rounded-lg bg-surface-hover text-foreground/70 text-sm">
-                {uploading ? '…' : 'Upload'}
-              </button>
-              <input ref={fileRef} type="file" accept="image/*" className="hidden"
-                onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0]); e.target.value = ''; }} />
-            </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <input type="number" value={price} onChange={(e) => setPrice(e.target.value)}
@@ -1051,18 +1012,13 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Cover image + Notes & Vibe */}
-      <div className="rounded-3xl border border-amber-100/50 bg-gradient-to-br from-white/80 to-amber-50/30 overflow-hidden shadow-sm">
-        {room.image_url && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={room.image_url} alt={room.name} className="w-full h-40 sm:h-56 object-cover" />
-        )}
-        <div className="p-6">
+      {/* Notes & Vibe */}
+      <div className="rounded-3xl border border-amber-100/50 bg-gradient-to-br from-white/80 to-amber-50/30 p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-heading italic text-2xl text-amber-800">{room.name}</h3>
           <div className="flex gap-3">
             <button onClick={() => setShowRoomEdit(true)} className="text-xs text-muted hover:text-foreground flex items-center gap-1">
-              <Pencil className="w-3 h-3" /> Rename / Edit
+              <Pencil className="w-3 h-3" /> Rename
             </button>
             <button onClick={() => { if (confirm(`Delete category "${room.name}" and everything in it?`)) onDeleteRoom(); }}
               className="text-xs text-red-400 hover:text-red-600">Delete</button>
@@ -1085,7 +1041,6 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
               onChange={(e) => { setNotesS(e.target.value); debouncedUpdate({ notes_sophie: e.target.value }, noteTimer); }}
               className="w-full px-3 py-2 rounded-lg border border-pink-100 bg-pink-50/30 text-sm resize-none focus:outline-none focus:border-pink-300" />
           </div>
-        </div>
         </div>
       </div>
 
@@ -1146,7 +1101,7 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
       )}
       {showRoomEdit && (
         <RoomModal room={room} onClose={() => setShowRoomEdit(false)}
-          onSave={(d) => { onUpdateRoom({ name: d.name, vibe: d.vibe, image_url: d.image_url }); setShowRoomEdit(false); }} />
+          onSave={(d) => { onUpdateRoom({ name: d.name }); setShowRoomEdit(false); }} />
       )}
       <span className="hidden">{currentUser}</span>
     </div>
@@ -1155,7 +1110,7 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
 
 function HomeSection({ rooms, items, media, currentUser, onAddRoom, onUpdateRoom, onDeleteRoom, onAddItem, onUpdateItem, onDeleteItem, onAddMedia, onDeleteMedia, onUpdateMediaCaption }: {
   rooms: HomeRoom[]; items: RoomItem[]; media: RoomMedia[]; currentUser: string | null;
-  onAddRoom: (d: { name: string; vibe: string; image_url: string | null }) => void;
+  onAddRoom: (d: { name: string }) => void;
   onUpdateRoom: (id: string, u: Partial<HomeRoom>) => void;
   onDeleteRoom: (id: string) => void;
   onAddItem: (roomId: string, data: Omit<RoomItem, 'id' | 'created_at' | 'created_by' | 'room_id'>) => void;
@@ -1226,17 +1181,11 @@ function HomeSection({ rooms, items, media, currentUser, onAddRoom, onUpdateRoom
       <div className="flex gap-2 mb-5 overflow-x-auto pb-2 -mx-1 px-1">
         {rooms.map((r) => (
           <button key={r.id} onClick={() => setSelectedRoomId(r.id)}
-            className={`shrink-0 pr-4 py-1 pl-1 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+            className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
               selectedRoomId === r.id
                 ? 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 shadow-sm border border-amber-200'
                 : 'bg-surface-hover/60 text-muted hover:bg-surface-hover hover:text-foreground'
             }`}>
-            {r.image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={r.image_url} alt="" className="w-7 h-7 rounded-full object-cover shadow-inner" />
-            ) : (
-              <span className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 text-xs">🏠</span>
-            )}
             {r.name}
             <span className="text-[10px] opacity-70 bg-white/40 px-1.5 py-0.5 rounded-full">{items.filter((i) => i.room_id === r.id).length}</span>
           </button>
@@ -1377,7 +1326,7 @@ export default function FamilyPage() {
     await supabase.from('parenting_todo').update(u).eq('id', id);
   };
 
-  const addRoom = async (d: { name: string; vibe: string; image_url: string | null }) => {
+  const addRoom = async (d: { name: string }) => {
     const maxOrder = rooms.length > 0 ? Math.max(...rooms.map((r) => r.order_index)) : 0;
     const { error } = await supabase.from('home_rooms').insert({ ...d, order_index: maxOrder + 1 });
     if (error) {
