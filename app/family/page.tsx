@@ -1163,21 +1163,32 @@ export default function FamilyPage() {
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
-    const [n, t, td, r, i, m] = await Promise.all([
-      supabase.from('baby_names').select('*').order('created_at', { ascending: false }),
-      supabase.from('parenting_tips').select('*').order('created_at', { ascending: false }),
-      supabase.from('parenting_todo').select('*').order('created_at', { ascending: false }),
-      supabase.from('home_rooms').select('*').order('order_index', { ascending: true }).order('created_at', { ascending: true }),
-      supabase.from('home_room_items').select('*').order('created_at', { ascending: false }),
-      supabase.from('home_room_media').select('*').order('order_index', { ascending: true }),
-    ]);
-    if (n.data) setNames(n.data);
-    if (t.data) setTips(t.data);
-    if (td.data) setTodos(td.data.map((x: ParentingTodo) => ({ ...x, price_estimate: x.price_estimate != null ? Number(x.price_estimate) : null })));
-    if (r.data) setRooms(r.data);
-    if (i.data) setItems(i.data.map((x: RoomItem) => ({ ...x, price_estimate: x.price_estimate != null ? Number(x.price_estimate) : null })));
-    if (m.data) setMedia(m.data);
-    setLoading(false);
+    try {
+      const [n, t, td, r, i, m] = await Promise.all([
+        supabase.from('baby_names').select('*').order('created_at', { ascending: false }),
+        supabase.from('parenting_tips').select('*').order('created_at', { ascending: false }),
+        supabase.from('parenting_todo').select('*').order('created_at', { ascending: false }),
+        supabase.from('home_rooms').select('*').order('order_index', { ascending: true }).order('created_at', { ascending: true }),
+        supabase.from('home_room_items').select('*').order('created_at', { ascending: false }),
+        supabase.from('home_room_media').select('*').order('order_index', { ascending: true }),
+      ]);
+      if (n.error) console.error('[family] baby_names select error:', n.error);
+      if (t.error) console.error('[family] parenting_tips select error:', t.error);
+      if (td.error) console.error('[family] parenting_todo select error:', td.error);
+      if (r.error) console.error('[family] home_rooms select error:', r.error);
+      if (i.error) console.error('[family] home_room_items select error:', i.error);
+      if (m.error) console.error('[family] home_room_media select error:', m.error);
+      if (n.data) setNames(n.data);
+      if (t.data) setTips(t.data);
+      if (td.data) setTodos(td.data.map((x: ParentingTodo) => ({ ...x, price_estimate: x.price_estimate != null ? Number(x.price_estimate) : null })));
+      if (r.data) setRooms(r.data);
+      if (i.data) setItems(i.data.map((x: RoomItem) => ({ ...x, price_estimate: x.price_estimate != null ? Number(x.price_estimate) : null })));
+      if (m.data) setMedia(m.data);
+    } catch (err) {
+      console.error('[family] fetchAll threw:', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
@@ -1191,8 +1202,13 @@ export default function FamilyPage() {
   // ── Handlers ──────────────────────────────────────────────
 
   const saveName = async (data: Omit<BabyName, 'id' | 'created_at' | 'created_by' | 'joshua_loves' | 'sophie_loves'>, id?: string) => {
-    if (id) await supabase.from('baby_names').update(data).eq('id', id);
-    else await supabase.from('baby_names').insert({ ...data, created_by: currentUser });
+    const res = id
+      ? await supabase.from('baby_names').update(data).eq('id', id)
+      : await supabase.from('baby_names').insert({ ...data, created_by: currentUser });
+    if (res.error) {
+      console.error('[family] baby_names save error:', res.error);
+      alert(`Couldn't save name: ${res.error.message}`);
+    }
     fetchAll();
   };
   const loveName = async (id: string, who: 'joshua' | 'sophie', value: boolean) => {
