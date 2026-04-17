@@ -78,13 +78,20 @@ create table if not exists home_room_media (
   order_index int default 0
 );
 
--- Realtime
-alter publication supabase_realtime add table baby_names;
-alter publication supabase_realtime add table parenting_tips;
-alter publication supabase_realtime add table parenting_todo;
-alter publication supabase_realtime add table home_rooms;
-alter publication supabase_realtime add table home_room_items;
-alter publication supabase_realtime add table home_room_media;
+-- Realtime (idempotent: skip if table is already in the publication)
+do $$
+declare t text;
+begin
+  foreach t in array array['baby_names', 'parenting_tips', 'parenting_todo', 'home_rooms', 'home_room_items', 'home_room_media']
+  loop
+    if not exists (
+      select 1 from pg_publication_tables
+      where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = t
+    ) then
+      execute format('alter publication supabase_realtime add table %I', t);
+    end if;
+  end loop;
+end$$;
 
 -- Row-level security: wide-open (matches other tables in this project)
 alter table baby_names enable row level security;
@@ -93,6 +100,13 @@ alter table parenting_todo enable row level security;
 alter table home_rooms enable row level security;
 alter table home_room_items enable row level security;
 alter table home_room_media enable row level security;
+
+drop policy if exists "allow all" on baby_names;
+drop policy if exists "allow all" on parenting_tips;
+drop policy if exists "allow all" on parenting_todo;
+drop policy if exists "allow all" on home_rooms;
+drop policy if exists "allow all" on home_room_items;
+drop policy if exists "allow all" on home_room_media;
 
 create policy "allow all" on baby_names for all using (true) with check (true);
 create policy "allow all" on parenting_tips for all using (true) with check (true);
