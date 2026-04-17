@@ -1013,10 +1013,10 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
   return (
     <div className="animate-fade-in">
       {/* Grouped card: category header + subtabs + items */}
-      <div className="rounded-3xl border border-amber-100/60 bg-gradient-to-br from-white/80 to-amber-50/30 shadow-sm overflow-hidden">
+      <div className="glass-card rounded-3xl overflow-hidden">
         {/* Header */}
-        <div className="px-6 pt-5 pb-3 flex items-center justify-between flex-wrap gap-3 border-b border-amber-100/60">
-          <h3 className="font-heading italic text-2xl text-amber-800">{room.name}</h3>
+        <div className="px-6 pt-5 pb-3 flex items-center justify-between flex-wrap gap-3 border-b border-border/50">
+          <h3 className="font-heading italic text-2xl text-amber-700 dark:text-amber-300">{room.name}</h3>
           <div className="flex gap-3">
             <button onClick={() => setShowRoomEdit(true)} className="text-xs text-muted hover:text-foreground flex items-center gap-1">
               <Pencil className="w-3 h-3" /> Rename
@@ -1027,20 +1027,20 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
         </div>
 
         {/* Subtabs */}
-        <div className="px-6 pt-3 pb-4 flex gap-1.5 flex-wrap items-center border-b border-amber-100/40 bg-amber-50/20">
+        <div className="px-6 pt-3 pb-4 flex gap-1.5 flex-wrap items-center border-b border-border/50 bg-surface-hover/30">
           {subtabs.map((s) => {
             const active = activeSub === s;
             const renaming = renamingSub === s;
             const count = items.filter((i) => (i.subcategory || DEFAULT_ROOM_SUBTABS[0]) === s).length;
             return (
               <div key={s} className={`group relative flex items-center rounded-full text-xs font-medium transition-all ${
-                active ? 'bg-amber-500 text-white shadow-sm shadow-amber-200' : 'bg-white/60 text-muted hover:bg-white hover:text-foreground border border-amber-100'
+                active ? 'bg-amber-500 text-white shadow-sm shadow-amber-500/30' : 'bg-surface-hover/60 text-muted hover:bg-surface-hover hover:text-foreground'
               }`}>
                 {renaming ? (
                   <input autoFocus value={renameVal} onChange={(e) => setRenameVal(e.target.value)}
                     onBlur={() => handleRenameSub(s)}
                     onKeyDown={(e) => { if (e.key === 'Enter') handleRenameSub(s); if (e.key === 'Escape') { setRenamingSub(null); setRenameVal(''); } }}
-                    className="px-3 py-1.5 rounded-full bg-white/95 text-foreground text-xs w-28 focus:outline-none" />
+                    className="px-3 py-1.5 rounded-full bg-surface text-foreground border border-border text-xs w-28 focus:outline-none focus:border-amber-400" />
                 ) : (
                   <button onClick={() => setActiveSub(s)} className="pl-3.5 pr-2 py-1.5 rounded-l-full">
                     {s} <span className={`ml-1 text-[10px] ${active ? 'text-white/70' : 'text-muted/70'}`}>{count}</span>
@@ -1049,9 +1049,9 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
                 {!renaming && (
                   <div className={`flex items-center gap-0.5 pr-2 pl-0.5 ${active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
                     <button onClick={(e) => { e.stopPropagation(); setRenamingSub(s); setRenameVal(s); }}
-                      title="Rename" className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${active ? 'hover:bg-white/20' : 'hover:bg-amber-100'}`}>✎</button>
+                      title="Rename" className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${active ? 'hover:bg-white/20' : 'hover:bg-foreground/10'}`}>✎</button>
                     <button onClick={(e) => { e.stopPropagation(); handleDeleteSub(s); }}
-                      title="Delete" className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${active ? 'hover:bg-white/20' : 'hover:bg-amber-100'}`}>✕</button>
+                      title="Delete" className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${active ? 'hover:bg-white/20' : 'hover:bg-foreground/10'}`}>✕</button>
                   </div>
                 )}
               </div>
@@ -1062,10 +1062,10 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
               onBlur={handleAddSub}
               onKeyDown={(e) => { if (e.key === 'Enter') handleAddSub(); if (e.key === 'Escape') { setAddingSub(false); setNewSubVal(''); } }}
               placeholder="Subtab name"
-              className="px-3 py-1.5 rounded-full border border-amber-300 bg-white text-xs w-32 focus:outline-none" />
+              className="px-3 py-1.5 rounded-full border border-amber-400/60 bg-surface text-foreground text-xs w-32 focus:outline-none" />
           ) : (
             <button onClick={() => setAddingSub(true)}
-              className="px-3 py-1.5 rounded-full text-xs font-medium bg-amber-100/70 text-amber-700 border border-amber-200 hover:bg-amber-100 flex items-center gap-1">
+              className="px-3 py-1.5 rounded-full text-xs font-medium bg-amber-500/10 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 flex items-center gap-1">
               <Plus className="w-3 h-3" /> New
             </button>
           )}
@@ -1088,7 +1088,7 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
             ))}
           </div>
           {currentItems.length === 0 && (
-            <div className="text-center py-10 text-muted text-sm italic border-2 border-dashed border-amber-100 rounded-2xl">
+            <div className="text-center py-10 text-muted text-sm italic border-2 border-dashed border-border/40 rounded-2xl">
               Nothing in {activeSub} yet
             </div>
           )}
@@ -1096,7 +1096,7 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
       </div>
 
       {/* Moodboard (kept below, separate) */}
-      <div className="rounded-3xl border border-amber-100/50 bg-gradient-to-br from-white/80 to-amber-50/30 p-6 shadow-sm mt-6">
+      <div className="glass-card rounded-3xl p-6 mt-6">
         <RoomMoodboard media={media} roomName={room.name} onUpload={onAddMedia} onDelete={onDeleteMedia} onUpdateCaption={onUpdateMediaCaption} />
       </div>
 
@@ -1196,21 +1196,21 @@ function HomeSection({ rooms, items, media, currentUser, onAddRoom, onUpdateRoom
           <button key={r.id} onClick={() => setSelectedRoomId(r.id)}
             className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
               selectedRoomId === r.id
-                ? 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 shadow-sm border border-amber-200'
+                ? 'bg-amber-500 text-white shadow-sm shadow-amber-500/30'
                 : 'bg-surface-hover/60 text-muted hover:bg-surface-hover hover:text-foreground'
             }`}>
             {r.name}
-            <span className="text-[10px] opacity-70 bg-white/40 px-1.5 py-0.5 rounded-full">{items.filter((i) => i.room_id === r.id).length}</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${selectedRoomId === r.id ? 'bg-white/25 text-white/90' : 'bg-foreground/10 text-muted'}`}>{items.filter((i) => i.room_id === r.id).length}</span>
           </button>
         ))}
         <button onClick={() => setShowRoomModal(true)}
-          className="shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 active:scale-95 transition-all shadow-sm shadow-amber-200 flex items-center gap-1">
+          className="shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-amber-500/10 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 active:scale-95 transition-all flex items-center gap-1">
           <Plus className="w-3.5 h-3.5" /> Add Category
         </button>
       </div>
 
       {rooms.length === 0 && (
-        <div className="text-center py-16 border-2 border-dashed border-amber-200 rounded-3xl bg-amber-50/30">
+        <div className="text-center py-16 border-2 border-dashed border-border/60 rounded-3xl bg-surface-hover/30">
           <span className="text-5xl block mb-3">🏠</span>
           <p className="text-muted mb-4">No categories yet — start designing your future home</p>
           <button onClick={() => setShowRoomModal(true)}
