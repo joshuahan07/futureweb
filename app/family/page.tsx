@@ -70,49 +70,49 @@ function NameCard({ n, onLove, onEdit, onDelete, currentUser }: {
   const both = n.joshua_loves && n.sophie_loves;
   const tint = n.gender === 'girl'
     ? 'from-rose-50 via-pink-50/60 to-white/80'
-    : 'from-emerald-50 via-teal-50/60 to-white/80';
-  const borderTint = n.gender === 'girl' ? 'border-rose-100/70' : 'border-emerald-100/70';
+    : 'from-sky-50 via-blue-50/60 to-white/80';
+  const borderTint = n.gender === 'girl' ? 'border-rose-100/70' : 'border-sky-100/70';
   return (
     <motion.div layout initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-      className={`relative rounded-3xl p-5 bg-gradient-to-br ${tint} border overflow-hidden group transition-all ${
-        both ? 'border-amber-300 shadow-lg shadow-amber-200/40' : `${borderTint} shadow-sm hover:shadow-md hover:-translate-y-0.5`
+      className={`relative rounded-2xl p-3 bg-gradient-to-br ${tint} border overflow-hidden group transition-all ${
+        both ? 'border-amber-300 shadow-md shadow-amber-200/40' : `${borderTint} shadow-sm hover:shadow-md hover:-translate-y-0.5`
       }`}
-      style={both ? { boxShadow: '0 0 0 1px rgba(251, 191, 36, 0.5), 0 10px 30px -5px rgba(251, 191, 36, 0.3)' } : undefined}>
+      style={both ? { boxShadow: '0 0 0 1px rgba(251, 191, 36, 0.5), 0 8px 24px -6px rgba(251, 191, 36, 0.3)' } : undefined}>
       {both && (
         <>
           <motion.div
             animate={{ opacity: [0.3, 0.7, 0.3] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
             className="absolute inset-0 pointer-events-none rounded-2xl"
-            style={{ boxShadow: 'inset 0 0 30px rgba(251, 191, 36, 0.25)' }} />
+            style={{ boxShadow: 'inset 0 0 24px rgba(251, 191, 36, 0.25)' }} />
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
-            className="absolute top-2 right-2 text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm z-10">
+            className="absolute top-1.5 right-1.5 text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow-sm z-10">
             <motion.span animate={{ rotate: [0, 20, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>✦</motion.span>
-            Both love this
+            Both
           </motion.div>
         </>
       )}
-      <div className="absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button onClick={onEdit} className="w-6 h-6 rounded-full bg-white/70 flex items-center justify-center text-muted hover:text-foreground"><Pencil className="w-3 h-3" /></button>
-        <button onClick={onDelete} className="w-6 h-6 rounded-full bg-white/70 flex items-center justify-center text-red-400 hover:text-red-600"><X className="w-3 h-3" /></button>
+      <div className="absolute top-1.5 left-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button onClick={onEdit} className="w-5 h-5 rounded-full bg-white/80 flex items-center justify-center text-muted hover:text-foreground"><Pencil className="w-2.5 h-2.5" /></button>
+        <button onClick={onDelete} className="w-5 h-5 rounded-full bg-white/80 flex items-center justify-center text-red-400 hover:text-red-600"><X className="w-2.5 h-2.5" /></button>
       </div>
-      <h3 className="font-heading text-3xl sm:text-4xl text-foreground tracking-tight">{n.name}</h3>
-      {n.meaning && <p className="text-xs italic text-muted mt-1">&ldquo;{n.meaning}&rdquo;</p>}
+      <h3 className="font-heading text-xl sm:text-2xl text-foreground tracking-tight truncate">{n.name}</h3>
+      {n.meaning && <p className="text-[11px] italic text-muted mt-0.5 truncate">&ldquo;{n.meaning}&rdquo;</p>}
       {n.notes && (
-        <p className="text-xs text-foreground/70 mt-3 italic">{n.notes}</p>
+        <p className="text-[11px] text-foreground/70 mt-2 italic line-clamp-2">{n.notes}</p>
       )}
-      <div className="flex items-center gap-3 mt-4 pt-3 border-t border-border/30">
+      <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-border/30">
         <button onClick={() => onLove('joshua', !n.joshua_loves)}
-          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all ${
+          className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-all ${
             n.joshua_loves ? 'bg-blue-100 text-blue-600 scale-105' : 'bg-white/50 text-muted hover:text-blue-600'
           }`}>
-          <Heart className={`w-3.5 h-3.5 ${n.joshua_loves ? 'fill-blue-500' : ''}`} /> J
+          <Heart className={`w-3 h-3 ${n.joshua_loves ? 'fill-blue-500' : ''}`} /> J
         </button>
         <button onClick={() => onLove('sophie', !n.sophie_loves)}
-          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all ${
+          className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-all ${
             n.sophie_loves ? 'bg-pink-100 text-pink-600 scale-105' : 'bg-white/50 text-muted hover:text-pink-600'
           }`}>
-          <Heart className={`w-3.5 h-3.5 ${n.sophie_loves ? 'fill-pink-500' : ''}`} /> S
+          <Heart className={`w-3 h-3 ${n.sophie_loves ? 'fill-pink-500' : ''}`} /> S
         </button>
         {currentUser && <span className="ml-auto text-[10px] text-muted capitalize">added by {n.created_by}</span>}
       </div>
@@ -221,7 +221,7 @@ function BabyNamesSection({ names, currentUser, onSave, onDelete, onLove }: {
           { v: names.length, l: 'Names added', c: '#C9A0B4', bg: 'from-rose-50 to-pink-50/30' },
           { v: bothCount, l: 'Both love ✦', c: '#f59e0b', bg: 'from-amber-50 to-yellow-50/30' },
           { v: names.filter((n) => n.gender === 'girl').length, l: 'Girl', c: '#f472b6', bg: 'from-pink-50 to-rose-50/30' },
-          { v: names.filter((n) => n.gender === 'boy').length, l: 'Boy', c: '#10b981', bg: 'from-emerald-50 to-teal-50/30' },
+          { v: names.filter((n) => n.gender === 'boy').length, l: 'Boy', c: '#3b82f6', bg: 'from-sky-50 to-blue-50/30' },
         ].map((s) => (
           <div key={s.l} className={`rounded-2xl p-4 bg-gradient-to-br ${s.bg} border border-white/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all relative overflow-hidden`}
                style={{ borderLeft: `3px solid ${s.c}` }}>
@@ -251,15 +251,15 @@ function BabyNamesSection({ names, currentUser, onSave, onDelete, onLove }: {
         ))}
       </div>
 
-      {/* Two columns */}
+      {/* Two columns (girls / boys) — each column has a 2-col grid inside */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
         <div>
           <div className="flex items-center gap-2 mb-3 px-1">
             <span className="w-2 h-2 rounded-full bg-rose-400" />
-            <h3 className="font-heading italic text-base text-rose-700">Girl Names</h3>
-            <span className="text-[11px] text-rose-700/60 bg-rose-100 px-2 py-0.5 rounded-full font-medium">{girls.length}</span>
+            <h3 className="font-heading italic text-base text-rose-700 dark:text-rose-400">Girl Names</h3>
+            <span className="text-[11px] text-rose-700/70 bg-rose-100 dark:bg-rose-500/15 dark:text-rose-300 px-2 py-0.5 rounded-full font-medium">{girls.length}</span>
           </div>
-          <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-2.5">
             <AnimatePresence>
               {girls.map((n) => (
                 <NameCard key={n.id} n={n} currentUser={currentUser}
@@ -269,7 +269,7 @@ function BabyNamesSection({ names, currentUser, onSave, onDelete, onLove }: {
               ))}
             </AnimatePresence>
             {girls.length === 0 && (
-              <div className="border-2 border-dashed border-rose-100 rounded-2xl py-8 text-center text-xs text-rose-400 italic">
+              <div className="col-span-2 border-2 border-dashed border-rose-100 rounded-2xl py-8 text-center text-xs text-rose-400 italic">
                 ✦ No girl names yet
               </div>
             )}
@@ -277,11 +277,11 @@ function BabyNamesSection({ names, currentUser, onSave, onDelete, onLove }: {
         </div>
         <div>
           <div className="flex items-center gap-2 mb-3 px-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <h3 className="font-heading italic text-base text-emerald-700">Boy Names</h3>
-            <span className="text-[11px] text-emerald-700/60 bg-emerald-100 px-2 py-0.5 rounded-full font-medium">{boys.length}</span>
+            <span className="w-2 h-2 rounded-full bg-sky-400" />
+            <h3 className="font-heading italic text-base text-sky-700 dark:text-sky-400">Boy Names</h3>
+            <span className="text-[11px] text-sky-700/70 bg-sky-100 dark:bg-sky-500/15 dark:text-sky-300 px-2 py-0.5 rounded-full font-medium">{boys.length}</span>
           </div>
-          <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-2.5">
             <AnimatePresence>
               {boys.map((n) => (
                 <NameCard key={n.id} n={n} currentUser={currentUser}
@@ -291,7 +291,7 @@ function BabyNamesSection({ names, currentUser, onSave, onDelete, onLove }: {
               ))}
             </AnimatePresence>
             {boys.length === 0 && (
-              <div className="border-2 border-dashed border-emerald-100 rounded-2xl py-8 text-center text-xs text-emerald-400 italic">
+              <div className="col-span-2 border-2 border-dashed border-sky-100 rounded-2xl py-8 text-center text-xs text-sky-400 italic">
                 ✦ No boy names yet
               </div>
             )}
@@ -1420,23 +1420,9 @@ export default function FamilyPage() {
     await supabase.from('home_room_media').update({ caption }).eq('id', id);
   };
 
-  // ── Sticky nav scroll handler ─────────────────────────────
+  // ── Sticky nav tab state ──────────────────────────────────
 
   const [activeSection, setActiveSection] = useState<'baby-names' | 'parenting' | 'home'>('baby-names');
-  useEffect(() => {
-    const handler = () => {
-      const sections: Array<'baby-names' | 'parenting' | 'home'> = ['baby-names', 'parenting', 'home'];
-      for (const id of sections) {
-        const el = document.getElementById(id);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          if (rect.top < 200 && rect.bottom > 200) { setActiveSection(id); return; }
-        }
-      }
-    };
-    window.addEventListener('scroll', handler);
-    return () => window.removeEventListener('scroll', handler);
-  }, []);
 
   if (loading) {
     return <Layout><div className="flex items-center justify-center py-32"><div className="w-8 h-8 rounded-full border-2 border-rose-300 border-t-transparent animate-spin" /></div></Layout>;
@@ -1455,37 +1441,40 @@ export default function FamilyPage() {
             ]).map((s) => {
               const active = activeSection === s.id;
               return (
-                <a key={s.id} href={`#${s.id}`} onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }}
+                <button key={s.id} type="button" onClick={() => setActiveSection(s.id)}
                   className={`px-4 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
                     active ? `${s.activeBg} ${s.activeText} shadow-sm` : 'text-muted hover:text-foreground hover:bg-surface-hover/60'
                   }`}>
                   <span className={active ? 'opacity-100' : 'opacity-40'}>{s.icon}</span>
                   {s.label}
-                </a>
+                </button>
               );
             })}
           </div>
         </div>
 
-        <BabyNamesSection names={names} currentUser={currentUser}
-          onSave={saveName} onDelete={(id) => supabase.from('baby_names').delete().eq('id', id).then(fetchAll)}
-          onLove={loveName} />
+        {activeSection === 'baby-names' && (
+          <BabyNamesSection names={names} currentUser={currentUser}
+            onSave={saveName} onDelete={(id) => supabase.from('baby_names').delete().eq('id', id).then(fetchAll)}
+            onLove={loveName} />
+        )}
 
-        <ParentingSection tips={tips} todos={todos} currentUser={currentUser}
-          onSaveTip={saveTip} onUpdateTip={updateTip}
-          onDeleteTip={(id) => supabase.from('parenting_tips').delete().eq('id', id).then(fetchAll)}
-          onRenameTipCat={renameTipCat} onDeleteTipCat={deleteTipCat}
-          onSaveTodo={saveTodo} onUpdateTodo={updateTodo}
-          onDeleteTodo={(id) => supabase.from('parenting_todo').delete().eq('id', id).then(fetchAll)} />
+        {activeSection === 'parenting' && (
+          <ParentingSection tips={tips} todos={todos} currentUser={currentUser}
+            onSaveTip={saveTip} onUpdateTip={updateTip}
+            onDeleteTip={(id) => supabase.from('parenting_tips').delete().eq('id', id).then(fetchAll)}
+            onRenameTipCat={renameTipCat} onDeleteTipCat={deleteTipCat}
+            onSaveTodo={saveTodo} onUpdateTodo={updateTodo}
+            onDeleteTodo={(id) => supabase.from('parenting_todo').delete().eq('id', id).then(fetchAll)} />
+        )}
 
-        <HomeSection rooms={rooms} items={items} media={media} currentUser={currentUser}
-          onAddRoom={addRoom} onUpdateRoom={updateRoom} onDeleteRoom={deleteRoom}
-          onAddItem={addItem} onUpdateItem={updateItem} onDeleteItem={deleteItem}
-          onAddMedia={addMedia} onDeleteMedia={deleteMedia} onUpdateMediaCaption={updateMediaCaption}
-          onRenameSubtab={renameSubtab} onDeleteSubtab={deleteSubtab} />
+        {activeSection === 'home' && (
+          <HomeSection rooms={rooms} items={items} media={media} currentUser={currentUser}
+            onAddRoom={addRoom} onUpdateRoom={updateRoom} onDeleteRoom={deleteRoom}
+            onAddItem={addItem} onUpdateItem={updateItem} onDeleteItem={deleteItem}
+            onAddMedia={addMedia} onDeleteMedia={deleteMedia} onUpdateMediaCaption={updateMediaCaption}
+            onRenameSubtab={renameSubtab} onDeleteSubtab={deleteSubtab} />
+        )}
       </div>
     </Layout>
   );
