@@ -117,3 +117,6 @@ create policy "allow all" on home_room_media for all using (true) with check (tr
 
 -- Category cover image (replaces color palette in UI)
 alter table home_rooms add column if not exists image_url text;
+
+-- Per-category subtabs (e.g. Items, Vision) on items
+alter table home_room_items add column if not exists subcategory text;

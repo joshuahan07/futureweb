@@ -35,8 +35,11 @@ interface RoomItem {
   id: string; room_id: string; name: string; image_url: string | null;
   price_estimate: number | null; link: string | null;
   status: 'dream' | 'saving' | 'ordered' | 'have_it'; priority: number;
-  notes: string | null; created_by: string | null; created_at: string;
+  notes: string | null; subcategory: string | null;
+  created_by: string | null; created_at: string;
 }
+
+const DEFAULT_ROOM_SUBTABS = ['Items', 'Vision'];
 interface RoomMedia {
   id: string; room_id: string; url: string; caption: string; order_index: number; created_at: string;
 }
@@ -745,7 +748,6 @@ function RoomItemModal({ roomName, item, onClose, onSave }: {
   const [image, setImage] = useState(item?.image_url || '');
   const [price, setPrice] = useState(item?.price_estimate?.toString() || '');
   const [link, setLink] = useState(item?.link || '');
-  const [status, setStatus] = useState<RoomItem['status']>(item?.status || 'dream');
   const [priority, setPriority] = useState(item?.priority || 2);
   const [notes, setNotes] = useState(item?.notes || '');
   const [uploading, setUploading] = useState(false);
@@ -821,20 +823,13 @@ function RoomItemModal({ roomName, item, onClose, onSave }: {
           <input type="url" value={link} onChange={(e) => setLink(e.target.value)}
             placeholder="Product link"
             className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:border-mauve/40" />
-          <div className="flex gap-1.5">
-            {(['dream', 'saving', 'ordered', 'have_it'] as const).map((s) => (
-              <button key={s} type="button" onClick={() => setStatus(s)}
-                className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-medium capitalize ${
-                  status === s ? 'bg-mauve text-white' : 'bg-surface-hover text-muted'
-                }`}>{s.replace('_', ' ')}</button>
-            ))}
-          </div>
           <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Notes..."
             className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm resize-none focus:outline-none focus:border-mauve/40" />
           <button disabled={!name.trim()}
             onClick={() => name.trim() && onSave({
               name: name.trim(), image_url: image || null, price_estimate: price ? Number(price) : null,
-              link: link || null, status, priority, notes: notes || null,
+              link: link || null, priority, notes: notes || null,
+              status: item?.status || 'dream', subcategory: item?.subcategory ?? null,
             })}
             className={`w-full py-2.5 rounded-xl text-sm font-medium ${name.trim() ? 'bg-mauve text-white hover:bg-mauve/90' : 'bg-surface-hover text-muted'}`}>
             {item ? 'Save' : 'Add Item'}
@@ -845,28 +840,15 @@ function RoomItemModal({ roomName, item, onClose, onSave }: {
   );
 }
 
-function RoomItemCard({ it, onEdit, onDelete, onStatusChange }: {
-  it: RoomItem; onEdit: () => void; onDelete: () => void; onStatusChange: (s: RoomItem['status']) => void;
+function RoomItemCard({ it, onEdit, onDelete }: {
+  it: RoomItem; onEdit: () => void; onDelete: () => void;
 }) {
-  const statusCol: Record<RoomItem['status'], string> = {
-    dream: 'bg-amber-50 text-amber-600 border-amber-100',
-    saving: 'bg-blue-50 text-blue-600 border-blue-100',
-    ordered: 'bg-purple-50 text-purple-600 border-purple-100',
-    have_it: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-  };
-  const have = it.status === 'have_it';
   return (
-    <div className={`group relative rounded-2xl overflow-hidden border bg-surface/60 transition-all hover:shadow-md ${have ? 'border-emerald-300 bg-emerald-50/30' : 'border-border/50'}`}>
+    <div className="group relative rounded-2xl overflow-hidden border bg-surface/60 border-border/50 transition-all hover:shadow-md">
       {it.image_url && (
         <div className="relative h-40 bg-surface-hover overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={it.image_url} alt={it.name} className="w-full h-full object-cover" />
-          {have && (
-            <div className="absolute inset-0 bg-emerald-500/10 flex items-center justify-center">
-              <div className="bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
-                <Check className="w-3 h-3" /> Have It
-              </div>
-            </div>
-          )}
         </div>
       )}
       <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
@@ -876,12 +858,6 @@ function RoomItemCard({ it, onEdit, onDelete, onStatusChange }: {
       <div className="p-3">
         <h4 className="font-medium text-sm text-foreground">{it.name}</h4>
         <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-          <button onClick={() => {
-            const next: RoomItem['status'] = it.status === 'dream' ? 'saving' : it.status === 'saving' ? 'ordered' : it.status === 'ordered' ? 'have_it' : 'dream';
-            onStatusChange(next);
-          }} className={`px-2 py-0.5 rounded-full text-[10px] font-medium border capitalize ${statusCol[it.status]}`}>
-            {it.status.replace('_', ' ')}
-          </button>
           {[...Array(it.priority)].map((_, i) => <Star key={i} className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />)}
           {it.price_estimate != null && it.price_estimate > 0 && <span className="text-[10px] text-muted">${it.price_estimate}</span>}
         </div>
@@ -949,7 +925,7 @@ function RoomMoodboard({ media, roomName, onUpload, onDelete, onUpdateCaption }:
   );
 }
 
-function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, onUpdateItem, onDeleteItem, onAddMedia, onDeleteMedia, onUpdateMediaCaption, onDeleteRoom }: {
+function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, onUpdateItem, onDeleteItem, onAddMedia, onDeleteMedia, onUpdateMediaCaption, onDeleteRoom, onRenameSubtab, onDeleteSubtab }: {
   room: HomeRoom; items: RoomItem[]; media: RoomMedia[]; currentUser: string | null;
   onUpdateRoom: (u: Partial<HomeRoom>) => void;
   onAddItem: (data: Omit<RoomItem, 'id' | 'created_at' | 'created_by' | 'room_id'>) => void;
@@ -959,33 +935,87 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
   onDeleteMedia: (id: string) => void;
   onUpdateMediaCaption: (id: string, caption: string) => void;
   onDeleteRoom: () => void;
+  onRenameSubtab: (roomId: string, oldName: string, newName: string) => Promise<void>;
+  onDeleteSubtab: (roomId: string, name: string) => Promise<void>;
 }) {
   const [showItemModal, setShowItemModal] = useState(false);
   const [editingItem, setEditingItem] = useState<RoomItem | null>(null);
   const [showRoomEdit, setShowRoomEdit] = useState(false);
-  const [vibeDraft, setVibeDraft] = useState(room.vibe || '');
-  const [notesJ, setNotesJ] = useState(room.notes_joshua || '');
-  const [notesS, setNotesS] = useState(room.notes_sophie || '');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const vibeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const noteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => { setVibeDraft(room.vibe || ''); setNotesJ(room.notes_joshua || ''); setNotesS(room.notes_sophie || ''); }, [room.id, room.vibe, room.notes_joshua, room.notes_sophie]);
-
-  const debouncedUpdate = (u: Partial<HomeRoom>, timer: React.MutableRefObject<ReturnType<typeof setTimeout> | null>) => {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => onUpdateRoom(u), 500);
+  const subsKey = `js-home-subs-${room.id}`;
+  const [customSubs, setCustomSubs] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try { return JSON.parse(localStorage.getItem(subsKey) || '[]'); } catch { return []; }
+  });
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try { setCustomSubs(JSON.parse(localStorage.getItem(subsKey) || '[]')); } catch { setCustomSubs([]); }
+  }, [subsKey]);
+  const persistSubs = (next: string[]) => {
+    setCustomSubs(next);
+    if (typeof window !== 'undefined') localStorage.setItem(subsKey, JSON.stringify(next));
   };
 
-  const filteredItems = statusFilter === 'all' ? items : items.filter((i) => i.status === statusFilter);
-  const sorted = [...filteredItems].sort((a, b) => b.priority - a.priority);
-  const acquired = items.filter((i) => i.status === 'have_it').length;
+  const subtabs = useMemo(() => {
+    const live = items.map((i) => i.subcategory).filter((s): s is string => !!s);
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const s of [...DEFAULT_ROOM_SUBTABS, ...customSubs, ...live]) {
+      if (!seen.has(s)) { seen.add(s); out.push(s); }
+    }
+    return out;
+  }, [items, customSubs]);
+
+  const [activeSub, setActiveSub] = useState<string>(subtabs[0] || 'Items');
+  useEffect(() => {
+    if (!subtabs.includes(activeSub)) setActiveSub(subtabs[0] || 'Items');
+  }, [subtabs, activeSub]);
+
+  const [renamingSub, setRenamingSub] = useState<string | null>(null);
+  const [renameVal, setRenameVal] = useState('');
+  const [addingSub, setAddingSub] = useState(false);
+  const [newSubVal, setNewSubVal] = useState('');
+
+  const handleRenameSub = async (oldName: string) => {
+    const newName = renameVal.trim();
+    setRenamingSub(null);
+    setRenameVal('');
+    if (!newName || newName === oldName || subtabs.includes(newName)) return;
+    if (customSubs.includes(oldName)) persistSubs(customSubs.map((s) => s === oldName ? newName : s));
+    await onRenameSubtab(room.id, oldName, newName);
+    if (activeSub === oldName) setActiveSub(newName);
+  };
+
+  const handleDeleteSub = async (name: string) => {
+    const n = items.filter((i) => (i.subcategory || DEFAULT_ROOM_SUBTABS[0]) === name).length;
+    if (!confirm(`Delete subtab "${name}"${n > 0 ? ` and ${n} item${n === 1 ? '' : 's'} in it` : ''}?`)) return;
+    if (customSubs.includes(name)) persistSubs(customSubs.filter((s) => s !== name));
+    await onDeleteSubtab(room.id, name);
+    if (activeSub === name) setActiveSub(subtabs.filter((s) => s !== name)[0] || 'Items');
+  };
+
+  const handleAddSub = () => {
+    const name = newSubVal.trim();
+    setNewSubVal('');
+    setAddingSub(false);
+    if (!name || subtabs.includes(name)) return;
+    persistSubs([...customSubs, name]);
+    setActiveSub(name);
+  };
+
+  const currentItems = useMemo(() => {
+    const effectiveSub = (it: RoomItem) => it.subcategory || DEFAULT_ROOM_SUBTABS[0];
+    return items
+      .filter((i) => effectiveSub(i) === activeSub)
+      .sort((a, b) => b.priority - a.priority);
+  }, [items, activeSub]);
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Notes & Vibe */}
-      <div className="rounded-3xl border border-amber-100/50 bg-gradient-to-br from-white/80 to-amber-50/30 p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
+    <div className="animate-fade-in">
+      {/* Grouped card: category header + subtabs + items */}
+      <div className="rounded-3xl border border-amber-100/60 bg-gradient-to-br from-white/80 to-amber-50/30 shadow-sm overflow-hidden">
+        {/* Header */}
+        <div className="px-6 pt-5 pb-3 flex items-center justify-between flex-wrap gap-3 border-b border-amber-100/60">
           <h3 className="font-heading italic text-2xl text-amber-800">{room.name}</h3>
           <div className="flex gap-3">
             <button onClick={() => setShowRoomEdit(true)} className="text-xs text-muted hover:text-foreground flex items-center gap-1">
@@ -995,69 +1025,78 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
               className="text-xs text-red-400 hover:text-red-600">Delete</button>
           </div>
         </div>
-        <input type="text" value={vibeDraft}
-          onChange={(e) => { setVibeDraft(e.target.value); debouncedUpdate({ vibe: e.target.value }, vibeTimer); }}
-          placeholder="Vibe / mood..."
-          className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm italic text-foreground/80 focus:outline-none focus:border-mauve/40 mb-3" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs font-medium text-blue-600 mb-1 block">Joshua&apos;s notes</label>
-            <textarea value={notesJ} rows={3}
-              onChange={(e) => { setNotesJ(e.target.value); debouncedUpdate({ notes_joshua: e.target.value }, noteTimer); }}
-              className="w-full px-3 py-2 rounded-lg border border-blue-100 bg-blue-50/30 text-sm resize-none focus:outline-none focus:border-blue-300" />
+
+        {/* Subtabs */}
+        <div className="px-6 pt-3 pb-4 flex gap-1.5 flex-wrap items-center border-b border-amber-100/40 bg-amber-50/20">
+          {subtabs.map((s) => {
+            const active = activeSub === s;
+            const renaming = renamingSub === s;
+            const count = items.filter((i) => (i.subcategory || DEFAULT_ROOM_SUBTABS[0]) === s).length;
+            return (
+              <div key={s} className={`group relative flex items-center rounded-full text-xs font-medium transition-all ${
+                active ? 'bg-amber-500 text-white shadow-sm shadow-amber-200' : 'bg-white/60 text-muted hover:bg-white hover:text-foreground border border-amber-100'
+              }`}>
+                {renaming ? (
+                  <input autoFocus value={renameVal} onChange={(e) => setRenameVal(e.target.value)}
+                    onBlur={() => handleRenameSub(s)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleRenameSub(s); if (e.key === 'Escape') { setRenamingSub(null); setRenameVal(''); } }}
+                    className="px-3 py-1.5 rounded-full bg-white/95 text-foreground text-xs w-28 focus:outline-none" />
+                ) : (
+                  <button onClick={() => setActiveSub(s)} className="pl-3.5 pr-2 py-1.5 rounded-l-full">
+                    {s} <span className={`ml-1 text-[10px] ${active ? 'text-white/70' : 'text-muted/70'}`}>{count}</span>
+                  </button>
+                )}
+                {!renaming && (
+                  <div className={`flex items-center gap-0.5 pr-2 pl-0.5 ${active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
+                    <button onClick={(e) => { e.stopPropagation(); setRenamingSub(s); setRenameVal(s); }}
+                      title="Rename" className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${active ? 'hover:bg-white/20' : 'hover:bg-amber-100'}`}>✎</button>
+                    <button onClick={(e) => { e.stopPropagation(); handleDeleteSub(s); }}
+                      title="Delete" className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${active ? 'hover:bg-white/20' : 'hover:bg-amber-100'}`}>✕</button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {addingSub ? (
+            <input autoFocus value={newSubVal} onChange={(e) => setNewSubVal(e.target.value)}
+              onBlur={handleAddSub}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleAddSub(); if (e.key === 'Escape') { setAddingSub(false); setNewSubVal(''); } }}
+              placeholder="Subtab name"
+              className="px-3 py-1.5 rounded-full border border-amber-300 bg-white text-xs w-32 focus:outline-none" />
+          ) : (
+            <button onClick={() => setAddingSub(true)}
+              className="px-3 py-1.5 rounded-full text-xs font-medium bg-amber-100/70 text-amber-700 border border-amber-200 hover:bg-amber-100 flex items-center gap-1">
+              <Plus className="w-3 h-3" /> New
+            </button>
+          )}
+        </div>
+
+        {/* Items for the active subtab */}
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <h4 className="font-heading italic text-base text-foreground">{activeSub} <span className="text-xs text-muted">· {currentItems.length}</span></h4>
+            <button onClick={() => { setEditingItem(null); setShowItemModal(true); }}
+              className="px-3 py-1.5 rounded-full bg-mauve text-white text-xs font-medium flex items-center gap-1 hover:bg-mauve/90">
+              <Plus className="w-3 h-3" /> Add Item
+            </button>
           </div>
-          <div>
-            <label className="text-xs font-medium text-pink-600 mb-1 block">Sophie&apos;s notes</label>
-            <textarea value={notesS} rows={3}
-              onChange={(e) => { setNotesS(e.target.value); debouncedUpdate({ notes_sophie: e.target.value }, noteTimer); }}
-              className="w-full px-3 py-2 rounded-lg border border-pink-100 bg-pink-50/30 text-sm resize-none focus:outline-none focus:border-pink-300" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {currentItems.map((it) => (
+              <RoomItemCard key={it.id} it={it}
+                onEdit={() => { setEditingItem(it); setShowItemModal(true); }}
+                onDelete={() => { if (confirm(`Delete "${it.name}"?`)) onDeleteItem(it.id); }} />
+            ))}
           </div>
+          {currentItems.length === 0 && (
+            <div className="text-center py-10 text-muted text-sm italic border-2 border-dashed border-amber-100 rounded-2xl">
+              Nothing in {activeSub} yet
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Items */}
-      <div>
-        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <div>
-            <h3 className="font-heading italic text-lg text-foreground">Items & Products</h3>
-            <p className="text-xs text-muted">{acquired} of {items.length} acquired</p>
-          </div>
-          <button onClick={() => { setEditingItem(null); setShowItemModal(true); }}
-            className="px-3 py-1.5 rounded-full bg-mauve text-white text-xs font-medium flex items-center gap-1 hover:bg-mauve/90">
-            <Plus className="w-3 h-3" /> Add Item
-          </button>
-        </div>
-        <div className="flex gap-1.5 mb-3 flex-wrap">
-          {['all', 'dream', 'saving', 'ordered', 'have_it'].map((s) => (
-            <button key={s} onClick={() => setStatusFilter(s)}
-              className={`px-2.5 py-1 rounded-full text-[11px] font-medium capitalize ${
-                statusFilter === s ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'glass text-muted hover:text-foreground'
-              }`}>{s.replace('_', ' ')}</button>
-          ))}
-        </div>
-        {items.length > 0 && (
-          <div className="h-1.5 rounded-full bg-surface-hover overflow-hidden mb-4">
-            <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-emerald-400 transition-all"
-              style={{ width: `${(acquired / items.length) * 100}%` }} />
-          </div>
-        )}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {sorted.map((it) => (
-            <RoomItemCard key={it.id} it={it}
-              onEdit={() => { setEditingItem(it); setShowItemModal(true); }}
-              onDelete={() => { if (confirm(`Delete "${it.name}"?`)) onDeleteItem(it.id); }}
-              onStatusChange={(s) => onUpdateItem(it.id, { status: s })} />
-          ))}
-        </div>
-        {sorted.length === 0 && (
-          <div className="text-center py-10 text-muted text-sm italic border-2 border-dashed border-border/40 rounded-2xl">
-            No items yet — start dreaming
-          </div>
-        )}
-      </div>
-
-      {/* Moodboard */}
-      <div className="rounded-3xl border border-amber-100/50 bg-gradient-to-br from-white/80 to-amber-50/30 p-6 shadow-sm">
+      {/* Moodboard (kept below, separate) */}
+      <div className="rounded-3xl border border-amber-100/50 bg-gradient-to-br from-white/80 to-amber-50/30 p-6 shadow-sm mt-6">
         <RoomMoodboard media={media} roomName={room.name} onUpload={onAddMedia} onDelete={onDeleteMedia} onUpdateCaption={onUpdateMediaCaption} />
       </div>
 
@@ -1065,8 +1104,9 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
         <RoomItemModal roomName={room.name} item={editingItem}
           onClose={() => { setShowItemModal(false); setEditingItem(null); }}
           onSave={(data) => {
-            if (editingItem) onUpdateItem(editingItem.id, data);
-            else onAddItem(data);
+            const withSub = { ...data, subcategory: editingItem?.subcategory ?? activeSub };
+            if (editingItem) onUpdateItem(editingItem.id, withSub);
+            else onAddItem(withSub);
             setShowItemModal(false); setEditingItem(null);
           }} />
       )}
@@ -1079,7 +1119,7 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
   );
 }
 
-function HomeSection({ rooms, items, media, currentUser, onAddRoom, onUpdateRoom, onDeleteRoom, onAddItem, onUpdateItem, onDeleteItem, onAddMedia, onDeleteMedia, onUpdateMediaCaption }: {
+function HomeSection({ rooms, items, media, currentUser, onAddRoom, onUpdateRoom, onDeleteRoom, onAddItem, onUpdateItem, onDeleteItem, onAddMedia, onDeleteMedia, onUpdateMediaCaption, onRenameSubtab, onDeleteSubtab }: {
   rooms: HomeRoom[]; items: RoomItem[]; media: RoomMedia[]; currentUser: string | null;
   onAddRoom: (d: { name: string }) => void;
   onUpdateRoom: (id: string, u: Partial<HomeRoom>) => void;
@@ -1090,6 +1130,8 @@ function HomeSection({ rooms, items, media, currentUser, onAddRoom, onUpdateRoom
   onAddMedia: (roomId: string, files: File[], roomName: string) => void;
   onDeleteMedia: (id: string) => void;
   onUpdateMediaCaption: (id: string, caption: string) => void;
+  onRenameSubtab: (roomId: string, oldName: string, newName: string) => Promise<void>;
+  onDeleteSubtab: (roomId: string, name: string) => Promise<void>;
 }) {
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [showRoomModal, setShowRoomModal] = useState(false);
@@ -1187,7 +1229,9 @@ function HomeSection({ rooms, items, media, currentUser, onAddRoom, onUpdateRoom
           onAddMedia={(files) => onAddMedia(selectedRoom.id, files, selectedRoom.name)}
           onDeleteMedia={onDeleteMedia}
           onUpdateMediaCaption={onUpdateMediaCaption}
-          onDeleteRoom={() => onDeleteRoom(selectedRoom.id)} />
+          onDeleteRoom={() => onDeleteRoom(selectedRoom.id)}
+          onRenameSubtab={onRenameSubtab}
+          onDeleteSubtab={onDeleteSubtab} />
       )}
 
       {showRoomModal && (
@@ -1328,6 +1372,31 @@ export default function FamilyPage() {
     fetchAll();
   };
 
+  const renameSubtab = async (roomId: string, oldName: string, newName: string) => {
+    setItems((prev) => prev.map((i) => (i.room_id === roomId && (i.subcategory || DEFAULT_ROOM_SUBTABS[0]) === oldName) ? { ...i, subcategory: newName } : i));
+    const { error } = await supabase.from('home_room_items').update({ subcategory: newName })
+      .eq('room_id', roomId).eq('subcategory', oldName);
+    if (error) console.error('[family] rename subtab error:', error);
+    if (oldName === DEFAULT_ROOM_SUBTABS[0]) {
+      const { error: nullErr } = await supabase.from('home_room_items').update({ subcategory: newName })
+        .eq('room_id', roomId).is('subcategory', null);
+      if (nullErr) console.error('[family] rename subtab (null rows) error:', nullErr);
+    }
+    fetchAll();
+  };
+  const deleteSubtab = async (roomId: string, name: string) => {
+    setItems((prev) => prev.filter((i) => !(i.room_id === roomId && (i.subcategory || DEFAULT_ROOM_SUBTABS[0]) === name)));
+    const { error } = await supabase.from('home_room_items').delete()
+      .eq('room_id', roomId).eq('subcategory', name);
+    if (error) console.error('[family] delete subtab error:', error);
+    if (name === DEFAULT_ROOM_SUBTABS[0]) {
+      const { error: nullErr } = await supabase.from('home_room_items').delete()
+        .eq('room_id', roomId).is('subcategory', null);
+      if (nullErr) console.error('[family] delete subtab (null rows) error:', nullErr);
+    }
+    fetchAll();
+  };
+
   const addMedia = async (roomId: string, files: File[], roomName: string) => {
     const existing = media.filter((m) => m.room_id === roomId);
     const maxIdx = existing.length > 0 ? Math.max(...existing.map((m) => m.order_index)) : -1;
@@ -1415,7 +1484,8 @@ export default function FamilyPage() {
         <HomeSection rooms={rooms} items={items} media={media} currentUser={currentUser}
           onAddRoom={addRoom} onUpdateRoom={updateRoom} onDeleteRoom={deleteRoom}
           onAddItem={addItem} onUpdateItem={updateItem} onDeleteItem={deleteItem}
-          onAddMedia={addMedia} onDeleteMedia={deleteMedia} onUpdateMediaCaption={updateMediaCaption} />
+          onAddMedia={addMedia} onDeleteMedia={deleteMedia} onUpdateMediaCaption={updateMediaCaption}
+          onRenameSubtab={renameSubtab} onDeleteSubtab={deleteSubtab} />
       </div>
     </Layout>
   );
