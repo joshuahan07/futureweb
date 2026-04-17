@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { useRealtimeSync } from '@/lib/realtime';
 import { useUser } from '@/components/UserContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useDropzone } from 'react-dropzone';
 import { Star, Trash2, Pencil, Plus, ExternalLink, Check, Bookmark, Heart, X } from 'lucide-react';
 
 // ── Types ────────────────────────────────────────────────────
@@ -27,7 +28,7 @@ interface ParentingTodo {
   created_by: string | null; created_at: string;
 }
 interface HomeRoom {
-  id: string; name: string; vibe: string | null; color_palette: string[];
+  id: string; name: string; vibe: string | null; color_palette: string[]; image_url: string | null;
   notes_joshua: string | null; notes_sophie: string | null; order_index: number; created_at: string;
 }
 interface RoomItem {
@@ -641,52 +642,82 @@ function ParentingSection({ tips, todos, currentUser, onSaveTip, onUpdateTip, on
 
 function RoomModal({ room, onClose, onSave }: {
   room: HomeRoom | null; onClose: () => void;
-  onSave: (data: { name: string; vibe: string; color_palette: string[]; notes: string }) => void;
+  onSave: (data: { name: string; vibe: string; image_url: string | null; notes: string }) => void;
 }) {
   const [name, setName] = useState(room?.name || '');
   const [vibe, setVibe] = useState(room?.vibe || '');
-  const [palette, setPalette] = useState<string[]>(room?.color_palette.length ? room.color_palette : ['#f5e6d3', '#d4a574', '#8c7b68', '#2c2416', '#ffffff']);
+  const [image, setImage] = useState(room?.image_url || '');
   const [notes, setNotes] = useState('');
+  const [uploading, setUploading] = useState(false);
+
+  const handleFiles = useCallback(async (files: File[]) => {
+    const file = files.find((f) => f.type.startsWith('image/'));
+    if (!file) return;
+    setUploading(true);
+    const url = await uploadFamilyImage(file, 'family/home/categories');
+    if (url) setImage(url);
+    setUploading(false);
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop: handleFiles,
+    accept: { 'image/jpeg': ['.jpg', '.jpeg'], 'image/png': ['.png'], 'image/gif': ['.gif'], 'image/webp': ['.webp'] },
+    multiple: false,
+    noClick: !!image,
+  });
+
   return (
     <div data-modal className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
-      <div className="glass-strong rounded-2xl shadow-xl w-full max-w-md p-6 animate-fade-in border border-border">
+      <div className="glass-strong rounded-2xl shadow-xl w-full max-w-md p-6 animate-fade-in border border-border max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-heading italic text-xl text-foreground/80">{room ? 'Edit Room' : 'Add Room'}</h3>
+          <h3 className="font-heading italic text-xl text-foreground/80">{room ? 'Edit Category' : 'Add Category'}</h3>
           <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-muted hover:bg-surface-hover">✕</button>
         </div>
         <div className="space-y-3">
           <input autoFocus type="text" value={name} onChange={(e) => setName(e.target.value)}
-            placeholder="Room name (e.g. Nursery)"
+            placeholder="Category name (e.g. Nursery, Kitchen)"
             className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:border-mauve/40" />
           <input type="text" value={vibe} onChange={(e) => setVibe(e.target.value)}
-            placeholder="Vibe / mood (e.g. cozy and warm)"
+            placeholder="Vibe / mood (optional)"
             className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:border-mauve/40" />
           <div>
-            <label className="text-xs font-medium text-foreground/70 mb-1 block">Color palette (up to 5)</label>
-            <div className="flex gap-2">
-              {palette.map((c, i) => (
-                <div key={i} className="relative">
-                  <input type="color" value={c}
-                    onChange={(e) => setPalette((p) => p.map((x, idx) => idx === i ? e.target.value : x))}
-                    className="w-10 h-10 rounded-full border-2 border-white shadow cursor-pointer appearance-none" style={{ backgroundColor: c }} />
-                  <button onClick={() => setPalette((p) => p.filter((_, idx) => idx !== i))}
-                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-400 text-white text-[10px] flex items-center justify-center">×</button>
+            <label className="text-xs font-medium text-foreground/70 mb-1 block">Cover image</label>
+            <div {...getRootProps()}
+              className={`relative rounded-xl border-2 border-dashed transition-all overflow-hidden ${
+                isDragActive ? 'border-amber-400 bg-amber-50/60' : 'border-border bg-surface/60 hover:border-amber-300'
+              } ${image ? '' : 'cursor-pointer p-6 text-center'}`}>
+              <input {...getInputProps()} />
+              {image ? (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={image} alt="" className="w-full h-40 object-cover" />
+                  <button type="button" onClick={(e) => { e.stopPropagation(); setImage(''); }}
+                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white text-xs flex items-center justify-center hover:bg-black/80">✕</button>
+                </>
+              ) : uploading ? (
+                <div className="flex flex-col items-center gap-2 text-amber-600">
+                  <div className="w-8 h-8 rounded-full border-2 border-amber-300 border-t-amber-600 animate-spin" />
+                  <span className="text-xs font-medium">Uploading…</span>
                 </div>
-              ))}
-              {palette.length < 5 && (
-                <button onClick={() => setPalette((p) => [...p, '#cccccc'])}
-                  className="w-10 h-10 rounded-full border-2 border-dashed border-border flex items-center justify-center text-muted hover:text-foreground">+</button>
+              ) : (
+                <div className="text-xs text-muted">
+                  <span className="block text-2xl mb-1">🖼️</span>
+                  {isDragActive ? 'Drop image here' : 'Drag & drop, click to upload, or paste URL below'}
+                </div>
               )}
             </div>
+            <input type="url" value={image} onChange={(e) => setImage(e.target.value)}
+              placeholder="…or paste image URL"
+              className="w-full mt-2 px-3 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:border-mauve/40" />
           </div>
           {!room && (
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Notes..."
               className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm resize-none focus:outline-none focus:border-mauve/40" />
           )}
-          <button disabled={!name.trim()}
-            onClick={() => name.trim() && onSave({ name: name.trim(), vibe: vibe.trim(), color_palette: palette, notes })}
+          <button type="button" disabled={!name.trim()}
+            onClick={() => name.trim() && onSave({ name: name.trim(), vibe: vibe.trim(), image_url: image.trim() || null, notes })}
             className={`w-full py-2.5 rounded-xl text-sm font-medium ${name.trim() ? 'bg-mauve text-white hover:bg-mauve/90' : 'bg-surface-hover text-muted'}`}>
-            {room ? 'Save' : 'Add Room'}
+            {room ? 'Save' : 'Add Category'}
           </button>
         </div>
       </div>
@@ -922,18 +953,20 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Notes & Vibe */}
-      <div className="rounded-3xl border border-amber-100/50 bg-gradient-to-br from-white/80 to-amber-50/30 p-6 shadow-sm">
+      {/* Cover image + Notes & Vibe */}
+      <div className="rounded-3xl border border-amber-100/50 bg-gradient-to-br from-white/80 to-amber-50/30 overflow-hidden shadow-sm">
+        {room.image_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={room.image_url} alt={room.name} className="w-full h-40 sm:h-56 object-cover" />
+        )}
+        <div className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            {room.color_palette[0] && <span className="w-4 h-4 rounded-full shadow-inner border-2 border-white" style={{ backgroundColor: room.color_palette[0] }} />}
-            <h3 className="font-heading italic text-2xl text-amber-800">{room.name}</h3>
-          </div>
+          <h3 className="font-heading italic text-2xl text-amber-800">{room.name}</h3>
           <div className="flex gap-3">
             <button onClick={() => setShowRoomEdit(true)} className="text-xs text-muted hover:text-foreground flex items-center gap-1">
-              <Pencil className="w-3 h-3" /> Edit
+              <Pencil className="w-3 h-3" /> Rename / Edit
             </button>
-            <button onClick={() => { if (confirm(`Delete room "${room.name}" and everything in it?`)) onDeleteRoom(); }}
+            <button onClick={() => { if (confirm(`Delete category "${room.name}" and everything in it?`)) onDeleteRoom(); }}
               className="text-xs text-red-400 hover:text-red-600">Delete</button>
           </div>
         </div>
@@ -941,13 +974,6 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
           onChange={(e) => { setVibeDraft(e.target.value); debouncedUpdate({ vibe: e.target.value }, vibeTimer); }}
           placeholder="Vibe / mood..."
           className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm italic text-foreground/80 focus:outline-none focus:border-mauve/40 mb-3" />
-        {room.color_palette.length > 0 && (
-          <div className="flex gap-1.5 mb-4">
-            {room.color_palette.map((c, i) => (
-              <div key={i} className="w-8 h-8 rounded-full border-2 border-white shadow" style={{ backgroundColor: c }} title={c} />
-            ))}
-          </div>
-        )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label className="text-xs font-medium text-blue-600 mb-1 block">Joshua&apos;s notes</label>
@@ -961,6 +987,7 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
               onChange={(e) => { setNotesS(e.target.value); debouncedUpdate({ notes_sophie: e.target.value }, noteTimer); }}
               className="w-full px-3 py-2 rounded-lg border border-pink-100 bg-pink-50/30 text-sm resize-none focus:outline-none focus:border-pink-300" />
           </div>
+        </div>
         </div>
       </div>
 
@@ -1021,7 +1048,7 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
       )}
       {showRoomEdit && (
         <RoomModal room={room} onClose={() => setShowRoomEdit(false)}
-          onSave={(d) => { onUpdateRoom({ name: d.name, vibe: d.vibe, color_palette: d.color_palette }); setShowRoomEdit(false); }} />
+          onSave={(d) => { onUpdateRoom({ name: d.name, vibe: d.vibe, image_url: d.image_url }); setShowRoomEdit(false); }} />
       )}
       <span className="hidden">{currentUser}</span>
     </div>
@@ -1030,7 +1057,7 @@ function RoomPanel({ room, items, media, currentUser, onUpdateRoom, onAddItem, o
 
 function HomeSection({ rooms, items, media, currentUser, onAddRoom, onUpdateRoom, onDeleteRoom, onAddItem, onUpdateItem, onDeleteItem, onAddMedia, onDeleteMedia, onUpdateMediaCaption }: {
   rooms: HomeRoom[]; items: RoomItem[]; media: RoomMedia[]; currentUser: string | null;
-  onAddRoom: (d: { name: string; vibe: string; color_palette: string[] }) => void;
+  onAddRoom: (d: { name: string; vibe: string; image_url: string | null }) => void;
   onUpdateRoom: (id: string, u: Partial<HomeRoom>) => void;
   onDeleteRoom: (id: string) => void;
   onAddItem: (roomId: string, data: Omit<RoomItem, 'id' | 'created_at' | 'created_by' | 'room_id'>) => void;
@@ -1101,29 +1128,34 @@ function HomeSection({ rooms, items, media, currentUser, onAddRoom, onUpdateRoom
       <div className="flex gap-2 mb-5 overflow-x-auto pb-2 -mx-1 px-1">
         {rooms.map((r) => (
           <button key={r.id} onClick={() => setSelectedRoomId(r.id)}
-            className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+            className={`shrink-0 pr-4 py-1 pl-1 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
               selectedRoomId === r.id
                 ? 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 shadow-sm border border-amber-200'
                 : 'bg-surface-hover/60 text-muted hover:bg-surface-hover hover:text-foreground'
             }`}>
-            {r.color_palette[0] && <span className="w-3 h-3 rounded-full shadow-inner" style={{ backgroundColor: r.color_palette[0] }} />}
+            {r.image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={r.image_url} alt="" className="w-7 h-7 rounded-full object-cover shadow-inner" />
+            ) : (
+              <span className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 text-xs">🏠</span>
+            )}
             {r.name}
             <span className="text-[10px] opacity-70 bg-white/40 px-1.5 py-0.5 rounded-full">{items.filter((i) => i.room_id === r.id).length}</span>
           </button>
         ))}
         <button onClick={() => setShowRoomModal(true)}
           className="shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 active:scale-95 transition-all shadow-sm shadow-amber-200 flex items-center gap-1">
-          <Plus className="w-3.5 h-3.5" /> Add Room
+          <Plus className="w-3.5 h-3.5" /> Add Category
         </button>
       </div>
 
       {rooms.length === 0 && (
         <div className="text-center py-16 border-2 border-dashed border-amber-200 rounded-3xl bg-amber-50/30">
           <span className="text-5xl block mb-3">🏠</span>
-          <p className="text-muted mb-4">No rooms yet — start designing your future home</p>
+          <p className="text-muted mb-4">No categories yet — start designing your future home</p>
           <button onClick={() => setShowRoomModal(true)}
             className="px-4 py-2 rounded-xl bg-amber-500 text-white text-sm font-medium hover:bg-amber-600">
-            + Add your first room
+            + Add your first category
           </button>
         </div>
       )}
@@ -1235,9 +1267,13 @@ export default function FamilyPage() {
     await supabase.from('parenting_todo').update(u).eq('id', id);
   };
 
-  const addRoom = async (d: { name: string; vibe: string; color_palette: string[] }) => {
+  const addRoom = async (d: { name: string; vibe: string; image_url: string | null }) => {
     const maxOrder = rooms.length > 0 ? Math.max(...rooms.map((r) => r.order_index)) : 0;
-    await supabase.from('home_rooms').insert({ ...d, order_index: maxOrder + 1 });
+    const { error } = await supabase.from('home_rooms').insert({ ...d, order_index: maxOrder + 1 });
+    if (error) {
+      console.error('[family] home_rooms insert error:', error);
+      alert(`Couldn't add category: ${error.message}`);
+    }
     fetchAll();
   };
   const updateRoom = async (id: string, u: Partial<HomeRoom>) => {

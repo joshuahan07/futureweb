@@ -100,3 +100,6 @@ create policy "allow all" on parenting_todo for all using (true) with check (tru
 create policy "allow all" on home_rooms for all using (true) with check (true);
 create policy "allow all" on home_room_items for all using (true) with check (true);
 create policy "allow all" on home_room_media for all using (true) with check (true);
+
+-- Category cover image (replaces color palette in UI)
+alter table home_rooms add column if not exists image_url text;
