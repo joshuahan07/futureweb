@@ -53,7 +53,7 @@ async function uploadFamilyImage(file: File, path: string): Promise<string | nul
   return data.publicUrl;
 }
 
-const TIP_SUBCATS = ['Pregnancy', 'Newborn', 'Sleep', 'Feeding', 'Development', 'Health', 'General'] as const;
+const DEFAULT_TIP_CATS = ['Pregnancy', 'Newborn', 'Sleep', 'Feeding', 'Development', 'Health', 'General'];
 const TIP_SOURCES = ['mom', 'friend', 'doctor', 'book', 'research', 'TikTok', 'Instagram', 'podcast', 'other'];
 
 // ═══════════════════════════════════════════════════════════════
@@ -386,12 +386,12 @@ function TipCard({ t, onUpdate, onDelete }: {
   );
 }
 
-function TipModal({ onClose, onSave, initial }: {
+function TipModal({ onClose, onSave, initial, categories }: {
   onClose: () => void; onSave: (data: { tip: string; subcategory: string; source: string }) => void;
-  initial?: { subcategory?: string };
+  initial?: { subcategory?: string }; categories: string[];
 }) {
   const [tip, setTip] = useState('');
-  const [subcategory, setSubcategory] = useState(initial?.subcategory || 'General');
+  const [subcategory, setSubcategory] = useState(initial?.subcategory || categories[0] || 'General');
   const [source, setSource] = useState('');
   return (
     <div data-modal className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xl p-4">
@@ -407,7 +407,7 @@ function TipModal({ onClose, onSave, initial }: {
           <div className="grid grid-cols-2 gap-2">
             <select value={subcategory} onChange={(e) => setSubcategory(e.target.value)}
               className="px-2 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:border-mauve/40">
-              {TIP_SUBCATS.map((c) => <option key={c} value={c}>{c}</option>)}
+              {categories.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
             <select value={source} onChange={(e) => setSource(e.target.value)}
               className="px-2 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:border-mauve/40">
@@ -521,21 +521,78 @@ function TodoModal({ onClose, onSave }: {
   );
 }
 
-function ParentingSection({ tips, todos, currentUser, onSaveTip, onUpdateTip, onDeleteTip, onSaveTodo, onUpdateTodo, onDeleteTodo }: {
+function ParentingSection({ tips, todos, currentUser, onSaveTip, onUpdateTip, onDeleteTip, onRenameTipCat, onDeleteTipCat, onSaveTodo, onUpdateTodo, onDeleteTodo }: {
   tips: ParentingTip[]; todos: ParentingTodo[]; currentUser: string | null;
   onSaveTip: (data: { tip: string; subcategory: string; source: string }) => void;
   onUpdateTip: (id: string, u: Partial<ParentingTip>) => void;
   onDeleteTip: (id: string) => void;
+  onRenameTipCat: (oldName: string, newName: string) => Promise<void>;
+  onDeleteTipCat: (name: string) => Promise<void>;
   onSaveTodo: (data: Omit<ParentingTodo, 'id' | 'created_at' | 'created_by'>) => void;
   onUpdateTodo: (id: string, u: Partial<ParentingTodo>) => void;
   onDeleteTodo: (id: string) => void;
 }) {
-  type SubTab = typeof TIP_SUBCATS[number] | 'Todo';
-  const [subtab, setSubtab] = useState<SubTab>('Pregnancy');
+  const [customCats, setCustomCats] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try { return JSON.parse(localStorage.getItem('js-parenting-custom-cats') || '[]'); } catch { return []; }
+  });
+  const persistCustomCats = (next: string[]) => {
+    setCustomCats(next);
+    if (typeof window !== 'undefined') localStorage.setItem('js-parenting-custom-cats', JSON.stringify(next));
+  };
+
+  const allCats = useMemo(() => {
+    const live = tips.map((t) => t.subcategory).filter((c): c is string => !!c);
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const c of [...DEFAULT_TIP_CATS, ...customCats, ...live]) {
+      if (!seen.has(c)) { seen.add(c); out.push(c); }
+    }
+    return out;
+  }, [tips, customCats]);
+
+  const [subtab, setSubtab] = useState<string>(allCats[0] || 'Pregnancy');
   const [tipModal, setTipModal] = useState(false);
   const [todoModal, setTodoModal] = useState(false);
   const [search, setSearch] = useState('');
   const [sourceFilter, setSourceFilter] = useState<string>('all');
+  const [renamingCat, setRenamingCat] = useState<string | null>(null);
+  const [renameVal, setRenameVal] = useState('');
+  const [newCatVal, setNewCatVal] = useState('');
+  const [addingCat, setAddingCat] = useState(false);
+
+  const isTodo = subtab === 'Todo';
+
+  useEffect(() => {
+    if (!isTodo && !allCats.includes(subtab)) setSubtab(allCats[0] || 'Pregnancy');
+  }, [allCats, subtab, isTodo]);
+
+  const handleRename = async (oldName: string) => {
+    const newName = renameVal.trim();
+    setRenamingCat(null);
+    setRenameVal('');
+    if (!newName || newName === oldName) return;
+    if (customCats.includes(oldName)) persistCustomCats(customCats.map((c) => c === oldName ? newName : c));
+    await onRenameTipCat(oldName, newName);
+    if (subtab === oldName) setSubtab(newName);
+  };
+
+  const handleDeleteCat = async (name: string) => {
+    const n = tips.filter((t) => t.subcategory === name).length;
+    if (!confirm(`Delete category "${name}"${n > 0 ? ` and ${n} tip${n === 1 ? '' : 's'} in it` : ''}?`)) return;
+    if (customCats.includes(name)) persistCustomCats(customCats.filter((c) => c !== name));
+    await onDeleteTipCat(name);
+    if (subtab === name) setSubtab(allCats.filter((c) => c !== name)[0] || 'Pregnancy');
+  };
+
+  const handleAddCat = () => {
+    const name = newCatVal.trim();
+    setNewCatVal('');
+    setAddingCat(false);
+    if (!name || allCats.includes(name)) return;
+    persistCustomCats([...customCats, name]);
+    setSubtab(name);
+  };
 
   const filteredTips = useMemo(() => {
     const source = tips.filter((t) => t.subcategory === subtab);
@@ -567,24 +624,64 @@ function ParentingSection({ tips, todos, currentUser, onSaveTip, onUpdateTip, on
             <h2 className="font-heading italic text-3xl sm:text-4xl text-purple-700 tracking-tight">Parenting</h2>
             <p className="text-sm text-purple-700/60 mt-1">tips, research, and everything we&apos;ll need</p>
           </div>
-          <button onClick={() => subtab === 'Todo' ? setTodoModal(true) : setTipModal(true)}
+          <button onClick={() => isTodo ? setTodoModal(true) : setTipModal(true)}
             className="px-4 py-2.5 rounded-full bg-purple-500 text-white text-sm font-medium hover:bg-purple-600 active:scale-95 transition-all shadow-lg shadow-purple-200 flex items-center gap-1.5">
-            <Plus className="w-4 h-4" /> Add {subtab === 'Todo' ? 'Item' : 'Tip'}
+            <Plus className="w-4 h-4" /> Add {isTodo ? 'Item' : 'Tip'}
           </button>
         </div>
       </div>
 
-      {/* Subtabs */}
-      <div className="flex gap-1.5 flex-wrap mb-5">
-        {[...TIP_SUBCATS, 'Todo' as const].map((c) => (
-          <button key={c} onClick={() => setSubtab(c as SubTab)}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-              subtab === c ? 'bg-purple-500 text-white shadow-sm shadow-purple-200' : 'bg-surface-hover/60 text-muted hover:bg-surface-hover hover:text-foreground'
-            }`}>{c === 'Todo' ? 'To Get / To Do' : c}</button>
-        ))}
+      {/* Subtabs — customizable categories */}
+      <div className="flex gap-1.5 flex-wrap mb-5 items-center">
+        {allCats.map((c) => {
+          const active = subtab === c;
+          const renaming = renamingCat === c;
+          const tipCount = tips.filter((t) => t.subcategory === c).length;
+          return (
+            <div key={c} className={`group relative flex items-center rounded-full text-xs font-medium transition-all ${
+              active ? 'bg-purple-500 text-white shadow-sm shadow-purple-200' : 'bg-surface-hover/60 text-muted hover:bg-surface-hover hover:text-foreground'
+            }`}>
+              {renaming ? (
+                <input autoFocus value={renameVal} onChange={(e) => setRenameVal(e.target.value)}
+                  onBlur={() => handleRename(c)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleRename(c); if (e.key === 'Escape') { setRenamingCat(null); setRenameVal(''); } }}
+                  className="px-3 py-1.5 rounded-full bg-white/90 text-foreground text-xs w-28 focus:outline-none" />
+              ) : (
+                <button onClick={() => setSubtab(c)} className="pl-3.5 pr-2 py-1.5 rounded-l-full">
+                  {c} <span className={`ml-1 text-[10px] ${active ? 'text-white/70' : 'text-muted/70'}`}>{tipCount}</span>
+                </button>
+              )}
+              {!renaming && (
+                <div className={`flex items-center gap-0.5 pr-2 pl-0.5 ${active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
+                  <button onClick={(e) => { e.stopPropagation(); setRenamingCat(c); setRenameVal(c); }}
+                    title="Rename" className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${active ? 'hover:bg-white/20' : 'hover:bg-foreground/10'}`}>✎</button>
+                  <button onClick={(e) => { e.stopPropagation(); handleDeleteCat(c); }}
+                    title="Delete" className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${active ? 'hover:bg-white/20' : 'hover:bg-foreground/10'}`}>✕</button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {addingCat ? (
+          <input autoFocus value={newCatVal} onChange={(e) => setNewCatVal(e.target.value)}
+            onBlur={handleAddCat}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleAddCat(); if (e.key === 'Escape') { setAddingCat(false); setNewCatVal(''); } }}
+            placeholder="Category name"
+            className="px-3 py-1.5 rounded-full border border-purple-300 bg-white text-xs w-32 focus:outline-none" />
+        ) : (
+          <button onClick={() => setAddingCat(true)}
+            className="px-3 py-1.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 flex items-center gap-1">
+            <Plus className="w-3 h-3" /> New
+          </button>
+        )}
+        <div className="w-px h-5 bg-border mx-1 self-center" />
+        <button onClick={() => setSubtab('Todo')}
+          className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+            isTodo ? 'bg-purple-500 text-white shadow-sm shadow-purple-200' : 'bg-surface-hover/60 text-muted hover:bg-surface-hover hover:text-foreground'
+          }`}>To Get / To Do</button>
       </div>
 
-      {subtab !== 'Todo' && (
+      {!isTodo && (
         <>
           <div className="flex gap-2 mb-3 flex-wrap">
             <input type="search" value={search} onChange={(e) => setSearch(e.target.value)}
@@ -607,7 +704,7 @@ function ParentingSection({ tips, todos, currentUser, onSaveTip, onUpdateTip, on
         </>
       )}
 
-      {subtab === 'Todo' && (
+      {isTodo && (
         <>
           <div className="glass-card rounded-2xl p-4 mb-4 relative overflow-hidden" style={{ borderLeft: '3px solid #8b5cf6' }}>
             <div className="flex items-center justify-between mb-2">
@@ -628,7 +725,8 @@ function ParentingSection({ tips, todos, currentUser, onSaveTip, onUpdateTip, on
         </>
       )}
 
-      {tipModal && <TipModal onClose={() => setTipModal(false)} initial={{ subcategory: subtab === 'Todo' ? undefined : subtab }}
+      {tipModal && <TipModal onClose={() => setTipModal(false)} initial={{ subcategory: isTodo ? undefined : subtab }}
+        categories={allCats}
         onSave={(data) => { onSaveTip(data); setTipModal(false); }} />}
       {todoModal && <TodoModal onClose={() => setTodoModal(false)} onSave={(data) => { onSaveTodo(data); setTodoModal(false); }} />}
       <span className="hidden">{currentUser}</span>
@@ -1257,6 +1355,18 @@ export default function FamilyPage() {
     setTips((prev) => prev.map((t) => t.id === id ? { ...t, ...u } : t));
     await supabase.from('parenting_tips').update(u).eq('id', id);
   };
+  const renameTipCat = async (oldName: string, newName: string) => {
+    setTips((prev) => prev.map((t) => t.subcategory === oldName ? { ...t, subcategory: newName } : t));
+    const { error } = await supabase.from('parenting_tips').update({ subcategory: newName }).eq('subcategory', oldName);
+    if (error) console.error('[family] rename tip cat error:', error);
+    fetchAll();
+  };
+  const deleteTipCat = async (name: string) => {
+    setTips((prev) => prev.filter((t) => t.subcategory !== name));
+    const { error } = await supabase.from('parenting_tips').delete().eq('subcategory', name);
+    if (error) console.error('[family] delete tip cat error:', error);
+    fetchAll();
+  };
 
   const saveTodo = async (data: Omit<ParentingTodo, 'id' | 'created_at' | 'created_by'>) => {
     await supabase.from('parenting_todo').insert({ ...data, created_by: currentUser });
@@ -1378,6 +1488,7 @@ export default function FamilyPage() {
         <ParentingSection tips={tips} todos={todos} currentUser={currentUser}
           onSaveTip={saveTip} onUpdateTip={updateTip}
           onDeleteTip={(id) => supabase.from('parenting_tips').delete().eq('id', id).then(fetchAll)}
+          onRenameTipCat={renameTipCat} onDeleteTipCat={deleteTipCat}
           onSaveTodo={saveTodo} onUpdateTodo={updateTodo}
           onDeleteTodo={(id) => supabase.from('parenting_todo').delete().eq('id', id).then(fetchAll)} />
 
