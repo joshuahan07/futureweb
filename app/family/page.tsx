@@ -13,7 +13,7 @@ import { Star, Trash2, Pencil, Plus, ExternalLink, Check, Bookmark, Heart, X } f
 
 interface BabyName {
   id: string; name: string; meaning: string | null; origin: string | null;
-  vibe_tags: string[]; gender: 'girl' | 'boy' | 'neutral'; notes: string | null;
+  vibe_tags: string[]; gender: 'girl' | 'boy'; notes: string | null;
   joshua_loves: boolean; sophie_loves: boolean; created_by: string | null; created_at: string;
 }
 interface ParentingTip {
@@ -65,11 +65,10 @@ function NameCard({ n, onLove, onEdit, onDelete, currentUser }: {
   onEdit: () => void; onDelete: () => void; currentUser: string | null;
 }) {
   const both = n.joshua_loves && n.sophie_loves;
-  const tint = n.gender === 'girl' ? 'from-rose-50 via-pink-50/60 to-white/80' :
-               n.gender === 'boy' ? 'from-emerald-50 via-teal-50/60 to-white/80' :
-               'from-amber-50 via-yellow-50/60 to-white/80';
-  const borderTint = n.gender === 'girl' ? 'border-rose-100/70' :
-                     n.gender === 'boy' ? 'border-emerald-100/70' : 'border-amber-100/70';
+  const tint = n.gender === 'girl'
+    ? 'from-rose-50 via-pink-50/60 to-white/80'
+    : 'from-emerald-50 via-teal-50/60 to-white/80';
+  const borderTint = n.gender === 'girl' ? 'border-rose-100/70' : 'border-emerald-100/70';
   return (
     <motion.div layout initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
       className={`relative rounded-3xl p-5 bg-gradient-to-br ${tint} border overflow-hidden group transition-all ${
@@ -150,7 +149,6 @@ function NameModal({ name, onClose, onSave }: {
               className="w-full px-2 py-2 rounded-lg border border-border bg-surface text-sm focus:outline-none focus:border-mauve/40">
               <option value="girl">Girl</option>
               <option value="boy">Boy</option>
-              <option value="neutral">Neutral</option>
             </select>
           </div>
           <div>
@@ -177,12 +175,12 @@ function BabyNamesSection({ names, currentUser, onSave, onDelete, onLove }: {
 }) {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<BabyName | null>(null);
-  const [filter, setFilter] = useState<'all' | 'girl' | 'boy' | 'neutral' | 'both' | 'joshua' | 'sophie'>('all');
+  const [filter, setFilter] = useState<'all' | 'girl' | 'boy' | 'both' | 'joshua' | 'sophie'>('all');
   const [sort, setSort] = useState<'alpha' | 'recent' | 'loved'>('alpha');
 
   const filtered = useMemo(() => {
     let res = [...names];
-    if (filter === 'girl' || filter === 'boy' || filter === 'neutral') res = res.filter((n) => n.gender === filter);
+    if (filter === 'girl' || filter === 'boy') res = res.filter((n) => n.gender === filter);
     else if (filter === 'both') res = res.filter((n) => n.joshua_loves && n.sophie_loves);
     else if (filter === 'joshua') res = res.filter((n) => n.joshua_loves);
     else if (filter === 'sophie') res = res.filter((n) => n.sophie_loves);
@@ -194,7 +192,6 @@ function BabyNamesSection({ names, currentUser, onSave, onDelete, onLove }: {
 
   const girls = filtered.filter((n) => n.gender === 'girl');
   const boys = filtered.filter((n) => n.gender === 'boy');
-  const neutral = filtered.filter((n) => n.gender === 'neutral');
   const bothCount = names.filter((n) => n.joshua_loves && n.sophie_loves).length;
 
   return (
@@ -234,7 +231,7 @@ function BabyNamesSection({ names, currentUser, onSave, onDelete, onLove }: {
       {/* Filters */}
       <div className="flex flex-wrap gap-2 mb-5">
         {([
-          ['all', 'All'], ['girl', 'Girl'], ['boy', 'Boy'], ['neutral', 'Neutral'],
+          ['all', 'All'], ['girl', 'Girl'], ['boy', 'Boy'],
           ['both', '✦ Both love'], ['joshua', 'Joshua\u2019s'], ['sophie', 'Sophie\u2019s'],
         ] as const).map(([k, l]) => (
           <button key={k} onClick={() => setFilter(k)}
@@ -298,32 +295,6 @@ function BabyNamesSection({ names, currentUser, onSave, onDelete, onLove }: {
           </div>
         </div>
       </div>
-
-      {/* Neutral */}
-      {(neutral.length > 0 || filter === 'all' || filter === 'neutral') && (
-        <div>
-          <div className="flex items-center gap-2 mb-3 px-1">
-            <span className="w-2 h-2 rounded-full bg-amber-400" />
-            <h3 className="font-heading italic text-base text-amber-700">Gender Neutral</h3>
-            <span className="text-[11px] text-amber-700/60 bg-amber-100 px-2 py-0.5 rounded-full font-medium">{neutral.length}</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <AnimatePresence>
-              {neutral.map((n) => (
-                <NameCard key={n.id} n={n} currentUser={currentUser}
-                  onLove={(who, v) => onLove(n.id, who, v)}
-                  onEdit={() => { setEditing(n); setShowModal(true); }}
-                  onDelete={() => { if (confirm(`Delete "${n.name}"?`)) onDelete(n.id); }} />
-              ))}
-            </AnimatePresence>
-            {neutral.length === 0 && (
-              <div className="col-span-2 border-2 border-dashed border-amber-100 rounded-2xl py-8 text-center text-xs text-amber-400 italic">
-                ✦ No neutral names yet
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {showModal && (
         <NameModal name={editing} onClose={() => { setShowModal(false); setEditing(null); }}
